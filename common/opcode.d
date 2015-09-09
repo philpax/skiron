@@ -21,6 +21,8 @@ struct Opcode
 	}
 }
 
+static assert(Opcode.sizeof == uint.sizeof);
+
 enum Encoding
 {
 	A, // dst, src1, src2
