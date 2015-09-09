@@ -51,3 +51,17 @@ enum Opcodes
 	Or    = OpcodeDescriptor("or",    0x0A, Encoding.A),
 	Xor   = OpcodeDescriptor("xor",   0x0B, Encoding.A),
 }
+
+unittest
+{
+	Opcode opcode;
+	opcode.opcode = Opcodes.Load.opcode;
+	opcode.register1 = 0;
+	opcode.register2 = 1;
+	opcode.register3 = 2;
+
+	assert(opcode.opcode == Opcodes.Load.opcode);
+	assert(opcode.register1 == 0);
+	assert(opcode.register2 == 1);
+	assert(opcode.register3 == 2);
+}

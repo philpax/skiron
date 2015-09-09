@@ -1,5 +1,5 @@
 solution "skiron"
-	configurations { "release", "debug" }
+	configurations { "release", "debug", "unittest" }
 
 	project "emulator"
 		kind "ConsoleApp"
@@ -8,3 +8,6 @@ solution "skiron"
 		debugdir "bin"
 
 		files { "common/**.d", "emulator/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
