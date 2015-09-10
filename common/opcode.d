@@ -30,29 +30,38 @@ enum Encoding
 	B  // dst, imm17
 }
 
+// Not the same as encoding; dictates how many operands there are
+enum OperandFormat
+{
+	DstSrc,
+	DstSrcSrc,
+	DstImm
+}
+
 struct OpcodeDescriptor
 {
 	string name;
 	ubyte opcode;
 	Encoding encoding;
+	OperandFormat operandFormat;
 }
 
 enum Opcodes
 {
-	Load	= OpcodeDescriptor("load",		0x00, Encoding.A),
-	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A),
-	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B),
-	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B),
-	Move	= OpcodeDescriptor("move",		0x04, Encoding.A),
-	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A),
-	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B),
-	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A),
-	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A),
-	Div		= OpcodeDescriptor("div",		0x09, Encoding.A),
-	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A),
-	And		= OpcodeDescriptor("and",		0x0B, Encoding.A),
-	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A),
-	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A),
+	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, OperandFormat.DstSrc),
+	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, OperandFormat.DstSrc),
+	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, OperandFormat.DstImm),
+	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, OperandFormat.DstImm),
+	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, OperandFormat.DstSrc),
+	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, OperandFormat.DstSrcSrc),
+	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, OperandFormat.DstImm),
+	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, OperandFormat.DstSrcSrc),
+	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A, OperandFormat.DstSrcSrc),
+	Div		= OpcodeDescriptor("div",		0x09, Encoding.A, OperandFormat.DstSrcSrc),
+	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A, OperandFormat.DstSrc),
+	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, OperandFormat.DstSrcSrc),
+	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, OperandFormat.DstSrcSrc),
+	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, OperandFormat.DstSrcSrc),
 }
 
 unittest
