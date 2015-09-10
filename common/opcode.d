@@ -16,7 +16,9 @@ struct Opcode
 		mixin(bitfields!(
 			ubyte, "", 8,
 			ubyte, "", 7,
-			ubyte, "immediate", 17));
+			int, "immediate", 17));
+
+		uint value;
 	}
 }
 
