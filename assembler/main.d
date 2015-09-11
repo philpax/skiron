@@ -25,15 +25,24 @@ Token[] tokenise(string input)
 {
 	Token[] tokens;
 	Token currentToken;
+
+	void completeToken()
+	{
+		if (currentToken.text.length == 0)
+			return;
+
+		if (currentToken.type == Token.Type.Number)
+			currentToken.number = currentToken.text.to!int();
+
+		tokens ~= currentToken;
+		currentToken = Token();
+	}
+
 	foreach (c; input)
 	{
-		if (c.isWhite() && currentToken.text.length > 0)
+		if (c.isWhite())
 		{
-			if (currentToken.type == Token.Type.Number)
-				currentToken.number = currentToken.text.to!int();
-
-			tokens ~= currentToken;
-			currentToken = Token();
+			completeToken();
 		}
 		else if (currentToken.text.length == 0 && (c.isDigit() || c == '-'))
 		{
@@ -50,6 +59,7 @@ Token[] tokenise(string input)
 			currentToken.text ~= c;
 		}
 	}
+	completeToken();
 
 	return tokens;
 }
