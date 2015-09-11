@@ -149,6 +149,22 @@ bool assembleDstImm(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, 
 	return true;
 }
 
+bool assembleNone(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
+{
+	if (tokens.length < 1)
+		return false;
+
+	Opcode opcode;
+	opcode.opcode = descriptor.opcode;
+	opcode.register1 = 0;
+	opcode.immediate = 0;
+
+	output ~= opcode.value;
+
+	tokens = tokens[1..$];
+	return true;
+}
+
 uint[] assemble(Token[] tokens)
 {
 	uint[] output;
@@ -182,6 +198,14 @@ uint[] assemble(Token[] tokens)
 				else if (descriptor.operandFormat == OperandFormat.DstImm)
 				{
 					if (tokens.assembleDstImm(descriptor, output))
+					{
+						foundMatching = true;
+						break;
+					}
+				}
+				else if (descriptor.operandFormat == OperandFormat.None)
+				{
+					if (tokens.assembleNone(descriptor, output))
 					{
 						foundMatching = true;
 						break;

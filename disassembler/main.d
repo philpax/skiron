@@ -59,6 +59,9 @@ void main(string[] args)
 			write(", ");
 			write(opcode.immediate.to!string());
 		}
+		else if (descriptor.operandFormat == OperandFormat.None)
+		{
+		}
 		else
 		{
 			assert(0);

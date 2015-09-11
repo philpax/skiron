@@ -35,7 +35,8 @@ enum OperandFormat
 {
 	DstSrc,
 	DstSrcSrc,
-	DstImm
+	DstImm,
+	None
 }
 
 struct OpcodeDescriptor
@@ -62,6 +63,7 @@ enum Opcodes
 	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, OperandFormat.DstSrcSrc),
 	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, OperandFormat.DstSrcSrc),
 	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, OperandFormat.DstSrcSrc),
+	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, OperandFormat.None),
 }
 
 unittest
