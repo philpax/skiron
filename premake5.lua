@@ -22,3 +22,14 @@ solution "skiron"
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
+
+	project "disassembler"
+		kind "ConsoleApp"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+
+		files { "common/**.d", "disassembler/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
