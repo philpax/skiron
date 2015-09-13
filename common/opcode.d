@@ -49,11 +49,13 @@ struct OpcodeDescriptor
 
 enum Opcodes
 {
+	// Memory
 	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, OperandFormat.DstSrc),
 	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, OperandFormat.DstSrc),
 	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, OperandFormat.DstImm),
 	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, OperandFormat.DstImm),
 	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, OperandFormat.DstSrc),
+	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, OperandFormat.DstSrcSrc),
 	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, OperandFormat.DstImm),
 	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, OperandFormat.DstSrcSrc),
@@ -63,6 +65,7 @@ enum Opcodes
 	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, OperandFormat.DstSrcSrc),
 	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, OperandFormat.DstSrcSrc),
 	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, OperandFormat.DstSrcSrc),
+	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, OperandFormat.None),
 }
 
