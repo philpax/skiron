@@ -87,9 +87,17 @@ nothrow:
 	}
 }
 
-ref uint getDst(ref State state, Opcode opcode)
+uint getDst(ref State state, Opcode opcode)
 {
 	return state.registers[opcode.register1];
+}
+
+void setDst(ref State state, Opcode opcode, uint value)
+{
+	if (opcode.register1 == Register.Z)
+		return;
+	else
+		state.registers[opcode.register1] = value;
 }
 
 ref uint getSrc1(ref State state, Opcode opcode)
