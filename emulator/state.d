@@ -17,14 +17,18 @@ string generateOpcodeSwitch()
 	s ~= "{\n";
 	foreach (member; EnumMembers!Opcodes)
 	{
-		auto memberName = member.to!string();
 		s ~= format(
 `case Opcodes.%s.opcode:
+	auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
 	if (printOpcodes)
-		printf("%%i: %%s\n", this.ip, "%s".ptr);
-	this.run%s(Opcode(*cast(uint*)&this.memory[this.ip]));
+	{
+		char[64] buffer;
+		auto inst = opcode.disassemble(buffer);
+		printf("%%i: %%.*s\n", this.ip, inst.length, inst.ptr);
+	}
+	this.run%s(opcode);
 	break;
-`,		memberName, member.name, memberName);
+`,		member.to!string(), member.to!string());
 	}
 	s ~= "}\n";
 	return s;
