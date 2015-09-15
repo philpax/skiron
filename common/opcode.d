@@ -82,3 +82,91 @@ unittest
 	assert(opcode.register2 == 1);
 	assert(opcode.register3 == 2);
 }
+
+string generateOpcodeToDescriptor()
+{
+	import std.traits, std.string, std.conv;
+
+	string ret =
+`final switch (opcode)
+{
+`;
+
+	foreach (member; EnumMembers!Opcodes)
+		ret ~= "case Opcodes.%s.opcode: return Opcodes.%s;\n".format(
+			member.to!string(), member.to!string());
+
+	ret ~= `}`;
+
+	return ret;
+}
+
+
+OpcodeDescriptor opcodeToDescriptor(ubyte opcode) @nogc nothrow
+{
+	mixin(generateOpcodeToDescriptor());
+}
+
+char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
+{
+	import common.cpu : registerName;
+	import core.stdc.stdio : snprintf;
+
+	char[16][3] buffers;
+
+	auto descriptor = opcode.opcode.opcodeToDescriptor();
+	final switch (descriptor.operandFormat)
+	{
+	case OperandFormat.DstSrc:
+		auto reg1 = opcode.register1.registerName(buffers[0]);
+		auto reg2 = opcode.register2.registerName(buffers[1]);
+
+		auto length =
+			snprintf(output.ptr, output.length, "%.*s %.*s, %.*s",
+				descriptor.name.length, descriptor.name.ptr,
+				reg1.length, reg1.ptr, reg2.length, reg2.ptr);
+
+		return output[0..length];
+	case OperandFormat.DstSrcSrc:
+		auto reg1 = opcode.register1.registerName(buffers[0]);
+		auto reg2 = opcode.register2.registerName(buffers[1]);
+		auto reg3 = opcode.register2.registerName(buffers[2]);
+
+		auto length =
+			snprintf(output.ptr, output.length, "%.*s %.*s, %.*s, %.*s",
+				descriptor.name.length, descriptor.name.ptr,
+				reg1.length, reg1.ptr, reg2.length, reg2.ptr, reg3.length, reg3.ptr);
+
+		return output[0..length];
+	case OperandFormat.DstImm:
+		auto reg1 = opcode.register1.registerName(buffers[0]);
+
+		auto length =
+			snprintf(output.ptr, output.length, "%.*s %.*s, %i",
+				descriptor.name.length, descriptor.name.ptr,
+				reg1.length, reg1.ptr, opcode.immediate);
+
+		return output[0..length];
+	case OperandFormat.None:
+		auto length =
+			snprintf(output.ptr, output.length, "%.*s",
+				descriptor.name.length, descriptor.name.ptr);
+
+		return output[0..length];
+	}
+
+	return output;
+}
+
+unittest
+{
+	Opcode opcode;
+	opcode.opcode = Opcodes.Load.opcode;
+	opcode.register1 = 0;
+	opcode.register2 = 1;
+
+	char[64] buffer;
+	auto slice = opcode.disassemble(buffer);
+
+	assert(slice == "load r0, r1");
+}
