@@ -20,11 +20,11 @@ string generateOpcodeSwitch()
 		s ~= format(
 `case Opcodes.%s.opcode:
 	auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
-	if (printOpcodes)
+	if (this.printOpcodes)
 	{
 		char[64] buffer;
 		auto inst = opcode.disassemble(buffer);
-		printf("%%i: %%.*s\n", this.ip, inst.length, inst.ptr);
+		printf("C%%i %%i: %%.*s\n", this.id, this.ip, inst.length, inst.ptr);
 	}
 	this.run%s(opcode);
 	break;
@@ -37,26 +37,24 @@ string generateOpcodeSwitch()
 @nogc:
 nothrow:
 
-struct State
+struct Core
 {
 @nogc:
 nothrow:
-	uint[RegisterCount] registers;
+	State* state;
 	ubyte[] memory;
+	uint[RegisterCount] registers;
 	bool running = true;
 	bool printOpcodes = true;
 	bool printRegisters = true;
+	uint id;
 
 	@disable this();
-
-	this(uint memorySize)
+	this(ref State state, uint id)
 	{
-		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
-	}
-
-	~this()
-	{
-		free(this.memory.ptr);
+		this.state = &state;
+		this.memory = state.memory;
+		this.id = id;
 	}
 
 	@property ref uint ip()
@@ -74,44 +72,84 @@ nothrow:
 		return this.registers[Register.BP];
 	}
 
+	void step()
+	{
+		mixin(generateOpcodeSwitch());
+		if (this.printRegisters)
+		{
+			printf("C%i ", this.id);
+			foreach (register; registers)
+				printf("%i ", register);
+
+			printf("\n");
+		}
+		this.ip += uint.sizeof;
+	}
+}
+
+struct State
+{
+@nogc:
+nothrow:
+	ubyte[] memory;
+	Core[] cores;
+
+	@disable this();
+
+	this(uint memorySize, uint coreCount)
+	{
+		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
+		this.cores = (cast(Core*)malloc(coreCount * Core.sizeof))[0..coreCount];
+
+		uint index = 0;
+		foreach (ref core; this.cores)
+		{
+			core = Core(this, index++);
+		}
+	}
+
+	~this()
+	{
+		//foreach (ref core; this.cores)
+		//	destroy(core);
+
+		free(this.cores.ptr);
+		free(this.memory.ptr);
+	}
+
 	void run()
 	{
-		while (running)
-		{
-			mixin(generateOpcodeSwitch());
-			if (this.printRegisters)
-			{
-				foreach (register; registers)
-					printf("%i ", register);
+		import std.algorithm;
 
-				printf("\n");
-			}
-			this.ip += uint.sizeof;
+		while (this.cores.any!(a => a.running))
+		{
+			foreach (ref core; this.cores)
+				core.step();
 		}
 	}
 }
 
-uint getDst(ref State state, Opcode opcode)
+uint getDst(ref Core core, Opcode opcode)
 {
-	return state.registers[opcode.register1];
+	return core.registers[opcode.register1];
 }
 
-void setDst(ref State state, Opcode opcode, uint value)
+void setDst(ref Core core, Opcode opcode, uint value)
 {
 	if (opcode.register1 == Register.Z)
 		return;
 	else
-		state.registers[opcode.register1] = value;
+		core.registers[opcode.register1] = value;
 }
 
-ref uint getSrc1(ref State state, Opcode opcode)
+ref uint getSrc1(ref Core core, Opcode opcode)
 {
-	return state.registers[opcode.register2];
+	return core.registers[opcode.register2];
 }
 
 alias getSrc = getSrc1;
 
-ref uint getSrc2(ref State state, Opcode opcode)
+ref uint getSrc2(ref Core core, Opcode opcode)
 {
-	return state.registers[opcode.register2];
+	return core.registers[opcode.register2];
 }

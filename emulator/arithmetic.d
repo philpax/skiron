@@ -5,47 +5,47 @@ import emulator.state;
 @nogc:
 nothrow:
 
-void runAddA(ref State state, Opcode opcode)
+void runAddA(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) + state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) + core.getSrc2(opcode));
 }
 
-void runAddB(ref State state, Opcode opcode)
+void runAddB(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getDst(opcode) + opcode.immediate);
+	core.setDst(opcode, core.getDst(opcode) + opcode.immediate);
 }
 
-void runSub(ref State state, Opcode opcode)
+void runSub(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) - state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) - core.getSrc2(opcode));
 }
 
-void runMul(ref State state, Opcode opcode)
+void runMul(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) * state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) * core.getSrc2(opcode));
 }
 
-void runDiv(ref State state, Opcode opcode)
+void runDiv(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) / state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) / core.getSrc2(opcode));
 }
 
-void runNot(ref State state, Opcode opcode)
+void runNot(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, ~state.getSrc(opcode));
+	core.setDst(opcode, ~core.getSrc(opcode));
 }
 
-void runAnd(ref State state, Opcode opcode)
+void runAnd(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) & state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) & core.getSrc2(opcode));
 }
 
-void runOr(ref State state, Opcode opcode)
+void runOr(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) | state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) | core.getSrc2(opcode));
 }
 
-void runXor(ref State state, Opcode opcode)
+void runXor(ref Core core, Opcode opcode)
 {
-	state.setDst(opcode, state.getSrc1(opcode) ^ state.getSrc2(opcode));
+	core.setDst(opcode, core.getSrc1(opcode) ^ core.getSrc2(opcode));
 }

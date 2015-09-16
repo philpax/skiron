@@ -41,9 +41,8 @@ void main(string[] args)
 	auto fileSize = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	auto state = State(1024 * 1024);
+	auto state = State(1024 * 1024, 4);
 	fread(state.memory.ptr, fileSize, 1, file);
 
-	state.ip = 0;
 	state.run();
 }

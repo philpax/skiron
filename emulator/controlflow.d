@@ -5,7 +5,7 @@ import emulator.state;
 @nogc:
 nothrow:
 
-void runHalt(ref State state, Opcode opcode)
+void runHalt(ref Core core, Opcode opcode)
 {
-	state.running = false;
+	core.running = false;
 }
