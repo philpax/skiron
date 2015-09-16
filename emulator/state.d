@@ -57,6 +57,8 @@ nothrow:
 		this.id = id;
 	}
 
+	~this() {}
+
 	@property ref uint ip()
 	{
 		return this.registers[Register.IP];
@@ -110,8 +112,8 @@ nothrow:
 
 	~this()
 	{
-		//foreach (ref core; this.cores)
-		//	destroy(core);
+		foreach (ref core; this.cores)
+			core.__dtor();
 
 		free(this.cores.ptr);
 		free(this.memory.ptr);
