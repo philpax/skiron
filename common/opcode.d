@@ -137,7 +137,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	case OperandFormat.DstSrcSrc:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
-		auto reg3 = opcode.register2.registerName(buffers[2]);
+		auto reg3 = opcode.register3.registerName(buffers[2]);
 
 		string sizePrefix;
 		final switch (cast(OperandSize)opcode.x)
