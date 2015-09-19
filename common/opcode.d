@@ -24,6 +24,13 @@ struct Opcode
 
 static assert(Opcode.sizeof == uint.sizeof);
 
+enum OperandSize
+{
+	Byte,
+	Dbyte,
+	Qbyte
+}
+
 enum Encoding
 {
 	A, // dst, src1, src2
@@ -132,9 +139,24 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 		auto reg3 = opcode.register2.registerName(buffers[2]);
 
+		string sizePrefix;
+		final switch (cast(OperandSize)opcode.x)
+		{
+		case OperandSize.Byte:
+			sizePrefix = "byte";
+			break;
+		case OperandSize.Dbyte:
+			sizePrefix = "dbyte";
+			break;
+		case OperandSize.Qbyte:
+			sizePrefix = "qbyte";
+			break;
+		}
+
 		auto length =
-			snprintf(output.ptr, output.length, "%.*s %.*s, %.*s, %.*s",
+			snprintf(output.ptr, output.length, "%.*s %.*s %.*s, %.*s, %.*s",
 				descriptor.name.length, descriptor.name.ptr,
+				sizePrefix.length, sizePrefix.ptr,
 				reg1.length, reg1.ptr, reg2.length, reg2.ptr, reg3.length, reg3.ptr);
 
 		return output[0..length];

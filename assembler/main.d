@@ -16,7 +16,10 @@ struct Token
 	enum Type
 	{
 		Identifier,
-		Number
+		Number,
+		Byte,
+		Dbyte,
+		Qbyte
 	}
 
 	Type type;
@@ -38,6 +41,15 @@ Token[] tokenise(string input)
 
 		if (currentToken.type == Token.Type.Number)
 			currentToken.number = currentToken.text.to!int();
+		else if (currentToken.type == Token.Type.Identifier)
+		{
+			if (currentToken.text == "byte")
+				currentToken.type = Token.Type.Byte;
+			else if (currentToken.text == "dbyte")
+				currentToken.type = Token.Type.Dbyte;
+			else if (currentToken.text == "qbyte")
+				currentToken.type = Token.Type.Qbyte;
+		}
 
 		tokens ~= currentToken;
 		currentToken = Token();
@@ -100,6 +112,31 @@ int parseNumber(ref Token[] tokens)
 	return token.number;
 }
 
+OperandSize parseSizePrefix(ref Token[] tokens)
+{
+	auto token = tokens.front;
+
+	if (token.type == Token.Type.Byte)
+	{
+		tokens.popFront();
+		return OperandSize.Byte;
+	}
+	else if (token.type == Token.Type.Dbyte)
+	{
+		tokens.popFront();
+		return OperandSize.Dbyte;
+	}
+	else if (token.type == Token.Type.Qbyte)
+	{
+		tokens.popFront();
+		return OperandSize.Qbyte;
+	}
+	else
+	{
+		return OperandSize.Qbyte;
+	}
+}
+
 bool assembleDstSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
 {
 	auto newTokens = tokens;
@@ -127,6 +164,7 @@ bool assembleDstSrcSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descripto
 
 	Opcode opcode;
 	opcode.opcode = descriptor.opcode;
+	opcode.x = cast(ubyte)newTokens.parseSizePrefix();
 	try
 	{
 		opcode.register1 = newTokens.parseRegister();
