@@ -153,5 +153,5 @@ alias getSrc = getSrc1;
 
 ref uint getSrc2(ref Core core, Opcode opcode)
 {
-	return core.registers[opcode.register2];
+	return core.registers[opcode.register3];
 }
