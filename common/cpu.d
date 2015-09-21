@@ -1,16 +1,16 @@
 module common.cpu;
 
-enum RegisterCount = 64;
+enum RegisterCount = (1 << 7);
 enum Register
 {
 	// Zero register (always 0)
-	Z = 60,
+	Z = RegisterCount-4,
 	// Stack base pointer
-	BP = 61,
+	BP = RegisterCount-3,
 	// Stack top pointer
-	SP = 62,
+	SP = RegisterCount-2,
 	// Instruction pointer
-	IP = 63
+	IP = RegisterCount-1
 }
 
 char[] registerName(ubyte index, char[] buffer) @nogc nothrow
