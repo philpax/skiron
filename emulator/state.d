@@ -131,27 +131,27 @@ nothrow:
 	}
 }
 
-uint getDst(ref Core core, Opcode opcode)
+Type getDst(Type = uint)(ref Core core, Opcode opcode)
 {
-	return core.registers[opcode.register1];
+	return cast(Type)core.registers[opcode.register1];
 }
 
-void setDst(ref Core core, Opcode opcode, uint value)
+void setDst(Type = uint)(ref Core core, Opcode opcode, Type value)
 {
 	if (opcode.register1 == Register.Z)
 		return;
 	else
-		core.registers[opcode.register1] = value;
+		*cast(Type*)&core.registers[opcode.register1] = value;
 }
 
-ref uint getSrc1(ref Core core, Opcode opcode)
+Type getSrc1(Type = uint)(ref Core core, Opcode opcode)
 {
-	return core.registers[opcode.register2];
+	return cast(Type)core.registers[opcode.register2];
 }
 
 alias getSrc = getSrc1;
 
-ref uint getSrc2(ref Core core, Opcode opcode)
+Type getSrc2(Type = uint)(ref Core core, Opcode opcode)
 {
-	return core.registers[opcode.register3];
+	return cast(Type)core.registers[opcode.register3];
 }
