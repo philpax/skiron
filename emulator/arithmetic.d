@@ -5,9 +5,9 @@ import emulator.state;
 @nogc:
 nothrow:
 
-void runAddA(ref Core core, Opcode opcode)
+void runAddA(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) + core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) + core.getSrc2!Type(opcode));
 }
 
 void runAddB(ref Core core, Opcode opcode)
@@ -15,19 +15,19 @@ void runAddB(ref Core core, Opcode opcode)
 	core.setDst(opcode, core.getDst(opcode) + opcode.immediate);
 }
 
-void runSub(ref Core core, Opcode opcode)
+void runSub(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) - core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) - core.getSrc2!Type(opcode));
 }
 
-void runMul(ref Core core, Opcode opcode)
+void runMul(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) * core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) * core.getSrc2!Type(opcode));
 }
 
-void runDiv(ref Core core, Opcode opcode)
+void runDiv(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) / core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) / core.getSrc2!Type(opcode));
 }
 
 void runNot(ref Core core, Opcode opcode)
@@ -35,17 +35,17 @@ void runNot(ref Core core, Opcode opcode)
 	core.setDst(opcode, ~core.getSrc(opcode));
 }
 
-void runAnd(ref Core core, Opcode opcode)
+void runAnd(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) & core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) & core.getSrc2!Type(opcode));
 }
 
-void runOr(ref Core core, Opcode opcode)
+void runOr(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) | core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) | core.getSrc2!Type(opcode));
 }
 
-void runXor(ref Core core, Opcode opcode)
+void runXor(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) ^ core.getSrc2(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) ^ core.getSrc2!Type(opcode));
 }

@@ -13,22 +13,50 @@ import core.stdc.stdio;
 string generateOpcodeSwitch()
 {
 	import std.traits, std.string, std.conv;
-	string s = "final switch (this.memory[this.ip])\n";
-	s ~= "{\n";
+	string s = 
+`auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
+
+if (this.printOpcodes)
+{
+	char[64] buffer;
+	auto inst = opcode.disassemble(buffer);
+	printf("C%i %i: %.*s\n", this.id, this.ip, inst.length, inst.ptr);
+}
+
+final switch (opcode.opcode)
+{
+`;
 	foreach (member; EnumMembers!Opcodes)
 	{
-		s ~= format(
-`case Opcodes.%s.opcode:
-	auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
-	if (this.printOpcodes)
+		if (member.operandFormat == OperandFormat.DstSrcSrc)
+		{
+			s ~= format(
+`case Opcodes.%1$s.opcode:
+	final switch (cast(OperandSize)opcode.x)
 	{
-		char[64] buffer;
-		auto inst = opcode.disassemble(buffer);
-		printf("C%%i %%i: %%.*s\n", this.id, this.ip, inst.length, inst.ptr);
+		case OperandSize.Byte:
+			this.run%1$s!ubyte(opcode);
+			break;
+		case OperandSize.Dbyte:
+			this.run%1$s!ushort(opcode);
+			break;
+		case OperandSize.Qbyte:
+			this.run%1$s!uint(opcode);
+			break;
 	}
-	this.run%s(opcode);
 	break;
-`,		member.to!string(), member.to!string());
+`, 
+			member.to!string());
+		}
+		else
+		{
+			s ~= format(
+`case Opcodes.%1$s.opcode:
+	this.run%1$s(opcode);
+	break;
+`, 
+			member.to!string());
+		}
 	}
 	s ~= "}\n";
 	return s;
@@ -136,12 +164,12 @@ Type getDst(Type = uint)(ref Core core, Opcode opcode)
 	return cast(Type)core.registers[opcode.register1];
 }
 
-void setDst(Type = uint)(ref Core core, Opcode opcode, Type value)
+void setDst(Type = uint, IncomingType)(ref Core core, Opcode opcode, IncomingType value)
 {
 	if (opcode.register1 == Register.Z)
 		return;
 	else
-		*cast(Type*)&core.registers[opcode.register1] = value;
+		*cast(Type*)&core.registers[opcode.register1] = cast(Type)value;
 }
 
 Type getSrc1(Type = uint)(ref Core core, Opcode opcode)
