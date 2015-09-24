@@ -10,6 +10,7 @@ import emulator.controlflow;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 
+
 string generateOpcodeSwitch()
 {
 	import std.traits, std.string, std.conv;
@@ -104,16 +105,32 @@ nothrow:
 
 	void step()
 	{
+		uint[RegisterCount] oldRegisters = this.registers;
 		mixin(generateOpcodeSwitch());
+		this.ip += uint.sizeof;
 		if (this.printRegisters)
 		{
-			printf("C%i ", this.id);
-			foreach (register; registers)
-				printf("%i ", register);
+			char[8] name;
+			bool first = true;
+			foreach (index; 0..RegisterCount)
+			{
+				auto oldValue = oldRegisters[index];
+				auto newValue = this.registers[index];
+
+				if (oldValue == newValue)
+					continue;
+
+				auto reg = registerName(cast(ubyte)index, name);
+
+				if (!first)
+					printf(", ");
+
+				printf("%.*s %i -> %i", reg.length, reg.ptr, oldValue, newValue);				
+				first = false;
+			}
 
 			printf("\n");
 		}
-		this.ip += uint.sizeof;
 	}
 }
 
