@@ -55,28 +55,40 @@ Token[] tokenise(string input)
 		currentToken = Token();
 	}
 
-	foreach (c; input)
+	bool lexingComment = false;
+	foreach (line; input.lineSplitter)
 	{
-		if (c.isWhite())
+		lexingComment = false;
+		foreach (c; line)
 		{
-			completeToken();
+			if (lexingComment)
+				break;
+
+			if (c.isWhite())
+			{
+				completeToken();
+			}
+			else if (c == '#')
+			{
+				lexingComment = true;
+			}
+			else if (currentToken.text.length == 0 && (c.isDigit() || c == '-'))
+			{
+				currentToken.type = Token.Type.Number;
+				currentToken.text ~= c;
+			}
+			else if (currentToken.type == Token.Type.Number)
+			{
+				enforce(c.isDigit(), "Expected a number while lexing %s; got %s".format(currentToken.to!string(), c));
+				currentToken.text ~= c;
+			}
+			else if (currentToken.type == Token.Type.Identifier && c.isAlphaNum())
+			{
+				currentToken.text ~= c;
+			}
 		}
-		else if (currentToken.text.length == 0 && (c.isDigit() || c == '-'))
-		{
-			currentToken.type = Token.Type.Number;
-			currentToken.text ~= c;
-		}
-		else if (currentToken.type == Token.Type.Number)
-		{
-			enforce(c.isDigit(), "Expected a number while lexing %s; got %s".format(currentToken.to!string(), c));
-			currentToken.text ~= c;
-		}
-		else if (currentToken.type == Token.Type.Identifier && c.isAlphaNum())
-		{
-			currentToken.text ~= c;
-		}
+		completeToken();
 	}
-	completeToken();
 
 	return tokens;
 }
