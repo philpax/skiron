@@ -1,0 +1,11 @@
+# Load zero into registers
+move r0, z
+move r1, z
+# Load values into registers
+loadli r0, 32
+loadli r1, 18
+loadli z, 64
+# Multiply registers, and halt
+mul byte r2, r0, r1
+halt
+# Done!
