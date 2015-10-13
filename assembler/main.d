@@ -7,6 +7,7 @@ import std.conv;
 import std.traits;
 import std.algorithm;
 import std.array;
+import std.path;
 
 import common.opcode;
 import common.cpu;
@@ -283,8 +284,11 @@ uint[] assemble(Token[] tokens)
 
 void main(string[] args)
 {
-	enforce(args.length >= 3, "Expected at least two arguments");
-	auto input = args[1].readText();
+	enforce(args.length >= 2, "Expected at least one argument");
+	string inputPath = args[1];
+	string outputPath = args.length >= 3 ? args[2] : inputPath.setExtension("bin");
+
+	auto input = inputPath.readText();
 
 	foreach (member; EnumMembers!Opcodes)
 		descriptors[member.name] ~= member;
@@ -292,5 +296,5 @@ void main(string[] args)
 	auto tokens = input.tokenise();
 	auto output = tokens.assemble();
 
-	std.file.write(args[2], output);
+	std.file.write(outputPath, output);
 }
