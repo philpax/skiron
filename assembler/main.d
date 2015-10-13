@@ -286,6 +286,7 @@ void main(string[] args)
 {
 	enforce(args.length >= 2, "Expected at least one argument");
 	string inputPath = args[1];
+	enforce(inputPath.exists(), "assembler: %s: No such file or directory".format(inputPath));
 	string outputPath = args.length >= 3 ? args[2] : inputPath.setExtension("bin");
 
 	auto input = inputPath.readText();
