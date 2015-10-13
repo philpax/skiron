@@ -9,6 +9,8 @@ import std.algorithm;
 import std.array;
 import std.path;
 
+import core.stdc.stdlib;
+
 import common.opcode;
 import common.cpu;
 
@@ -23,6 +25,10 @@ struct Token
 		Qbyte
 	}
 
+	string fileName;
+	int lineNumber;
+	int column;
+
 	Type type;
 	string text;
 	int number;
@@ -30,10 +36,39 @@ struct Token
 
 OpcodeDescriptor[][string] descriptors;
 
-Token[] tokenise(string input)
+void error(Args...)(string text, auto ref Args args)
+{
+	writefln(text, args);
+	exit(EXIT_FAILURE);
+}
+
+void errorIf(Args...)(bool condition, auto ref Args args)
+{
+	if (condition)
+		error(args);
+}
+
+void error(Args...)(ref Token token, string text, auto ref Args args)
+{
+	writef("%s[%s,%s]: ", token.fileName, token.lineNumber, token.column);
+	error(text, args);
+}
+
+Token[] tokenise(string input, string fileName)
 {
 	Token[] tokens;
 	Token currentToken;
+
+	int lineNumber = 0;
+	int column = 0;
+
+	void makeToken()
+	{
+		currentToken = Token();
+		currentToken.fileName = fileName;
+	}
+
+	makeToken();
 
 	void completeToken()
 	{
@@ -52,16 +87,24 @@ Token[] tokenise(string input)
 				currentToken.type = Token.Type.Qbyte;
 		}
 
+		currentToken.lineNumber = lineNumber;
+
 		tokens ~= currentToken;
-		currentToken = Token();
+		makeToken();
 	}
 
 	bool lexingComment = false;
 	foreach (line; input.lineSplitter)
 	{
+		++lineNumber;
+		column = 0;
+
 		lexingComment = false;
 		foreach (c; line)
 		{
+			++column;
+			currentToken.column = column;
+
 			if (lexingComment)
 				break;
 
@@ -80,7 +123,8 @@ Token[] tokenise(string input)
 			}
 			else if (currentToken.type == Token.Type.Number)
 			{
-				enforce(c.isDigit(), "Expected a number while lexing %s; got %s".format(currentToken.to!string(), c));
+				if (!c.isDigit())
+					currentToken.error("Expected digit; got `%s`.", c);
 				currentToken.text ~= c;
 			}
 			else if (currentToken.type == Token.Type.Identifier && c.isAlphaNum())
@@ -232,7 +276,9 @@ uint[] assemble(Token[] tokens)
 		if (token.type == Token.Type.Identifier)
 		{
 			auto descriptors = token.text in descriptors;
-			enforce(descriptors, "No matching opcode found for " ~ token.text);
+			if (!descriptors)
+				token.error("No matching opcode found for `%s`.", token.text);
+
 			bool foundMatching = false;
 
 			tokens.popFront();
@@ -271,11 +317,12 @@ uint[] assemble(Token[] tokens)
 					}
 				}
 			}
-			enforce(foundMatching, "No valid overloads for '" ~ token.text ~ "' found");
+			if (!foundMatching)
+				token.error("No valid overloads for `%s` found.", token.text);
 		}
 		else
 		{
-			enforce(false, "Unhandled token: " ~ token.to!string());
+			token.error("Unhandled token: %s.", token.to!string());
 		}
 	}
 
@@ -284,9 +331,9 @@ uint[] assemble(Token[] tokens)
 
 void main(string[] args)
 {
-	enforce(args.length >= 2, "Expected at least one argument");
+	errorIf(args.length < 2, "expected at least one argument");
 	string inputPath = args[1];
-	enforce(inputPath.exists(), "assembler: %s: No such file or directory".format(inputPath));
+	errorIf(!inputPath.exists(), "%s: No such file or directory", inputPath);
 	string outputPath = args.length >= 3 ? args[2] : inputPath.setExtension("bin");
 
 	auto input = inputPath.readText();
@@ -294,7 +341,7 @@ void main(string[] args)
 	foreach (member; EnumMembers!Opcodes)
 		descriptors[member.name] ~= member;
 
-	auto tokens = input.tokenise();
+	auto tokens = input.tokenise(inputPath);
 	auto output = tokens.assemble();
 
 	std.file.write(outputPath, output);
