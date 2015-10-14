@@ -32,6 +32,11 @@ struct Token
 	Type type;
 	string text;
 	int number;
+
+	string toString()
+	{
+		return "%s:%s".format(type, text);
+	}
 }
 
 OpcodeDescriptor[][string] descriptors;
