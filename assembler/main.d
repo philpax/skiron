@@ -288,6 +288,7 @@ bool assembleNone(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, re
 uint[] assemble(Token[] tokens)
 {
 	uint[] output;
+	uint[string] labels;
 	while (!tokens.empty)
 	{
 		auto token = tokens.front;
@@ -338,6 +339,14 @@ uint[] assemble(Token[] tokens)
 			}
 			if (!foundMatching)
 				token.error("No valid overloads for `%s` found.", token.text);
+		}
+		else if (token.type == Token.Type.Label)
+		{
+			auto text = token.text;
+			if (text in labels)
+				token.error("Redefining label `%s`", text);
+			labels[text] = cast(uint)output.length;
+			tokens.popFront();
 		}
 		else
 		{
