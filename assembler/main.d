@@ -100,6 +100,7 @@ Token[] tokenise(string input, string fileName)
 		column = 0;
 
 		lexingComment = false;
+		currentToken.lineNumber = lineNumber;
 		foreach (c; line)
 		{
 			++column;
@@ -130,6 +131,14 @@ Token[] tokenise(string input, string fileName)
 			else if (currentToken.type == Token.Type.Identifier && c.isAlphaNum())
 			{
 				currentToken.text ~= c;
+			}
+			else if (c == ',')
+			{
+				continue;
+			}
+			else
+			{
+				currentToken.error("Invalid character `%s` for token `%s`", c, currentToken.to!string());
 			}
 		}
 		completeToken();
