@@ -20,6 +20,7 @@ struct Token
 	{
 		Identifier,
 		Number,
+		Register,
 		Label,
 		Byte,
 		Dbyte,
@@ -60,6 +61,41 @@ void error(Args...)(ref Token token, string text, auto ref Args args)
 	error(text, args);
 }
 
+void attemptTokeniseRegister(ref Token token)
+{
+	auto t = token.text;
+	if (t == "ip")
+	{
+		token.type = Token.Type.Register;
+		token.number = cast(int)Register.IP;
+		return;
+	}
+	else if (t == "sp")
+	{
+		token.type = Token.Type.Register;
+		token.number = cast(int)Register.SP;
+		return;
+	}
+	else if (t == "bp")
+	{
+		token.type = Token.Type.Register;
+		token.number = cast(int)Register.BP;
+		return;
+	}
+	else if (t == "z")
+	{
+		token.type = Token.Type.Register;
+		token.number = cast(int)Register.Z;
+		return;
+	}
+	else if (t.startsWith("r") && t.length > 1 && t[1..$].all!isDigit)
+	{
+		token.type = Token.Type.Register;
+		token.number = t[1..$].to!ubyte();
+		return;
+	}
+}
+
 Token[] tokenise(string input, string fileName)
 {
 	Token[] tokens;
@@ -91,6 +127,8 @@ Token[] tokenise(string input, string fileName)
 				currentToken.type = Token.Type.Dbyte;
 			else if (currentToken.text == "qbyte")
 				currentToken.type = Token.Type.Qbyte;
+			else
+				currentToken.attemptTokeniseRegister();
 		}
 
 		currentToken.lineNumber = lineNumber;
@@ -157,28 +195,6 @@ Token[] tokenise(string input, string fileName)
 	return tokens;
 }
 
-ubyte parseRegister(ref Token[] tokens)
-{
-	auto token = tokens.front;
-	enforce(token.type == Token.Type.Identifier);
-
-	scope (success) tokens.popFront();
-
-	auto t = token.text;
-	if (t == "ip")
-		return Register.IP;
-	else if (t == "sp")
-		return Register.SP;
-	else if (t == "bp")
-		return Register.BP;
-	else if (t == "z")
-		return Register.Z;
-	else if (t.startsWith("r"))
-		return t[1..$].to!ubyte();
-	else
-		throw new Exception("Invalid register: " ~ t);
-}
-
 int parseNumber(ref Token[] tokens)
 {
 	auto token = tokens.front;
@@ -211,6 +227,15 @@ OperandSize parseSizePrefix(ref Token[] tokens)
 	{
 		return OperandSize.Qbyte;
 	}
+}
+
+ubyte parseRegister(ref Token[] tokens)
+{
+	scope (success) tokens.popFront();
+	auto token = tokens.front;
+	enforce(token.type == Token.Type.Register);
+
+	return cast(ubyte)token.number;
 }
 
 bool assembleDstSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
