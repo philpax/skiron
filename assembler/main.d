@@ -20,6 +20,7 @@ struct Token
 	{
 		Identifier,
 		Number,
+		Label,
 		Byte,
 		Dbyte,
 		Qbyte
@@ -136,6 +137,10 @@ Token[] tokenise(string input, string fileName)
 			else if (currentToken.type == Token.Type.Identifier && c.isAlphaNum())
 			{
 				currentToken.text ~= c;
+			}
+			else if (currentToken.type == Token.Type.Identifier && c == ':')
+			{
+				currentToken.type = Token.Type.Label;
 			}
 			else if (c == ',')
 			{
