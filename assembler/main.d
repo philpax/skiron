@@ -330,37 +330,16 @@ uint[] assemble(Token[] tokens)
 			foreach (descriptor; *descriptors)
 			{
 				if (descriptor.operandFormat == OperandFormat.DstSrc)
-				{
-					if (tokens.assembleDstSrc(descriptor, output))
-					{
-						foundMatching = true;
-						break;
-					}
-				}
+					foundMatching |= tokens.assembleDstSrc(descriptor, output);
 				else if (descriptor.operandFormat == OperandFormat.DstSrcSrc)
-				{
-					if (tokens.assembleDstSrcSrc(descriptor, output))
-					{
-						foundMatching = true;
-						break;
-					}
-				}
+					foundMatching |= tokens.assembleDstSrcSrc(descriptor, output);
 				else if (descriptor.operandFormat == OperandFormat.DstImm)
-				{
-					if (tokens.assembleDstImm(descriptor, output))
-					{
-						foundMatching = true;
-						break;
-					}
-				}
+					foundMatching |= tokens.assembleDstImm(descriptor, output);
 				else if (descriptor.operandFormat == OperandFormat.None)
-				{
-					if (tokens.assembleNone(descriptor, output))
-					{
-						foundMatching = true;
-						break;
-					}
-				}
+					foundMatching |= tokens.assembleNone(descriptor, output);
+
+				if (foundMatching) 
+					break;
 			}
 			if (!foundMatching)
 				token.error("No valid overloads for `%s` found.", token.text);
