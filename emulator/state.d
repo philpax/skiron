@@ -10,7 +10,6 @@ import emulator.controlflow;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 
-
 string generateOpcodeSwitch()
 {
 	import std.traits, std.string, std.conv;
@@ -72,7 +71,7 @@ struct Core
 nothrow:
 	State* state;
 	ubyte[] memory;
-	uint[RegisterCount] registers;
+	uint[RegisterCount+1] registers;
 	bool running = true;
 	bool printOpcodes = true;
 	bool printRegisters = true;
@@ -103,16 +102,21 @@ nothrow:
 		return this.registers[Register.BP];
 	}
 
+	@property ref uint flags()
+	{
+		return this.registers[Register.Flags];
+	}
+
 	void step()
 	{
-		uint[RegisterCount] oldRegisters = this.registers;
+		auto oldRegisters = this.registers;
 		mixin(generateOpcodeSwitch());
 		this.ip += uint.sizeof;
 		if (this.printRegisters)
 		{
 			char[8] name;
 			bool first = true;
-			foreach (index; 0..RegisterCount)
+			foreach (index; 0 .. oldRegisters.length)
 			{
 				auto oldValue = oldRegisters[index];
 				auto newValue = this.registers[index];
@@ -125,7 +129,7 @@ nothrow:
 				if (!first)
 					printf(", ");
 
-				printf("%.*s %i -> %i", reg.length, reg.ptr, oldValue, newValue);				
+				printf("%.*s %X -> %X", reg.length, reg.ptr, oldValue, newValue);
 				first = false;
 			}
 

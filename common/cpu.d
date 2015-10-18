@@ -10,7 +10,17 @@ enum Register
 	// Stack top pointer
 	SP = RegisterCount-2,
 	// Instruction pointer
-	IP = RegisterCount-1
+	IP = RegisterCount-1,
+	// Flags
+	Flags = RegisterCount
+}
+
+enum Flags
+{
+	None,
+	Zero = 1 << 0,
+	Greater = 1 << 1,
+	Less = 1 << 2
 }
 
 char[] registerName(ubyte index, char[] buffer) @nogc nothrow
@@ -26,6 +36,8 @@ char[] registerName(ubyte index, char[] buffer) @nogc nothrow
 		length = snprintf(buffer.ptr, buffer.length, "bp");
 	else if (index == Register.Z)
 		length = snprintf(buffer.ptr, buffer.length, "z");
+	else if (index == Register.Flags)
+		length = snprintf(buffer.ptr, buffer.length, "flags");
 	else
 		length = snprintf(buffer.ptr, buffer.length, "r%i", index);
 

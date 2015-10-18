@@ -74,6 +74,7 @@ enum Opcodes
 	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, OperandFormat.DstSrcSrc),
 	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, OperandFormat.None),
+	Cmp		= OpcodeDescriptor("cmp",		0x10, Encoding.A, OperandFormat.DstSrc),
 }
 
 unittest
