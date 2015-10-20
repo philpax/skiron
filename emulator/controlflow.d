@@ -12,8 +12,6 @@ void runHalt(ref Core core, Opcode opcode)
 
 void runCmp(ref Core core, Opcode opcode)
 {
-	import std.typecons;
-
 	auto src1 = core.getDst(opcode);
 	auto src2 = core.getSrc(opcode);
 	auto value = src1 - src2;
