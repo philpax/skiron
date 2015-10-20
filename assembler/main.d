@@ -336,7 +336,7 @@ uint[] assemble(Token[] tokens)
 				{
 					s ~= format(
 `case OperandFormat.%1$s:
-	tokens.assemble%1$s(descriptor, output);
+	foundMatching |= tokens.assemble%1$s(descriptor, output);
 	break;
 `,
 					member.to!string());
