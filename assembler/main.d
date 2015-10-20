@@ -238,7 +238,19 @@ ubyte parseRegister(ref Token[] tokens)
 	return cast(ubyte)token.number;
 }
 
-bool assembleDstSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
+int parseLabel(ref Token[] tokens, uint[string] labels)
+{
+	scope (success) tokens.popFront();
+	auto token = tokens.front;
+	enforce(token.type == Token.Type.Identifier);
+
+	auto ptr = token.text in labels;
+	enforce(ptr);
+
+	return *ptr;
+}
+
+bool assembleDstSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
 {
 	auto newTokens = tokens;
 
@@ -259,7 +271,7 @@ bool assembleDstSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, 
 	return true;
 }
 
-bool assembleDstSrcSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
+bool assembleDstSrcSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
 {
 	auto newTokens = tokens;
 
@@ -281,7 +293,7 @@ bool assembleDstSrcSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descripto
 	return true;
 }
 
-bool assembleDstImm(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
+bool assembleDstImm(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
 {
 	auto newTokens = tokens;
 
@@ -301,11 +313,32 @@ bool assembleDstImm(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, 
 	return true;
 }
 
-bool assembleNone(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ref uint[] output)
+bool assembleNone(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
 {
 	Opcode opcode;
 	opcode.opcode = descriptor.opcode;
 	output ~= opcode.value;
+
+	return true;
+}
+
+bool assembleLabel(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
+{
+	auto newTokens = tokens;
+
+	Opcode opcode;
+	opcode.opcode = descriptor.opcode;
+	try
+	{
+		auto currentPosition = cast(int)(output.length * uint.sizeof);
+		auto offset = newTokens.parseLabel(labels);
+		opcode.offset = offset - currentPosition - 4;
+	}
+	catch (Exception e)
+		return false;
+
+	output ~= opcode.value;
+	tokens = newTokens;
 
 	return true;
 }
@@ -336,7 +369,7 @@ uint[] assemble(Token[] tokens)
 				{
 					s ~= format(
 `case OperandFormat.%1$s:
-	foundMatching |= tokens.assemble%1$s(descriptor, output);
+	foundMatching |= tokens.assemble%1$s(descriptor, labels, output);
 	break;
 `,
 					member.to!string());
@@ -363,7 +396,7 @@ uint[] assemble(Token[] tokens)
 			auto text = token.text;
 			if (text in labels)
 				token.error("Redefining label `%s`", text);
-			labels[text] = cast(uint)output.length;
+			labels[text] = cast(uint)(output.length * uint.sizeof);
 			tokens.popFront();
 		}
 		else

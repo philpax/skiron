@@ -18,6 +18,10 @@ struct Opcode
 			ubyte, "", 7,
 			int, "immediate", 17));
 
+		mixin(bitfields!(
+			ubyte, "", 8,
+			int, "offset", 24));
+
 		uint value;
 	}
 }
@@ -34,7 +38,8 @@ enum OperandSize
 enum Encoding
 {
 	A, // dst, src1, src2
-	B  // dst, imm17
+	B, // dst, imm17
+	C  // imm24 (offset)
 }
 
 // Not the same as encoding; dictates how many operands there are
@@ -43,6 +48,7 @@ enum OperandFormat
 	DstSrc,
 	DstSrcSrc,
 	DstImm,
+	Label,
 	None
 }
 
@@ -75,6 +81,8 @@ enum Opcodes
 	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, OperandFormat.None),
 	Cmp		= OpcodeDescriptor("cmp",		0x10, Encoding.A, OperandFormat.DstSrc),
+	Je		= OpcodeDescriptor("je",		0x11, Encoding.C, OperandFormat.Label),
+	Jne		= OpcodeDescriptor("jne",		0x12, Encoding.C, OperandFormat.Label),
 }
 
 unittest
@@ -168,6 +176,12 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 			snprintf(output.ptr, output.length, "%.*s %.*s, %i",
 				descriptor.name.length, descriptor.name.ptr,
 				reg1.length, reg1.ptr, opcode.immediate);
+
+		return output[0..length];
+	case OperandFormat.Label:
+		auto length =
+			snprintf(output.ptr, output.length, "%.*s %i",
+				descriptor.name.length, descriptor.name.ptr, opcode.offset);
 
 		return output[0..length];
 	case OperandFormat.None:

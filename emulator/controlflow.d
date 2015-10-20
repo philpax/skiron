@@ -31,3 +31,15 @@ void runCmp(ref Core core, Opcode opcode)
 	else
 		core.flags &= ~Flags.Less;
 }
+
+void runJe(ref Core core, Opcode opcode)
+{
+	if (core.flags & Flags.Zero)
+		core.ip += opcode.offset;
+}
+
+void runJne(ref Core core, Opcode opcode)
+{
+	if (!(core.flags & Flags.Zero))
+		core.ip += opcode.offset;
+}
