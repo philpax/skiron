@@ -326,17 +326,31 @@ uint[] assemble(Token[] tokens)
 
 			bool foundMatching = false;
 
+			string generateSwitchStatement()
+			{
+				string s =
+`final switch (descriptor.operandFormat)
+{
+`;
+				foreach (member; EnumMembers!OperandFormat)
+				{
+					s ~= format(
+`case OperandFormat.%1$s:
+	tokens.assemble%1$s(descriptor, output);
+	break;
+`,
+					member.to!string());
+
+				}
+
+				s ~= "}\n";
+				return s;
+			}
+
 			tokens.popFront();
 			foreach (descriptor; *descriptors)
 			{
-				if (descriptor.operandFormat == OperandFormat.DstSrc)
-					foundMatching |= tokens.assembleDstSrc(descriptor, output);
-				else if (descriptor.operandFormat == OperandFormat.DstSrcSrc)
-					foundMatching |= tokens.assembleDstSrcSrc(descriptor, output);
-				else if (descriptor.operandFormat == OperandFormat.DstImm)
-					foundMatching |= tokens.assembleDstImm(descriptor, output);
-				else if (descriptor.operandFormat == OperandFormat.None)
-					foundMatching |= tokens.assembleNone(descriptor, output);
+				mixin (generateSwitchStatement());
 
 				if (foundMatching) 
 					break;
