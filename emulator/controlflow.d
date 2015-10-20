@@ -43,3 +43,15 @@ void runJne(ref Core core, Opcode opcode)
 	if (!(core.flags & Flags.Zero))
 		core.ip += opcode.offset;
 }
+
+void runJgt(ref Core core, Opcode opcode)
+{
+	if (core.flags & Flags.Greater)
+		core.ip += opcode.offset;
+}
+
+void runJlt(ref Core core, Opcode opcode)
+{
+	if (core.flags & Flags.Less)
+		core.ip += opcode.offset;
+}

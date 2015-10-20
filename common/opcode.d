@@ -83,6 +83,8 @@ enum Opcodes
 	Cmp		= OpcodeDescriptor("cmp",		0x10, Encoding.A, OperandFormat.DstSrc),
 	Je		= OpcodeDescriptor("je",		0x11, Encoding.C, OperandFormat.Label),
 	Jne		= OpcodeDescriptor("jne",		0x12, Encoding.C, OperandFormat.Label),
+	Jgt		= OpcodeDescriptor("jgt",		0x13, Encoding.C, OperandFormat.Label),
+	Jlt		= OpcodeDescriptor("jlt",		0x14, Encoding.C, OperandFormat.Label),
 }
 
 unittest

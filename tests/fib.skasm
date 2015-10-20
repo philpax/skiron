@@ -7,5 +7,5 @@ loop:
 	add r0, r1, r0
 	add r2, -1
 	cmp r2, z
-	jne loop
+	jgt loop
 halt
