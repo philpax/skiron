@@ -49,3 +49,13 @@ void runXor(Type = uint)(ref Core core, Opcode opcode)
 {
 	core.setDst!Type(opcode, core.getSrc1!Type(opcode) ^ core.getSrc2!Type(opcode));
 }
+
+void runShl(Type = uint)(ref Core core, Opcode opcode)
+{
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) << core.getSrc2!Type(opcode));
+}
+
+void runShr(Type = uint)(ref Core core, Opcode opcode)
+{
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) >> core.getSrc2!Type(opcode));
+}

@@ -78,13 +78,15 @@ enum Opcodes
 	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, OperandFormat.DstSrcSrc),
 	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, OperandFormat.DstSrcSrc),
 	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, OperandFormat.DstSrcSrc),
+	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, OperandFormat.DstSrcSrc),
+	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, OperandFormat.DstSrcSrc),
 	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, OperandFormat.None),
-	Cmp		= OpcodeDescriptor("cmp",		0x10, Encoding.A, OperandFormat.DstSrc),
-	Je		= OpcodeDescriptor("je",		0x11, Encoding.C, OperandFormat.Label),
-	Jne		= OpcodeDescriptor("jne",		0x12, Encoding.C, OperandFormat.Label),
-	Jgt		= OpcodeDescriptor("jgt",		0x13, Encoding.C, OperandFormat.Label),
-	Jlt		= OpcodeDescriptor("jlt",		0x14, Encoding.C, OperandFormat.Label),
+	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, OperandFormat.DstSrc),
+	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, OperandFormat.Label),
+	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, OperandFormat.Label),
+	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, OperandFormat.Label),
+	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, OperandFormat.Label),
 }
 
 unittest
