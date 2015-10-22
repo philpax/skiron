@@ -1,0 +1,15 @@
+# Stack testing
+# Need to add in pseudo-instructions to simplify this
+loadli sp, 4000
+move bp, sp
+loadli r3, 4
+store sp, r3
+add sp, -4
+loadli r3, 8
+store sp, r3
+add sp, -4
+move r0, bp
+load r1, r0
+add r0, -4
+load r2, r0
+halt
