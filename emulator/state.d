@@ -28,7 +28,7 @@ final switch (opcode.opcode)
 `;
 	foreach (member; EnumMembers!Opcodes)
 	{
-		if (member.operandFormat == OperandFormat.DstSrcSrc)
+		if (member.supportsOperandSize)
 		{
 			s ~= format(
 `case Opcodes.%1$s.opcode:

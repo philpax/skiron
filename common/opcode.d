@@ -57,36 +57,37 @@ struct OpcodeDescriptor
 	string name;
 	ubyte opcode;
 	Encoding encoding;
+	bool supportsOperandSize;
 	OperandFormat operandFormat;
 }
 
 enum Opcodes
 {
 	// Memory
-	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, OperandFormat.DstSrc),
-	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, OperandFormat.DstSrc),
-	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, OperandFormat.DstImm),
-	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, OperandFormat.DstImm),
-	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, OperandFormat.DstSrc),
+	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, false, OperandFormat.DstSrc),
+	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, false, OperandFormat.DstSrc),
+	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, false, OperandFormat.DstImm),
+	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, false, OperandFormat.DstImm),
+	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, false, OperandFormat.DstSrc),
 	// Arithmetic
-	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, OperandFormat.DstSrcSrc),
-	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, OperandFormat.DstImm),
-	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, OperandFormat.DstSrcSrc),
-	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A, OperandFormat.DstSrcSrc),
-	Div		= OpcodeDescriptor("div",		0x09, Encoding.A, OperandFormat.DstSrcSrc),
-	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A, OperandFormat.DstSrc),
-	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, OperandFormat.DstSrcSrc),
-	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, OperandFormat.DstSrcSrc),
-	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, OperandFormat.DstSrcSrc),
-	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, OperandFormat.DstSrcSrc),
-	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, OperandFormat.DstSrcSrc),
+	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, false, OperandFormat.DstImm),
+	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Div		= OpcodeDescriptor("div",		0x09, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A, false, OperandFormat.DstSrc),
+	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc),
 	// Control flow
-	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, OperandFormat.None),
-	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, OperandFormat.DstSrc),
-	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, OperandFormat.Label),
-	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, OperandFormat.Label),
-	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, OperandFormat.Label),
-	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, OperandFormat.Label),
+	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, false, OperandFormat.None),
+	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, false, OperandFormat.DstSrc),
+	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, false, OperandFormat.Label),
+	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, false, OperandFormat.Label),
+	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, false, OperandFormat.Label),
+	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, false, OperandFormat.Label),
 }
 
 unittest
