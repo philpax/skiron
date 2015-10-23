@@ -83,7 +83,7 @@ enum Opcodes
 	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc),
 	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, false, OperandFormat.None),
-	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, false, OperandFormat.DstSrc),
+	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, true,  OperandFormat.DstSrc),
 	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, false, OperandFormat.Label),
 	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, false, OperandFormat.Label),
 	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, false, OperandFormat.Label),

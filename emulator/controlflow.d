@@ -10,10 +10,12 @@ void runHalt(ref Core core, Opcode opcode)
 	core.running = false;
 }
 
-void runCmp(ref Core core, Opcode opcode)
+void runCmp(Type = uint)(ref Core core, Opcode opcode)
 {
-	auto src1 = core.getDst(opcode);
-	auto src2 = core.getSrc(opcode);
+	import std.traits;
+
+	auto src1 = core.getDst!(Signed!Type)(opcode);
+	auto src2 = core.getSrc!(Signed!Type)(opcode);
 	auto value = src1 - src2;
 
 	if (value == 0)
