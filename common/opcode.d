@@ -11,7 +11,7 @@ struct Opcode
 			ubyte, "register1", 7,
 			ubyte, "register2", 7,
 			ubyte, "register3", 7,
-			ubyte, "x", 3));
+			OperandSize, "operandSize", 3));
 
 		mixin(bitfields!(
 			ubyte, "", 8,
@@ -153,7 +153,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg3 = opcode.register3.registerName(buffers[2]);
 
 		string sizePrefix;
-		final switch (cast(OperandSize)opcode.x)
+		final switch (opcode.operandSize)
 		{
 		case OperandSize.Byte:
 			sizePrefix = "byte";

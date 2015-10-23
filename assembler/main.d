@@ -277,7 +277,7 @@ bool assembleDstSrcSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descripto
 
 	Opcode opcode;
 	opcode.opcode = descriptor.opcode;
-	opcode.x = cast(ubyte)newTokens.parseSizePrefix();
+	opcode.operandSize = newTokens.parseSizePrefix();
 	try
 	{
 		opcode.register1 = newTokens.parseRegister();

@@ -32,7 +32,7 @@ final switch (opcode.opcode)
 		{
 			s ~= format(
 `case Opcodes.%1$s.opcode:
-	final switch (cast(OperandSize)opcode.x)
+	final switch (opcode.operandSize)
 	{
 		case OperandSize.Byte:
 			this.run%1$s!ubyte(opcode);
