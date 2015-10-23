@@ -64,8 +64,8 @@ struct OpcodeDescriptor
 enum Opcodes
 {
 	// Memory
-	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, false, OperandFormat.DstSrc),
-	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, false, OperandFormat.DstSrc),
+	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, true,  OperandFormat.DstSrc),
+	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, true,  OperandFormat.DstSrc),
 	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, false, OperandFormat.DstImm),
 	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, false, OperandFormat.DstImm),
 	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, false, OperandFormat.DstSrc),

@@ -5,14 +5,14 @@ import emulator.state;
 @nogc:
 nothrow:
 
-void runLoad(ref Core core, Opcode opcode)
+void runLoad(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, *cast(uint*)&core.memory[core.getSrc(opcode)]);
+	core.setDst!Type(opcode, *cast(Type*)&core.memory[core.getSrc(opcode)]);
 }
 
-void runStore(ref Core core, Opcode opcode)
+void runStore(Type = uint)(ref Core core, Opcode opcode)
 {
-	*cast(uint*)&core.memory[core.getDst(opcode)] = core.getSrc(opcode);
+	*cast(Type*)&core.memory[core.getDst(opcode)] = core.getSrc!Type(opcode);
 }
 
 void runLoadLi(ref Core core, Opcode opcode)
