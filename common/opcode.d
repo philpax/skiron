@@ -49,7 +49,8 @@ enum OperandFormat
 	DstSrcSrc,
 	DstImm,
 	Label,
-	None
+	None,
+	Pseudo
 }
 
 struct OpcodeDescriptor
@@ -59,6 +60,11 @@ struct OpcodeDescriptor
 	Encoding encoding;
 	bool supportsOperandSize;
 	OperandFormat operandFormat;
+}
+
+auto PseudoOpcode(string name)
+{
+	return OpcodeDescriptor(name, 0, Encoding.A, false, OperandFormat.Pseudo);
 }
 
 enum Opcodes
@@ -88,6 +94,8 @@ enum Opcodes
 	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, false, OperandFormat.Label),
 	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, false, OperandFormat.Label),
 	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, false, OperandFormat.Label),
+	// Pseudoinstructions
+	Push	= PseudoOpcode("push"),
 }
 
 unittest
@@ -114,8 +122,13 @@ string generateOpcodeToDescriptor()
 `;
 
 	foreach (member; EnumMembers!Opcodes)
+	{
+		if (member.operandFormat == OperandFormat.Pseudo)
+			continue;
+
 		ret ~= "case Opcodes.%s.opcode: return Opcodes.%s;\n".format(
 			member.to!string(), member.to!string());
+	}
 
 	ret ~= `}`;
 
@@ -200,6 +213,8 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 				descriptor.name.length, descriptor.name.ptr);
 
 		return output[0..length];
+	case OperandFormat.Pseudo:
+		return output;
 	}
 
 	return output;

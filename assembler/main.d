@@ -344,6 +344,64 @@ bool assembleLabel(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, u
 	return true;
 }
 
+bool assemblePush(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
+{
+	auto newTokens = tokens;
+
+	OperandSize operandSize;
+	ubyte register;
+	try
+	{
+		operandSize = newTokens.parseSizePrefix();
+		register = newTokens.parseRegister();
+	}
+	catch (Exception e)
+		return false;
+
+	// Synthesize store, add
+	Opcode store;
+	store.opcode = Opcodes.Store.opcode;
+	store.operandSize = operandSize;
+	store.register1 = Register.SP;
+	store.register2 = register;
+
+	Opcode add;
+	add.opcode = Opcodes.AddB.opcode;
+	add.register1 = Register.SP;
+	add.immediate = -4;
+
+	output ~= store.value;
+	output ~= add.value;
+
+	tokens = newTokens;
+
+	return true;
+}
+
+alias AssembleFunction = bool function(ref Token[], ref const(OpcodeDescriptor), uint[string], ref uint[]);
+auto generatePseudoAssemble()
+{
+	string ret = "[";
+
+	foreach (member; EnumMembers!Opcodes)
+	{
+		static if (member.operandFormat == OperandFormat.Pseudo)
+			ret ~= `"%s" : &assemble%s, `.format(member.name, member.to!string);
+	}
+
+	ret ~= "]";
+
+	return ret;
+}
+
+immutable AssembleFunction[string] PseudoAssemble;
+
+// Use a module constructor to work around not being able to initialize AAs in module scope
+static this()
+{
+	PseudoAssemble = mixin(generatePseudoAssemble());
+} 
+
 uint[] assemble(Token[] tokens)
 {
 	uint[] output;
@@ -368,16 +426,23 @@ uint[] assemble(Token[] tokens)
 `;
 				foreach (member; EnumMembers!OperandFormat)
 				{
+					if (member == OperandFormat.Pseudo)
+						continue;
+
 					s ~= format(
 `case OperandFormat.%1$s:
 	foundMatching |= tokens.assemble%1$s(descriptor, labels, output);
 	break;
 `,
 					member.to!string());
-
 				}
 
-				s ~= "}\n";
+				s ~= 
+`case OperandFormat.Pseudo:
+	foundMatching |= PseudoAssemble[token.text](tokens, descriptor, labels, output);
+	break;
+}
+`;
 				return s;
 			}
 

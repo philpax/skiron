@@ -28,6 +28,9 @@ final switch (opcode.opcode)
 `;
 	foreach (member; EnumMembers!Opcodes)
 	{
+		if (member.operandFormat == OperandFormat.Pseudo)
+			continue;
+
 		if (member.supportsOperandSize)
 		{
 			s ~= format(

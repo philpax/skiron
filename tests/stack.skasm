@@ -3,11 +3,9 @@
 loadli sp, 4000
 move bp, sp
 loadli r3, 4
-store sp, r3
-add sp, -4
+push r3
 loadli r3, 8
-store sp, r3
-add sp, -4
+push r3
 move r0, bp
 load r1, r0
 add r0, -4
