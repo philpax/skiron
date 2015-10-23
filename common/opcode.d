@@ -68,7 +68,7 @@ enum Opcodes
 	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, true,  OperandFormat.DstSrc),
 	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, false, OperandFormat.DstImm),
 	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, false, OperandFormat.DstImm),
-	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, false, OperandFormat.DstSrc),
+	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, true,  OperandFormat.DstSrc),
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, true,  OperandFormat.DstSrcSrc),
 	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, false, OperandFormat.DstImm),

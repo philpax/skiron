@@ -27,7 +27,7 @@ void runLoadUi(ref Core core, Opcode opcode)
 	core.setDst(opcode, (core.getDst(opcode) & 0x0000FFFF) | (immediate << 16));
 }
 
-void runMove(ref Core core, Opcode opcode)
+void runMove(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc(opcode));
+	core.setDst!Type(opcode, core.getSrc!Type(opcode));
 }
