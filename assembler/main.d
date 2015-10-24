@@ -359,19 +359,19 @@ bool assemblePush(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ui
 		return false;
 
 	// Synthesize store, add
+	Opcode add;
+	add.opcode = Opcodes.AddB.opcode;
+	add.register1 = Register.SP;
+	add.immediate = -4;
+
 	Opcode store;
 	store.opcode = Opcodes.Store.opcode;
 	store.operandSize = operandSize;
 	store.register1 = Register.SP;
 	store.register2 = register;
 
-	Opcode add;
-	add.opcode = Opcodes.AddB.opcode;
-	add.register1 = Register.SP;
-	add.immediate = -4;
-
-	output ~= store.value;
 	output ~= add.value;
+	output ~= store.value;
 
 	tokens = newTokens;
 
