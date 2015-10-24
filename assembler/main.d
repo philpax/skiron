@@ -378,6 +378,40 @@ bool assemblePush(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, ui
 	return true;
 }
 
+bool assemblePop(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
+{
+	auto newTokens = tokens;
+
+	OperandSize operandSize;
+	ubyte register;
+	try
+	{
+		operandSize = newTokens.parseSizePrefix();
+		register = newTokens.parseRegister();
+	}
+	catch (Exception e)
+		return false;
+
+	// Synthesize load, add
+	Opcode load;
+	load.opcode = Opcodes.Load.opcode;
+	load.operandSize = operandSize;
+	load.register1 = register;
+	load.register2 = Register.SP;
+
+	Opcode add;
+	add.opcode = Opcodes.AddB.opcode;
+	add.register1 = Register.SP;
+	add.immediate = 4;
+
+	output ~= load.value;
+	output ~= add.value;
+
+	tokens = newTokens;
+
+	return true;
+}
+
 alias AssembleFunction = bool function(ref Token[], ref const(OpcodeDescriptor), uint[string], ref uint[]);
 auto generatePseudoAssemble()
 {

@@ -96,6 +96,7 @@ enum Opcodes
 	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, false, OperandFormat.Label),
 	// Pseudoinstructions
 	Push	= PseudoOpcode("push"),
+	Pop		= PseudoOpcode("pop"),
 }
 
 unittest
