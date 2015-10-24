@@ -6,8 +6,8 @@ loadli r3, 4
 push r3
 loadli r3, 8
 push r3
-move r0, bp
-load r1, r0
-add r0, -4
-load r2, r0
+load r0, sp
+add sp, 4
+load r1, sp
+add sp, 4
 halt
