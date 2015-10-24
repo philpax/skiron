@@ -412,6 +412,39 @@ bool assemblePop(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uin
 	return true;
 }
 
+bool assembleLoadI(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
+{
+	auto newTokens = tokens;
+
+	ubyte register;
+	int immediate;
+	try
+	{
+		register = newTokens.parseRegister();
+		immediate = newTokens.parseNumber();
+	}
+	catch (Exception e)
+		return false;
+
+	// Synthesize loadui, loadli
+	Opcode loadui;
+	loadui.opcode = Opcodes.LoadUi.opcode;
+	loadui.register1 = register;
+	loadui.immediate = (cast(uint)immediate >> 16) & 0xFFFF;
+
+	Opcode loadli;
+	loadli.opcode = Opcodes.LoadLi.opcode;
+	loadli.register1 = register;
+	loadli.immediate = cast(uint)immediate & 0xFFFF;
+
+	output ~= loadui.value;
+	output ~= loadli.value;
+
+	tokens = newTokens;
+
+	return true;
+}
+
 alias AssembleFunction = bool function(ref Token[], ref const(OpcodeDescriptor), uint[string], ref uint[]);
 auto generatePseudoAssemble()
 {

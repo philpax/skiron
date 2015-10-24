@@ -97,6 +97,7 @@ enum Opcodes
 	// Pseudoinstructions
 	Push	= PseudoOpcode("push"),
 	Pop		= PseudoOpcode("pop"),
+	LoadI	= PseudoOpcode("loadi"),
 }
 
 unittest

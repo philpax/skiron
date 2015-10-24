@@ -1,8 +1,8 @@
-loadli r0, 511
-loadli r1, 255
+loadi r0, 511
+loadi r1, 255
 move byte r1, r0
 cmp byte r0, r1
-loadli r2, 4000
+loadi r2, 4000
 store byte r2, r0
 load dbyte r3, r2
 cmp dbyte r1, r3

@@ -1,4 +1,4 @@
-loadli r0, 1
-loadli r1, 4
+loadi r0, 1
+loadi r1, 4
 shl r2, r0, r1
 halt

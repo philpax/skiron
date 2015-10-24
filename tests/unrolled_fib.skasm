@@ -1,6 +1,6 @@
 # First 10 Fibonacci numbers
-loadli r0, 1
-loadli r1, 1
+loadi r0, 1
+loadi r1, 1
 add r1, r1, r0
 add r0, r1, r0
 add r1, r1, r0

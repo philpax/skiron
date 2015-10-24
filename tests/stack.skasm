@@ -1,9 +1,9 @@
 # Stack testing
-loadli sp, 4000
+loadi sp, 4000
 move bp, sp
-loadli r3, 4
+loadi r3, 4
 push r3
-loadli r3, 8
+loadi r3, 8
 push r3
 pop r0
 pop r1
