@@ -161,6 +161,10 @@ Token[] tokenise(string input, string fileName)
 			{
 				lexingComment = true;
 			}
+			else if (c == ',')
+			{
+				continue;
+			}
 			else if (currentToken.text.length == 0 && (c.isDigit() || c == '-'))
 			{
 				currentToken.type = Token.Type.Number;
@@ -179,10 +183,6 @@ Token[] tokenise(string input, string fileName)
 			else if (currentToken.type == Token.Type.Identifier && c == ':')
 			{
 				currentToken.type = Token.Type.Label;
-			}
-			else if (c == ',')
-			{
-				continue;
 			}
 			else
 			{
