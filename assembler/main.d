@@ -417,25 +417,38 @@ bool assembleLoadI(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, u
 	auto newTokens = tokens;
 
 	ubyte register;
-	int immediate;
+	int value;
 	try
 	{
 		register = newTokens.parseRegister();
-		immediate = newTokens.parseNumber();
 	}
 	catch (Exception e)
 		return false;
+
+	try
+	{
+		value = newTokens.parseNumber();
+	}
+	catch (Exception e)
+	{
+		try
+		{
+			value = newTokens.parseLabel(labels);
+		}
+		catch (Exception e)
+			return false;
+	}
 
 	// Synthesize loadui, loadli
 	Opcode loadui;
 	loadui.opcode = Opcodes.LoadUi.opcode;
 	loadui.register1 = register;
-	loadui.immediate = (cast(uint)immediate >> 16) & 0xFFFF;
+	loadui.immediate = (cast(uint)value >> 16) & 0xFFFF;
 
 	Opcode loadli;
 	loadli.opcode = Opcodes.LoadLi.opcode;
 	loadli.register1 = register;
-	loadli.immediate = cast(uint)immediate & 0xFFFF;
+	loadli.immediate = cast(uint)value & 0xFFFF;
 
 	output ~= loadui.value;
 	output ~= loadli.value;
