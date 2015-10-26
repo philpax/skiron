@@ -445,6 +445,27 @@ bool assembleLoadI(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, u
 	return true;
 }
 
+bool assembleDb(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
+{
+	auto newTokens = tokens;
+
+	int count, value;
+	try
+	{
+		count = newTokens.parseNumber();
+		value = newTokens.parseNumber();
+	}
+	catch (Exception e)
+		return false;
+
+	foreach (i; 0..count/4)
+		output ~= value;
+
+	tokens = newTokens;
+
+	return true;
+}
+
 alias AssembleFunction = bool function(ref Token[], ref const(OpcodeDescriptor), uint[string], ref uint[]);
 auto generatePseudoAssemble()
 {
