@@ -176,7 +176,7 @@ Token[] tokenise(string input, string fileName)
 					currentToken.error("Expected digit; got `%s`.", c);
 				currentToken.text ~= c;
 			}
-			else if (currentToken.type == Token.Type.Identifier && c.isAlphaNum())
+			else if (currentToken.type == Token.Type.Identifier && (c.isAlphaNum() || c == '_'))
 			{
 				currentToken.text ~= c;
 			}
