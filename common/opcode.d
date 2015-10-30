@@ -7,20 +7,23 @@ struct Opcode
 	union
 	{
 		mixin(bitfields!(
-			ubyte, "opcode", 8,
+			ubyte, "opcode", 6,
+			ubyte, "variant", 3,
 			ubyte, "register1", 7,
 			ubyte, "register2", 7,
 			ubyte, "register3", 7,
-			OperandSize, "operandSize", 3));
+			OperandSize, "operandSize", 2));
 
 		mixin(bitfields!(
-			ubyte, "", 8,
+			ubyte, "", 6,
+			ubyte, "", 3,
 			ubyte, "", 7,
-			int, "immediate", 17));
+			int, "immediate", 16));
 
 		mixin(bitfields!(
-			ubyte, "", 8,
-			int, "offset", 24));
+			ubyte, "", 6,
+			ubyte, "", 3,
+			int, "offset", 23));
 
 		uint value;
 	}
@@ -88,7 +91,7 @@ enum Opcodes
 	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc),
 	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc),
 	// Control flow
-	Halt	= OpcodeDescriptor("halt",		0xFF, Encoding.A, false, OperandFormat.None),
+	Halt	= OpcodeDescriptor("halt",		0x3F, Encoding.A, false, OperandFormat.None),
 	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, true,  OperandFormat.DstSrc),
 	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, false, OperandFormat.Label),
 	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, false, OperandFormat.Label),
@@ -137,7 +140,6 @@ string generateOpcodeToDescriptor()
 
 	return ret;
 }
-
 
 OpcodeDescriptor opcodeToDescriptor(ubyte opcode) @nogc nothrow
 {
