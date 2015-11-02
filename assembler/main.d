@@ -250,236 +250,244 @@ int parseLabel(ref Token[] tokens, uint[string] labels)
 	return *ptr;
 }
 
-bool assembleDstSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
+struct Assembler
 {
-	auto newTokens = tokens;
+	Token[] tokens;
+	uint[] output;
+	uint[string] labels;
 
-	Opcode opcode;
-	opcode.opcode = descriptor.opcode;
-	opcode.operandSize = newTokens.parseSizePrefix();
-	try
+	bool assembleDstSrc(const(OpcodeDescriptor)* descriptor)
 	{
-		opcode.register1 = newTokens.parseRegister();
-		opcode.register2 = newTokens.parseRegister();
-		opcode.register3 = 0;
-	}
-	catch (Exception e)
-		return false;
+		auto newTokens = this.tokens;
 
-	output ~= opcode.value;
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assembleDstSrcSrc(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	Opcode opcode;
-	opcode.opcode = descriptor.opcode;
-	opcode.operandSize = newTokens.parseSizePrefix();
-	try
-	{
-		opcode.register1 = newTokens.parseRegister();
-		opcode.register2 = newTokens.parseRegister();
-		opcode.register3 = newTokens.parseRegister();
-	}
-	catch (Exception e)
-		return false;
-
-	output ~= opcode.value;
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assembleDstImm(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	Opcode opcode;
-	opcode.opcode = descriptor.opcode;
-	try
-	{
-		opcode.register1 = newTokens.parseRegister();
-		opcode.immediate = newTokens.parseNumber();
-	}
-	catch (Exception e)
-		return false;
-
-	output ~= opcode.value;
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assembleNone(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	Opcode opcode;
-	opcode.opcode = descriptor.opcode;
-	output ~= opcode.value;
-
-	return true;
-}
-
-bool assembleLabel(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	Opcode opcode;
-	opcode.opcode = descriptor.opcode;
-	try
-	{
-		auto currentPosition = cast(int)(output.length * uint.sizeof);
-		auto offset = newTokens.parseLabel(labels);
-		opcode.offset = offset - currentPosition - 4;
-	}
-	catch (Exception e)
-		return false;
-
-	output ~= opcode.value;
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assemblePush(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	OperandSize operandSize;
-	ubyte register;
-	try
-	{
-		operandSize = newTokens.parseSizePrefix();
-		register = newTokens.parseRegister();
-	}
-	catch (Exception e)
-		return false;
-
-	// Synthesize store, add
-	Opcode add;
-	add.opcode = Opcodes.AddB.opcode;
-	add.register1 = Register.SP;
-	add.immediate = -4;
-
-	Opcode store;
-	store.opcode = Opcodes.Store.opcode;
-	store.operandSize = operandSize;
-	store.register1 = Register.SP;
-	store.register2 = register;
-
-	output ~= add.value;
-	output ~= store.value;
-
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assemblePop(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	OperandSize operandSize;
-	ubyte register;
-	try
-	{
-		operandSize = newTokens.parseSizePrefix();
-		register = newTokens.parseRegister();
-	}
-	catch (Exception e)
-		return false;
-
-	// Synthesize load, add
-	Opcode load;
-	load.opcode = Opcodes.Load.opcode;
-	load.operandSize = operandSize;
-	load.register1 = register;
-	load.register2 = Register.SP;
-
-	Opcode add;
-	add.opcode = Opcodes.AddB.opcode;
-	add.register1 = Register.SP;
-	add.immediate = 4;
-
-	output ~= load.value;
-	output ~= add.value;
-
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assembleLoadI(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	ubyte register;
-	int value;
-	try
-	{
-		register = newTokens.parseRegister();
-	}
-	catch (Exception e)
-		return false;
-
-	try
-	{
-		value = newTokens.parseNumber();
-	}
-	catch (Exception e)
-	{
+		Opcode opcode;
+		opcode.opcode = descriptor.opcode;
+		opcode.operandSize = newTokens.parseSizePrefix();
 		try
 		{
-			value = newTokens.parseLabel(labels);
+			opcode.register1 = newTokens.parseRegister();
+			opcode.register2 = newTokens.parseRegister();
+			opcode.register3 = 0;
 		}
 		catch (Exception e)
 			return false;
+
+		this.output ~= opcode.value;
+		this.tokens = newTokens;
+
+		return true;
 	}
 
-	// Synthesize loadui, loadli
-	Opcode loadui;
-	loadui.opcode = Opcodes.LoadUi.opcode;
-	loadui.register1 = register;
-	loadui.immediate = (cast(uint)value >> 16) & 0xFFFF;
-
-	Opcode loadli;
-	loadli.opcode = Opcodes.LoadLi.opcode;
-	loadli.register1 = register;
-	loadli.immediate = cast(uint)value & 0xFFFF;
-
-	output ~= loadui.value;
-	output ~= loadli.value;
-
-	tokens = newTokens;
-
-	return true;
-}
-
-bool assembleDb(ref Token[] tokens, ref const(OpcodeDescriptor) descriptor, uint[string] labels, ref uint[] output)
-{
-	auto newTokens = tokens;
-
-	int count, value;
-	try
+	bool assembleDstSrcSrc(const(OpcodeDescriptor)* descriptor)
 	{
-		count = newTokens.parseNumber();
-		value = newTokens.parseNumber();
+		auto newTokens = this.tokens;
+
+		Opcode opcode;
+		opcode.opcode = descriptor.opcode;
+		opcode.operandSize = newTokens.parseSizePrefix();
+		try
+		{
+			opcode.register1 = newTokens.parseRegister();
+			opcode.register2 = newTokens.parseRegister();
+			opcode.register3 = newTokens.parseRegister();
+		}
+		catch (Exception e)
+			return false;
+
+		this.output ~= opcode.value;
+		this.tokens = newTokens;
+
+		return true;
 	}
-	catch (Exception e)
-		return false;
 
-	foreach (i; 0..count/4)
-		output ~= value;
+	bool assembleDstImm(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
 
-	tokens = newTokens;
+		Opcode opcode;
+		opcode.opcode = descriptor.opcode;
+		try
+		{
+			opcode.register1 = newTokens.parseRegister();
+			opcode.immediate = newTokens.parseNumber();
+		}
+		catch (Exception e)
+			return false;
 
-	return true;
+		output ~= opcode.value;
+		tokens = newTokens;
+
+		return true;
+	}
+
+	bool assembleNone(const(OpcodeDescriptor)* descriptor)
+	{
+		Opcode opcode;
+		opcode.opcode = descriptor.opcode;
+
+		this.output ~= opcode.value;
+
+		return true;
+	}
+
+	bool assembleLabel(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		Opcode opcode;
+		opcode.opcode = descriptor.opcode;
+		try
+		{
+			auto currentPosition = cast(int)(output.length * uint.sizeof);
+			auto offset = newTokens.parseLabel(this.labels);
+			opcode.offset = offset - currentPosition - 4;
+		}
+		catch (Exception e)
+			return false;
+
+		this.output ~= opcode.value;
+		this.tokens = newTokens;
+
+		return true;
+	}
+
+	bool assemblePush(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		OperandSize operandSize;
+		ubyte register;
+		try
+		{
+			operandSize = newTokens.parseSizePrefix();
+			register = newTokens.parseRegister();
+		}
+		catch (Exception e)
+			return false;
+
+		// Synthesize store, add
+		Opcode add;
+		add.opcode = Opcodes.AddB.opcode;
+		add.register1 = Register.SP;
+		add.immediate = -4;
+
+		Opcode store;
+		store.opcode = Opcodes.Store.opcode;
+		store.operandSize = operandSize;
+		store.register1 = Register.SP;
+		store.register2 = register;
+
+		this.output ~= add.value;
+		this.output ~= store.value;
+
+		this.tokens = newTokens;
+
+		return true;
+	}
+
+	bool assemblePop(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		OperandSize operandSize;
+		ubyte register;
+		try
+		{
+			operandSize = newTokens.parseSizePrefix();
+			register = newTokens.parseRegister();
+		}
+		catch (Exception e)
+			return false;
+
+		// Synthesize load, add
+		Opcode load;
+		load.opcode = Opcodes.Load.opcode;
+		load.operandSize = operandSize;
+		load.register1 = register;
+		load.register2 = Register.SP;
+
+		Opcode add;
+		add.opcode = Opcodes.AddB.opcode;
+		add.register1 = Register.SP;
+		add.immediate = 4;
+
+		this.output ~= load.value;
+		this.output ~= add.value;
+
+		this.tokens = newTokens;
+
+		return true;
+	}
+
+	bool assembleLoadI(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		ubyte register;
+		int value;
+		try
+		{
+			register = newTokens.parseRegister();
+		}
+		catch (Exception e)
+			return false;
+
+		try
+		{
+			value = newTokens.parseNumber();
+		}
+		catch (Exception e)
+		{
+			try
+			{
+				value = newTokens.parseLabel(this.labels);
+			}
+			catch (Exception e)
+				return false;
+		}
+
+		// Synthesize loadui, loadli
+		Opcode loadui;
+		loadui.opcode = Opcodes.LoadUi.opcode;
+		loadui.register1 = register;
+		loadui.immediate = (cast(uint)value >> 16) & 0xFFFF;
+
+		Opcode loadli;
+		loadli.opcode = Opcodes.LoadLi.opcode;
+		loadli.register1 = register;
+		loadli.immediate = cast(uint)value & 0xFFFF;
+
+		this.output ~= loadui.value;
+		this.output ~= loadli.value;
+
+		this.tokens = newTokens;
+
+		return true;
+	}
+
+	bool assembleDb(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		int count, value;
+		try
+		{
+			count = newTokens.parseNumber();
+			value = newTokens.parseNumber();
+		}
+		catch (Exception e)
+			return false;
+
+		foreach (i; 0..count/4)
+			output ~= value;
+
+		this.tokens = newTokens;
+
+		return true;
+	}
 }
 
-alias AssembleFunction = bool function(ref Token[], ref const(OpcodeDescriptor), uint[string], ref uint[]);
+alias AssembleFunction = bool delegate(ref Assembler assembler, const(OpcodeDescriptor)* descriptor);
 auto generatePseudoAssemble()
 {
 	string ret = "[";
@@ -487,7 +495,10 @@ auto generatePseudoAssemble()
 	foreach (member; EnumMembers!Opcodes)
 	{
 		static if (member.operandFormat == OperandFormat.Pseudo)
-			ret ~= `"%s" : &assemble%s, `.format(member.name, member.to!string);
+		{
+			ret ~= (`"%s" : (ref Assembler assembler, const(OpcodeDescriptor)* descriptor) ` ~
+				`=> assembler.assemble%s(descriptor), `).format(member.name, member.to!string);
+		}
 	}
 
 	ret ~= "]";
@@ -505,11 +516,11 @@ static this()
 
 uint[] assemble(Token[] tokens)
 {
-	uint[] output;
-	uint[string] labels;
-	while (!tokens.empty)
+	Assembler assembler;
+	assembler.tokens = tokens;
+	while (!assembler.tokens.empty)
 	{
-		auto token = tokens.front;
+		auto token = assembler.tokens.front;
 
 		if (token.type == Token.Type.Identifier)
 		{
@@ -532,7 +543,7 @@ uint[] assemble(Token[] tokens)
 
 					s ~= format(
 `case OperandFormat.%1$s:
-	foundMatching |= tokens.assemble%1$s(descriptor, labels, output);
+	foundMatching |= assembler.assemble%1$s(&descriptor);
 	break;
 `,
 					member.to!string());
@@ -540,14 +551,14 @@ uint[] assemble(Token[] tokens)
 
 				s ~= 
 `case OperandFormat.Pseudo:
-	foundMatching |= PseudoAssemble[token.text](tokens, descriptor, labels, output);
+	foundMatching |= PseudoAssemble[token.text](assembler, &descriptor);
 	break;
 }
 `;
 				return s;
 			}
 
-			tokens.popFront();
+			assembler.tokens.popFront();
 			foreach (descriptor; *descriptors)
 			{
 				mixin (generateSwitchStatement());
@@ -561,10 +572,10 @@ uint[] assemble(Token[] tokens)
 		else if (token.type == Token.Type.Label)
 		{
 			auto text = token.text;
-			if (text in labels)
+			if (text in assembler.labels)
 				token.error("Redefining label `%s`", text);
-			labels[text] = cast(uint)(output.length * uint.sizeof);
-			tokens.popFront();
+			assembler.labels[text] = cast(uint)(assembler.output.length * uint.sizeof);
+			assembler.tokens.popFront();
 		}
 		else
 		{
@@ -572,7 +583,7 @@ uint[] assemble(Token[] tokens)
 		}
 	}
 
-	return output;
+	return assembler.output;
 }
 
 void main(string[] args)
