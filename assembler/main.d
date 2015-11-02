@@ -68,31 +68,26 @@ void attemptTokeniseRegister(ref Token token)
 	{
 		token.type = Token.Type.Register;
 		token.number = cast(int)Register.IP;
-		return;
 	}
 	else if (t == "sp")
 	{
 		token.type = Token.Type.Register;
 		token.number = cast(int)Register.SP;
-		return;
 	}
 	else if (t == "bp")
 	{
 		token.type = Token.Type.Register;
 		token.number = cast(int)Register.BP;
-		return;
 	}
 	else if (t == "z")
 	{
 		token.type = Token.Type.Register;
 		token.number = cast(int)Register.Z;
-		return;
 	}
 	else if (t.startsWith("r") && t.length > 1 && t[1..$].all!isDigit)
 	{
 		token.type = Token.Type.Register;
 		token.number = t[1..$].to!ubyte();
-		return;
 	}
 }
 
