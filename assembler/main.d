@@ -41,8 +41,6 @@ struct Token
 	}
 }
 
-OpcodeDescriptor[][string] descriptors;
-
 void error(Args...)(string text, auto ref Args args)
 {
 	writefln(text, args);
@@ -250,6 +248,15 @@ struct Assembler
 	Token[] tokens;
 	uint[] output;
 	uint[string] labels;
+	OpcodeDescriptor[][string] descriptors;
+
+	this(Token[] tokens)
+	{
+		this.tokens = tokens;
+
+		foreach (member; EnumMembers!Opcodes)
+			this.descriptors[member.name] ~= member;
+	}
 
 	bool assembleDstSrc(const(OpcodeDescriptor)* descriptor)
 	{
@@ -511,16 +518,15 @@ static this()
 
 uint[] assemble(Token[] tokens)
 {
-	Assembler assembler;
-	assembler.tokens = tokens;
+	auto assembler = Assembler(tokens);
 	while (!assembler.tokens.empty)
 	{
 		auto token = assembler.tokens.front;
 
 		if (token.type == Token.Type.Identifier)
 		{
-			auto descriptors = token.text in descriptors;
-			if (!descriptors)
+			auto matchingDescriptors = token.text in assembler.descriptors;
+			if (!matchingDescriptors)
 				token.error("No matching opcode found for `%s`.", token.text);
 
 			bool foundMatching = false;
@@ -554,7 +560,7 @@ uint[] assemble(Token[] tokens)
 			}
 
 			assembler.tokens.popFront();
-			foreach (descriptor; *descriptors)
+			foreach (descriptor; *matchingDescriptors)
 			{
 				mixin (generateSwitchStatement());
 
@@ -589,10 +595,6 @@ void main(string[] args)
 	string outputPath = args.length >= 3 ? args[2] : inputPath.setExtension("bin");
 
 	auto input = inputPath.readText();
-
-	foreach (member; EnumMembers!Opcodes)
-		descriptors[member.name] ~= member;
-
 	auto tokens = input.tokenise(inputPath);
 	auto output = tokens.assemble();
 
