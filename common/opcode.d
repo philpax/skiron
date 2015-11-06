@@ -1,5 +1,6 @@
 module common.opcode;
 
+import common.util;
 import std.bitmanip;
 
 struct Opcode
@@ -149,7 +150,6 @@ OpcodeDescriptor opcodeToDescriptor(ubyte opcode) @nogc nothrow
 char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 {
 	import common.cpu : registerName;
-	import core.stdc.stdio : snprintf;
 
 	char[16][3] buffers;
 
@@ -178,46 +178,21 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
-		auto length =
-			snprintf(output.ptr, output.length, "%.*s %.*s %.*s, %.*s",
-				descriptor.name.length, descriptor.name.ptr,
-				sizePrefix.length, sizePrefix.ptr,
-				reg1.length, reg1.ptr, reg2.length, reg2.ptr);
-
-		return output[0..length];
+		return "%s %s %s, %s".sformat(output, descriptor.name, sizePrefix, reg1, reg2);
 	case OperandFormat.DstSrcSrc:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 		auto reg3 = opcode.register3.registerName(buffers[2]);
 
-		auto length =
-			snprintf(output.ptr, output.length, "%.*s %.*s %.*s, %.*s, %.*s",
-				descriptor.name.length, descriptor.name.ptr,
-				sizePrefix.length, sizePrefix.ptr,
-				reg1.length, reg1.ptr, reg2.length, reg2.ptr, reg3.length, reg3.ptr);
-
-		return output[0..length];
+		return "%s %s %s, %s, %s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3);
 	case OperandFormat.DstImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
-		auto length =
-			snprintf(output.ptr, output.length, "%.*s %.*s, %i",
-				descriptor.name.length, descriptor.name.ptr,
-				reg1.length, reg1.ptr, opcode.immediate);
-
-		return output[0..length];
+		return "%s %s, %s".sformat(output, descriptor.name, reg1, opcode.immediate);
 	case OperandFormat.Label:
-		auto length =
-			snprintf(output.ptr, output.length, "%.*s %i",
-				descriptor.name.length, descriptor.name.ptr, opcode.offset);
-
-		return output[0..length];
+		return "%s %s, %s".sformat(output, descriptor.name, opcode.offset);
 	case OperandFormat.None:
-		auto length =
-			snprintf(output.ptr, output.length, "%.*s",
-				descriptor.name.length, descriptor.name.ptr);
-
-		return output[0..length];
+		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo:
 		return output;
 	}

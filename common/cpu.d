@@ -1,5 +1,7 @@
 module common.cpu;
 
+import common.util;
+
 enum RegisterCount = (1 << 7);
 enum Register
 {
@@ -25,21 +27,16 @@ enum Flags
 
 char[] registerName(ubyte index, char[] buffer) @nogc nothrow
 {
-	import core.stdc.stdio : snprintf;
-	size_t length = 0;
-
 	if (index == Register.IP)
-		length = snprintf(buffer.ptr, buffer.length, "ip");
+		return "ip".sformat(buffer);
 	else if (index == Register.SP)
-		length = snprintf(buffer.ptr, buffer.length, "sp");
+		return "sp".sformat(buffer);
 	else if (index == Register.BP)
-		length = snprintf(buffer.ptr, buffer.length, "bp");
+		return "bp".sformat(buffer);
 	else if (index == Register.Z)
-		length = snprintf(buffer.ptr, buffer.length, "z");
+		return "z".sformat(buffer);
 	else if (index == Register.Flags)
-		length = snprintf(buffer.ptr, buffer.length, "flags");
+		return "flags".sformat(buffer);
 	else
-		length = snprintf(buffer.ptr, buffer.length, "r%i", index);
-
-	return buffer[0..length];
+		return "r%s".sformat(buffer, index);
 }
