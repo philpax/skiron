@@ -33,3 +33,14 @@ solution "skiron"
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
+
+	project "docgen"
+		kind "ConsoleApp"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+
+		files { "common/**.d", "docgen/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }

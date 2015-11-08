@@ -64,45 +64,72 @@ struct OpcodeDescriptor
 	Encoding encoding;
 	bool supportsOperandSize;
 	OperandFormat operandFormat;
+	string description;
 }
 
-auto PseudoOpcode(string name)
+auto PseudoOpcode(string name, string description)
 {
-	return OpcodeDescriptor(name, 0, Encoding.A, false, OperandFormat.Pseudo);
+	return OpcodeDescriptor(name, 0, Encoding.A, false, OperandFormat.Pseudo, description);
 }
 
 enum Opcodes
 {
 	// Memory
-	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, true,  OperandFormat.DstSrc),
-	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, true,  OperandFormat.DstSrc),
-	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, false, OperandFormat.DstImm),
-	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, false, OperandFormat.DstImm),
-	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, true,  OperandFormat.DstSrc),
+	Load	= OpcodeDescriptor("load",		0x00, Encoding.A, true,  OperandFormat.DstSrc,
+		"Loads the value located in `[src]` into `dst`."),
+	Store 	= OpcodeDescriptor("store",		0x01, Encoding.A, true,  OperandFormat.DstSrc,
+		"Stores the value located in `src` into `[dst]`."),
+	LoadLi	= OpcodeDescriptor("loadli",	0x02, Encoding.B, false, OperandFormat.DstImm,
+		"Load the immediate into the lower half of `src`."),
+	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, false, OperandFormat.DstImm,
+		"Load the immediate into the upper half of `src`."),
+	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, true,  OperandFormat.DstSrc,
+		"Copy the value in `src` to `dst`."),
 	// Arithmetic
-	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, false, OperandFormat.DstImm),
-	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Div		= OpcodeDescriptor("div",		0x09, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A, false, OperandFormat.DstSrc),
-	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc),
-	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc),
+	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Add `src1` and `src2` together, and store the result in `dst`."),
+	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, false, OperandFormat.DstImm,
+		"Add the immediate to `dst`, and store the result in `dst`."),
+	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Subtract `src2` from `src1`, and store the result in `dst`."),
+	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Multiply `src1` by `src2`, and store the result in `dst`."),
+	Div		= OpcodeDescriptor("div",		0x09, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Divide `src1` by `src2`, and store the result in `dst`."),
+	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A, false, OperandFormat.DstSrc,
+		"Bitwise-NOT `src`, and store the result in `dst`."),
+	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Bitwise-AND `src1` with `src2`, and store the result in `dst`."),
+	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Bitwise-OR `src1` with `src2`, and store the result in `dst`."),
+	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Bitwise-XOR `src1` with `src2`, and store the result in `dst`."),
+	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Shift `src1` by `src2` bits to the left, and store the result in `dst`."),
+	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc,
+		"Shift `src1` by `src2` bits to the right, and store the result in `dst`."),
 	// Control flow
-	Halt	= OpcodeDescriptor("halt",		0x3F, Encoding.A, false, OperandFormat.None),
-	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, true,  OperandFormat.DstSrc),
-	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, false, OperandFormat.Label),
-	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, false, OperandFormat.Label),
-	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, false, OperandFormat.Label),
-	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, false, OperandFormat.Label),
+	Halt	= OpcodeDescriptor("halt",		0x3F, Encoding.A, false, OperandFormat.None,
+		"Halt operation."),
+	Cmp		= OpcodeDescriptor("cmp",		0x20, Encoding.A, true,  OperandFormat.DstSrc,
+		"Compare `dst` to `src`, and update the flags register appropriately."),
+	Je		= OpcodeDescriptor("je",		0x21, Encoding.C, false, OperandFormat.Label,
+		"If the zero flag is set, jump to the given label."),
+	Jne		= OpcodeDescriptor("jne",		0x22, Encoding.C, false, OperandFormat.Label,
+		"If the zero flag is not set, jump to the given label."),
+	Jgt		= OpcodeDescriptor("jgt",		0x23, Encoding.C, false, OperandFormat.Label,
+		"If the greater flag is set, jump to the given label."),
+	Jlt		= OpcodeDescriptor("jlt",		0x24, Encoding.C, false, OperandFormat.Label,
+		"If the less flag is set, jump to the given label."),
 	// Pseudoinstructions
-	Push	= PseudoOpcode("push"),
-	Pop		= PseudoOpcode("pop"),
-	LoadI	= PseudoOpcode("loadi"),
-	Db		= PseudoOpcode("db"),
+	Push	= PseudoOpcode("push",
+		"Push the given register onto the stack (i.e. `add sp, -4; store sp, register`)."),
+	Pop		= PseudoOpcode("pop",
+		"Pop the given register from the stack (i.e. `load register, sp; add sp, 4`)."),
+	LoadI	= PseudoOpcode("loadi",
+		"Load the given 32-bit immediate, or label, into a register."),
+	Db		= PseudoOpcode("db",
+		"Create `arg1` bytes, each containing `arg2`."),
 }
 
 unittest
