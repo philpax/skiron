@@ -32,7 +32,7 @@ void main(string[] args)
 		if (descriptor.operandFormat != OperandFormat.Pseudo)
 			file.writef("`0x%02X`", descriptor.opcode);
 		else
-			file.writef("    ");
+			file.writef("Pseudo");
 		file.write(" | ");
 		file.write('`', descriptor.name, '`');
 		file.write(" | ");
