@@ -249,6 +249,7 @@ struct Assembler
 	uint[] output;
 	uint[string] labels;
 	OpcodeDescriptor[][string] descriptors;
+	size_t repCount = 1;
 
 	this(Token[] tokens)
 	{
@@ -256,6 +257,12 @@ struct Assembler
 
 		foreach (member; EnumMembers!Opcodes)
 			this.descriptors[member.name] ~= member;
+	}
+
+	void finishAssemble(Token[] tokens)
+	{
+		this.tokens = tokens;
+		this.repCount = 1;
 	}
 
 	bool assembleDstSrc(const(OpcodeDescriptor)* descriptor)
@@ -274,8 +281,9 @@ struct Assembler
 		catch (Exception e)
 			return false;
 
-		this.output ~= opcode.value;
-		this.tokens = newTokens;
+		foreach (_; 0..this.repCount)
+			this.output ~= opcode.value;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -296,8 +304,9 @@ struct Assembler
 		catch (Exception e)
 			return false;
 
-		this.output ~= opcode.value;
-		this.tokens = newTokens;
+		foreach (_; 0..this.repCount)
+			this.output ~= opcode.value;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -316,8 +325,9 @@ struct Assembler
 		catch (Exception e)
 			return false;
 
-		output ~= opcode.value;
-		tokens = newTokens;
+		foreach (_; 0..this.repCount)
+			output ~= opcode.value;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -327,7 +337,8 @@ struct Assembler
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 
-		this.output ~= opcode.value;
+		foreach (_; 0..this.repCount)
+			this.output ~= opcode.value;
 
 		return true;
 	}
@@ -347,8 +358,9 @@ struct Assembler
 		catch (Exception e)
 			return false;
 
-		this.output ~= opcode.value;
-		this.tokens = newTokens;
+		foreach (_; 0..this.repCount)
+			this.output ~= opcode.value;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -379,10 +391,13 @@ struct Assembler
 		store.register1 = Register.SP;
 		store.register2 = register;
 
-		this.output ~= add.value;
-		this.output ~= store.value;
+		foreach (_; 0..this.repCount)
+		{
+			this.output ~= add.value;
+			this.output ~= store.value;
+		}
 
-		this.tokens = newTokens;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -413,10 +428,13 @@ struct Assembler
 		add.register1 = Register.SP;
 		add.immediate = 4;
 
-		this.output ~= load.value;
-		this.output ~= add.value;
+		foreach (_; 0..this.repCount)
+		{
+			this.output ~= load.value;
+			this.output ~= add.value;
+		}
 
-		this.tokens = newTokens;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -459,10 +477,13 @@ struct Assembler
 		loadli.register1 = register;
 		loadli.immediate = cast(uint)value & 0xFFFF;
 
-		this.output ~= loadui.value;
-		this.output ~= loadli.value;
+		foreach (_; 0..this.repCount)
+		{
+			this.output ~= loadui.value;
+			this.output ~= loadli.value;
+		}
 
-		this.tokens = newTokens;
+		this.finishAssemble(newTokens);
 
 		return true;
 	}
@@ -471,20 +492,37 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
-		int count, value;
+		int value;
 		try
 		{
-			count = newTokens.parseNumber();
 			value = newTokens.parseNumber();
 		}
 		catch (Exception e)
 			return false;
 
-		foreach (i; 0..count/4)
+		if (this.repCount % 4 != 0)
+			throw new Exception("Expected 4-byte alignment compatibility for db");
+
+		foreach (i; 0..this.repCount/4)
 			output ~= value;
 
-		this.tokens = newTokens;
+		this.finishAssemble(newTokens);
 
+		return true;
+	}
+
+	bool assembleRep(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		try
+		{
+			this.repCount = newTokens.parseNumber();
+		}
+		catch (Exception e)
+			return false;
+
+		this.tokens = newTokens;
 		return true;
 	}
 }

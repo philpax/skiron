@@ -1,0 +1,7 @@
+target:
+rep 10 add r0, 10
+rep 4 move r1, r0
+rep 4 add r2, r1, r0
+rep 4 je target
+halt
+rep 4 db 0

@@ -130,6 +130,8 @@ enum Opcodes
 		"Load the given 32-bit immediate, or label, into a register."),
 	Db		= PseudoOpcode("db",
 		"Create `arg1` bytes, each containing `arg2`."),
+	Rep		= PseudoOpcode("rep",
+		"Repeat the following instruction `arg1` times."),
 }
 
 unittest
