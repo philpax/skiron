@@ -219,7 +219,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 
 		return "%s %s, %s".sformat(output, descriptor.name, reg1, opcode.immediate);
 	case OperandFormat.Label:
-		return "%s %s, %s".sformat(output, descriptor.name, opcode.offset);
+		return "%s %s".sformat(output, descriptor.name, opcode.offset);
 	case OperandFormat.None:
 		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo:
