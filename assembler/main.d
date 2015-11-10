@@ -188,13 +188,14 @@ Token[] tokenise(string input, string fileName)
 	return tokens;
 }
 
-bool parseNumber(ref Token[] tokens, int output)
+bool parseNumber(Int)(ref Token[] tokens, ref Int output)
+	if (is(Int : int))
 {
 	auto token = tokens.front;
 	if (token.type != Token.Type.Number)
 		return false;
 
-	output = token.number;
+	output = cast(Int)token.number;
 	tokens.popFront();
 	return true;
 }
@@ -455,12 +456,12 @@ struct Assembler
 		Opcode loadui;
 		loadui.opcode = Opcodes.LoadUi.opcode;
 		loadui.register1 = register;
-		loadui.immediate = (cast(uint)value >> 16) & 0xFFFF;
+		loadui.immediate = (value >> 16) & 0xFFFF;
 
 		Opcode loadli;
 		loadli.opcode = Opcodes.LoadLi.opcode;
 		loadli.register1 = register;
-		loadli.immediate = cast(uint)value & 0xFFFF;
+		loadli.immediate = value & 0xFFFF;
 
 		foreach (_; 0..this.repCount)
 		{
