@@ -262,12 +262,34 @@ struct Assembler
 	OpcodeDescriptor[][string] descriptors;
 	size_t repCount = 1;
 
+	alias AssembleFunction = bool delegate(const(OpcodeDescriptor)* descriptor);
+	immutable AssembleFunction[string] pseudoAssemble;
+
 	this(Token[] tokens)
 	{
 		this.tokens = tokens;
 
 		foreach (member; EnumMembers!Opcodes)
 			this.descriptors[member.name] ~= member;
+
+		auto generatePseudoAssemble()
+		{
+			string ret = "[";
+
+			foreach (member; EnumMembers!Opcodes)
+			{
+				static if (member.operandFormat == OperandFormat.Pseudo)
+				{
+					ret ~= (`"%s" : &assemble%s, `).format(member.name, member.to!string);
+				}
+			}
+
+			ret ~= "]";
+
+			return ret;
+		}
+
+		this.pseudoAssemble = mixin(generatePseudoAssemble());
 	}
 
 	void finishAssemble(Token[] tokens)
@@ -505,104 +527,78 @@ struct Assembler
 
 		return true;
 	}
-}
 
-alias AssembleFunction = bool delegate(ref Assembler assembler, const(OpcodeDescriptor)* descriptor);
-auto generatePseudoAssemble()
-{
-	string ret = "[";
-
-	foreach (member; EnumMembers!Opcodes)
+	void assembleIdentifierToken(ref Token token)
 	{
-		static if (member.operandFormat == OperandFormat.Pseudo)
+		auto matchingDescriptors = token.text in this.descriptors;
+		if (!matchingDescriptors)
+			token.error("No matching opcode found for `%s`.", token.text);
+
+		bool foundMatching = false;
+
+		string generateSwitchStatement()
 		{
-			ret ~= (`"%s" : (ref Assembler assembler, const(OpcodeDescriptor)* descriptor) ` ~
-				`=> assembler.assemble%s(descriptor), `).format(member.name, member.to!string);
-		}
-	}
-
-	ret ~= "]";
-
-	return ret;
-}
-
-immutable AssembleFunction[string] PseudoAssemble;
-
-// Use a module constructor to work around not being able to initialize AAs in module scope
-static this()
-{
-	PseudoAssemble = mixin(generatePseudoAssemble());
-} 
-
-uint[] assemble(Token[] tokens)
-{
-	auto assembler = Assembler(tokens);
-	while (!assembler.tokens.empty)
-	{
-		auto token = assembler.tokens.front;
-
-		if (token.type == Token.Type.Identifier)
-		{
-			auto matchingDescriptors = token.text in assembler.descriptors;
-			if (!matchingDescriptors)
-				token.error("No matching opcode found for `%s`.", token.text);
-
-			bool foundMatching = false;
-
-			string generateSwitchStatement()
-			{
-				string s =
+			string s =
 `final switch (descriptor.operandFormat)
 {
 `;
-				foreach (member; EnumMembers!OperandFormat)
-				{
-					if (member == OperandFormat.Pseudo)
-						continue;
+			foreach (member; EnumMembers!OperandFormat)
+			{
+				if (member == OperandFormat.Pseudo)
+					continue;
 
-					s ~= format(
+				s ~= format(
 `case OperandFormat.%1$s:
-	foundMatching |= assembler.assemble%1$s(&descriptor);
+	foundMatching |= this.assemble%1$s(&descriptor);
 	break;
 `,
-					member.to!string());
-				}
+				member.to!string());
+			}
 
-				s ~= 
+			s ~=
 `case OperandFormat.Pseudo:
-	foundMatching |= PseudoAssemble[token.text](assembler, &descriptor);
+	foundMatching |= this.pseudoAssemble[token.text](&descriptor);
 	break;
 }
 `;
-				return s;
-			}
+			return s;
+		}
 
-			assembler.tokens.popFront();
-			foreach (descriptor; *matchingDescriptors)
-			{
-				mixin (generateSwitchStatement());
+		this.tokens.popFront();
+		foreach (descriptor; *matchingDescriptors)
+		{
+			mixin (generateSwitchStatement());
 
-				if (foundMatching) 
-					break;
-			}
-			if (!foundMatching)
-				token.error("No valid overloads for `%s` found.", token.text);
+			if (foundMatching)
+				break;
 		}
-		else if (token.type == Token.Type.Label)
-		{
-			auto text = token.text;
-			if (text in assembler.labels)
-				token.error("Redefining label `%s`", text);
-			assembler.labels[text] = cast(uint)(assembler.output.length * uint.sizeof);
-			assembler.tokens.popFront();
-		}
-		else
-		{
-			token.error("Unhandled token: %s.", token.to!string());
-		}
+		if (!foundMatching)
+			token.error("No valid overloads for `%s` found.", token.text);
 	}
 
-	return assembler.output;
+	void assembleLabelToken(ref Token token)
+	{
+		auto text = token.text;
+		if (text in this.labels)
+			token.error("Redefining label `%s`", text);
+		this.labels[text] = cast(uint)(this.output.length * uint.sizeof);
+		this.tokens.popFront();
+	}
+
+	void assemble()
+	{
+		while (!this.tokens.empty)
+		{
+			auto token = this.tokens.front;
+
+			if (token.type == Token.Type.Identifier)
+				this.assembleIdentifierToken(token);
+			else if (token.type == Token.Type.Label)
+				this.assembleLabelToken(token);
+			else
+				token.error("Unhandled token: %s.", token.to!string());
+		}
+	}
 }
 
 void main(string[] args)
@@ -614,7 +610,8 @@ void main(string[] args)
 
 	auto input = inputPath.readText();
 	auto tokens = input.tokenise(inputPath);
-	auto output = tokens.assemble();
+	auto assembler = Assembler(tokens);
+	assembler.assemble();
 
-	std.file.write(outputPath, output);
+	std.file.write(outputPath, assembler.output);
 }
