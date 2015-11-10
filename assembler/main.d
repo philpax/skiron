@@ -188,72 +188,6 @@ Token[] tokenise(string input, string fileName)
 	return tokens;
 }
 
-bool parseNumber(Int)(ref Token[] tokens, ref Int output)
-	if (is(Int : int))
-{
-	auto token = tokens.front;
-	if (token.type != Token.Type.Number)
-		return false;
-
-	output = cast(Int)token.number;
-	tokens.popFront();
-	return true;
-}
-
-bool parseSizePrefix(ref Token[] tokens, ref OperandSize output)
-{
-	auto token = tokens.front;
-
-	if (token.type == Token.Type.Byte)
-	{
-		tokens.popFront();
-		output = OperandSize.Byte;
-	}
-	else if (token.type == Token.Type.Dbyte)
-	{
-		tokens.popFront();
-		output = OperandSize.Dbyte;
-	}
-	else if (token.type == Token.Type.Qbyte)
-	{
-		tokens.popFront();
-		output = OperandSize.Qbyte;
-	}
-	else
-	{
-		output = OperandSize.Qbyte;
-	}
-
-	return true;
-}
-
-bool parseRegister(ref Token[] tokens, ref ubyte output)
-{
-	auto token = tokens.front;
-	if (token.type != Token.Type.Register)
-		return false;
-
-	output = cast(ubyte)token.number;
-	tokens.popFront();
-	return true;
-}
-
-bool parseLabel(ref Token[] tokens, uint[string] labels, ref uint output)
-{
-	auto token = tokens.front;
-	if (token.type != Token.Type.Identifier)
-		return false;
-
-	auto ptr = token.text in labels;
-	if (!ptr)
-		return false;
-
-	output = *ptr;
-	tokens.popFront();
-
-	return true;
-}
-
 struct Assembler
 {
 	Token[] tokens;
@@ -292,6 +226,72 @@ struct Assembler
 		this.pseudoAssemble = mixin(generatePseudoAssemble());
 	}
 
+	bool parseNumber(Int)(ref Token[] tokens, ref Int output)
+		if (is(Int : int))
+	{
+		auto token = tokens.front;
+		if (token.type != Token.Type.Number)
+			return false;
+
+		output = cast(Int)token.number;
+		tokens.popFront();
+		return true;
+	}
+
+	bool parseSizePrefix(ref Token[] tokens, ref OperandSize output)
+	{
+		auto token = tokens.front;
+
+		if (token.type == Token.Type.Byte)
+		{
+			tokens.popFront();
+			output = OperandSize.Byte;
+		}
+		else if (token.type == Token.Type.Dbyte)
+		{
+			tokens.popFront();
+			output = OperandSize.Dbyte;
+		}
+		else if (token.type == Token.Type.Qbyte)
+		{
+			tokens.popFront();
+			output = OperandSize.Qbyte;
+		}
+		else
+		{
+			output = OperandSize.Qbyte;
+		}
+
+		return true;
+	}
+
+	bool parseRegister(ref Token[] tokens, ref ubyte output)
+	{
+		auto token = tokens.front;
+		if (token.type != Token.Type.Register)
+			return false;
+
+		output = cast(ubyte)token.number;
+		tokens.popFront();
+		return true;
+	}
+
+	bool parseLabel(ref Token[] tokens, ref uint output)
+	{
+		auto token = tokens.front;
+		if (token.type != Token.Type.Identifier)
+			return false;
+
+		auto ptr = token.text in this.labels;
+		if (!ptr)
+			return false;
+
+		output = *ptr;
+		tokens.popFront();
+
+		return true;
+	}
+
 	void finishAssemble(Token[] tokens)
 	{
 		this.tokens = tokens;
@@ -304,9 +304,9 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register1, register2;
-		if (!newTokens.parseSizePrefix(operandSize)) return false;
-		if (!newTokens.parseRegister(register1)) return false;
-		if (!newTokens.parseRegister(register2)) return false;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
+		if (!this.parseRegister(newTokens, register1)) return false;
+		if (!this.parseRegister(newTokens, register2)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
@@ -328,10 +328,10 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register1, register2, register3;
-		if (!newTokens.parseSizePrefix(operandSize)) return false;
-		if (!newTokens.parseRegister(register1)) return false;
-		if (!newTokens.parseRegister(register2)) return false;
-		if (!newTokens.parseRegister(register3)) return false;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
+		if (!this.parseRegister(newTokens, register1)) return false;
+		if (!this.parseRegister(newTokens, register2)) return false;
+		if (!this.parseRegister(newTokens, register3)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
@@ -352,8 +352,8 @@ struct Assembler
 
 		ubyte register1;
 		int immediate;
-		if (!newTokens.parseRegister(register1)) return false;
-		if (!newTokens.parseNumber(immediate)) return false;
+		if (!this.parseRegister(newTokens, register1)) return false;
+		if (!this.parseNumber(newTokens, immediate)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
@@ -386,7 +386,7 @@ struct Assembler
 		opcode.opcode = descriptor.opcode;
 
 		uint offset;
-		if (!newTokens.parseLabel(this.labels, offset)) return false;
+		if (!this.parseLabel(newTokens, offset)) return false;
 
 		foreach (_; 0..this.repCount)
 		{
@@ -405,8 +405,8 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register;
-		if (!newTokens.parseSizePrefix(operandSize)) return false;
-		if (!newTokens.parseRegister(register)) return false;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
+		if (!this.parseRegister(newTokens, register)) return false;
 
 		// Synthesize store, add
 		Opcode add;
@@ -437,8 +437,8 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register;
-		if (!newTokens.parseSizePrefix(operandSize)) return false;
-		if (!newTokens.parseRegister(register)) return false;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
+		if (!this.parseRegister(newTokens, register)) return false;
 
 		// Synthesize load, add
 		Opcode load;
@@ -470,8 +470,8 @@ struct Assembler
 		ubyte register;
 		uint value;
 
-		if (!newTokens.parseRegister(register)) return false;
-		if (!(newTokens.parseNumber(value) || newTokens.parseLabel(this.labels, value)))
+		if (!this.parseRegister(newTokens, register)) return false;
+		if (!(this.parseNumber(newTokens, value) || this.parseLabel(newTokens, value)))
 			return false;
 
 		// Synthesize loadui, loadli
@@ -501,7 +501,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		int value;
-		if (!newTokens.parseNumber(value)) return false;
+		if (!this.parseNumber(newTokens, value)) return false;
 
 		if (this.repCount % 4 != 0)
 			throw new Exception("Expected 4-byte alignment compatibility for db");
@@ -521,7 +521,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		int repCount;
-		if (!newTokens.parseNumber(repCount)) return false;
+		if (!this.parseNumber(newTokens, repCount)) return false;
 		this.repCount = repCount;
 		this.tokens = newTokens;
 
