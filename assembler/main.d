@@ -188,59 +188,69 @@ Token[] tokenise(string input, string fileName)
 	return tokens;
 }
 
-int parseNumber(ref Token[] tokens)
+bool parseNumber(ref Token[] tokens, int output)
 {
 	auto token = tokens.front;
-	enforce(token.type == Token.Type.Number);
+	if (token.type != Token.Type.Number)
+		return false;
 
-	scope (success) tokens.popFront();
-	return token.number;
+	output = token.number;
+	tokens.popFront();
+	return true;
 }
 
-OperandSize parseSizePrefix(ref Token[] tokens)
+bool parseSizePrefix(ref Token[] tokens, ref OperandSize output)
 {
 	auto token = tokens.front;
 
 	if (token.type == Token.Type.Byte)
 	{
 		tokens.popFront();
-		return OperandSize.Byte;
+		output = OperandSize.Byte;
 	}
 	else if (token.type == Token.Type.Dbyte)
 	{
 		tokens.popFront();
-		return OperandSize.Dbyte;
+		output = OperandSize.Dbyte;
 	}
 	else if (token.type == Token.Type.Qbyte)
 	{
 		tokens.popFront();
-		return OperandSize.Qbyte;
+		output = OperandSize.Qbyte;
 	}
 	else
 	{
-		return OperandSize.Qbyte;
+		output = OperandSize.Qbyte;
 	}
+
+	return true;
 }
 
-ubyte parseRegister(ref Token[] tokens)
+bool parseRegister(ref Token[] tokens, ref ubyte output)
 {
-	scope (success) tokens.popFront();
 	auto token = tokens.front;
-	enforce(token.type == Token.Type.Register);
+	if (token.type != Token.Type.Register)
+		return false;
 
-	return cast(ubyte)token.number;
+	output = cast(ubyte)token.number;
+	tokens.popFront();
+	return true;
 }
 
-int parseLabel(ref Token[] tokens, uint[string] labels)
+bool parseLabel(ref Token[] tokens, uint[string] labels, ref uint output)
 {
-	scope (success) tokens.popFront();
 	auto token = tokens.front;
-	enforce(token.type == Token.Type.Identifier);
+	if (token.type != Token.Type.Identifier)
+		return false;
 
 	auto ptr = token.text in labels;
-	enforce(ptr);
+	if (!ptr)
+		return false;
 
-	return *ptr;
+	output = *ptr;
+	tokens.popFront();
+
+	return true;
 }
 
 struct Assembler
@@ -269,17 +279,18 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
+		OperandSize operandSize;
+		ubyte register1, register2;
+		if (!newTokens.parseSizePrefix(operandSize)) return false;
+		if (!newTokens.parseRegister(register1)) return false;
+		if (!newTokens.parseRegister(register2)) return false;
+
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
-		opcode.operandSize = newTokens.parseSizePrefix();
-		try
-		{
-			opcode.register1 = newTokens.parseRegister();
-			opcode.register2 = newTokens.parseRegister();
-			opcode.register3 = 0;
-		}
-		catch (Exception e)
-			return false;
+		opcode.operandSize = operandSize;
+		opcode.register1 = register1;
+		opcode.register2 = register2;
+		opcode.register3 = 0;
 
 		foreach (_; 0..this.repCount)
 			this.output ~= opcode.value;
@@ -292,17 +303,18 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
+		OperandSize operandSize;
+		ubyte register1, register2, register3;
+		if (!newTokens.parseSizePrefix(operandSize)) return false;
+		if (!newTokens.parseRegister(register1)) return false;
+		if (!newTokens.parseRegister(register2)) return false;
+		if (!newTokens.parseRegister(register3)) return false;
+
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
-		opcode.operandSize = newTokens.parseSizePrefix();
-		try
-		{
-			opcode.register1 = newTokens.parseRegister();
-			opcode.register2 = newTokens.parseRegister();
-			opcode.register3 = newTokens.parseRegister();
-		}
-		catch (Exception e)
-			return false;
+		opcode.register1 = register1;
+		opcode.register2 = register2;
+		opcode.register3 = register3;
 
 		foreach (_; 0..this.repCount)
 			this.output ~= opcode.value;
@@ -315,15 +327,15 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
+		ubyte register1;
+		int immediate;
+		if (!newTokens.parseRegister(register1)) return false;
+		if (!newTokens.parseNumber(immediate)) return false;
+
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
-		try
-		{
-			opcode.register1 = newTokens.parseRegister();
-			opcode.immediate = newTokens.parseNumber();
-		}
-		catch (Exception e)
-			return false;
+		opcode.register1 = register1;
+		opcode.immediate = immediate;
 
 		foreach (_; 0..this.repCount)
 			output ~= opcode.value;
@@ -349,13 +361,9 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
-		int offset;
-		try
-		{
-			offset = newTokens.parseLabel(this.labels);
-		}
-		catch (Exception e)
-			return false;
+
+		uint offset;
+		if (!newTokens.parseLabel(this.labels, offset)) return false;
 
 		foreach (_; 0..this.repCount)
 		{
@@ -374,13 +382,8 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register;
-		try
-		{
-			operandSize = newTokens.parseSizePrefix();
-			register = newTokens.parseRegister();
-		}
-		catch (Exception e)
-			return false;
+		if (!newTokens.parseSizePrefix(operandSize)) return false;
+		if (!newTokens.parseRegister(register)) return false;
 
 		// Synthesize store, add
 		Opcode add;
@@ -411,13 +414,8 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register;
-		try
-		{
-			operandSize = newTokens.parseSizePrefix();
-			register = newTokens.parseRegister();
-		}
-		catch (Exception e)
-			return false;
+		if (!newTokens.parseSizePrefix(operandSize)) return false;
+		if (!newTokens.parseRegister(register)) return false;
 
 		// Synthesize load, add
 		Opcode load;
@@ -447,27 +445,11 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		ubyte register;
-		int value;
-		try
-		{
-			register = newTokens.parseRegister();
-		}
-		catch (Exception e)
-			return false;
+		uint value;
 
-		try
-		{
-			value = newTokens.parseNumber();
-		}
-		catch (Exception e)
-		{
-			try
-			{
-				value = newTokens.parseLabel(this.labels);
-			}
-			catch (Exception e)
-				return false;
-		}
+		if (!newTokens.parseRegister(register)) return false;
+		if (!(newTokens.parseNumber(value) || newTokens.parseLabel(this.labels, value)))
+			return false;
 
 		// Synthesize loadui, loadli
 		Opcode loadui;
@@ -496,18 +478,15 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		int value;
-		try
-		{
-			value = newTokens.parseNumber();
-		}
-		catch (Exception e)
-			return false;
+		if (!newTokens.parseNumber(value)) return false;
 
 		if (this.repCount % 4 != 0)
 			throw new Exception("Expected 4-byte alignment compatibility for db");
 
+		auto b = cast(ubyte)value;
+
 		foreach (i; 0..this.repCount/4)
-			output ~= value;
+			output ~= b || b << 8 || b << 16 || b << 24;
 
 		this.finishAssemble(newTokens);
 
@@ -518,14 +497,11 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
-		try
-		{
-			this.repCount = newTokens.parseNumber();
-		}
-		catch (Exception e)
-			return false;
-
+		int repCount;
+		if (!newTokens.parseNumber(repCount)) return false;
+		this.repCount = repCount;
 		this.tokens = newTokens;
+
 		return true;
 	}
 }
