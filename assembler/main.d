@@ -349,17 +349,20 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		int offset;
 		try
 		{
-			auto currentPosition = cast(int)(output.length * uint.sizeof);
-			auto offset = newTokens.parseLabel(this.labels);
-			opcode.offset = offset - currentPosition - 4;
+			offset = newTokens.parseLabel(this.labels);
 		}
 		catch (Exception e)
 			return false;
 
 		foreach (_; 0..this.repCount)
+		{
+			auto currentPosition = cast(int)(output.length * uint.sizeof);
+			opcode.offset = offset - currentPosition - 4;
 			this.output ~= opcode.value;
+		}
 		this.finishAssemble(newTokens);
 
 		return true;
