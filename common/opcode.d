@@ -131,7 +131,7 @@ enum Opcodes
 	LoadI	= PseudoOpcode("loadi",
 		"Load the given 32-bit immediate, or label, into a register."),
 	Db		= PseudoOpcode("db",
-		"Create `arg1` bytes, each containing `arg2`."),
+		"Create a byte containing `arg2`; needs to be used with `rep` where `n > 4 && n % 4 == 0`."),
 	Rep		= PseudoOpcode("rep",
 		"Repeat the following instruction `arg1` times."),
 }
