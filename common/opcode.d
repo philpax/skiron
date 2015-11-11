@@ -106,7 +106,7 @@ enum Opcodes
 		"Bitwise-XOR `src1` with `src2`, and store the result in `dst`."),
 	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Shift `src1` by `src2` bits to the left, and store the result in `dst`."),
-	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Shr		= OpcodeDescriptor("shr",		0x0F, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Shift `src1` by `src2` bits to the right, and store the result in `dst`."),
 	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0x3F, Encoding.A, false, OperandFormat.None,
