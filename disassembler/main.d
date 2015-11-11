@@ -4,6 +4,7 @@ import std.traits;
 import std.file;
 import std.string;
 import std.conv;
+import std.range;
 
 import common.opcode;
 import common.cpu;
@@ -19,9 +20,9 @@ void main(string[] args)
 		descriptors[member.opcode] = member;
 
 	char[64] buffer;
-	foreach (opcode; opcodes)
+	foreach (index, opcode; opcodes.enumerate)
 	{
 		auto inst = opcode.disassemble(buffer);
-		writeln(inst);
+		writefln("%X: %s", index * Opcode.sizeof, inst);
 	}
 }
