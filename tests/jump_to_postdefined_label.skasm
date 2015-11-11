@@ -1,6 +1,5 @@
 move r0, z
-cmp r0, z
-je postlabel
+j postlabel
 
 rep 4 db 0
 

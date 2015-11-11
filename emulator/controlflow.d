@@ -34,6 +34,11 @@ void runCmp(Type = uint)(ref Core core, Opcode opcode)
 		core.flags &= ~Flags.Less;
 }
 
+void runJ(ref Core core, Opcode opcode)
+{
+	core.ip += opcode.offset;
+}
+
 void runJe(ref Core core, Opcode opcode)
 {
 	if (core.flags & Flags.Zero)
