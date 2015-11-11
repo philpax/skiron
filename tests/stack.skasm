@@ -1,11 +1,4 @@
 # Stack testing
-stack_end:
-add z, 0
-add z, 0
-add z, 0
-add z, 0
-stack_begin:
-
 loadi sp, stack_begin
 move bp, sp
 loadi r3, 4
@@ -15,3 +8,7 @@ push r3
 pop r0
 pop r1
 halt
+
+stack_end:
+rep 16 db 0
+stack_begin:

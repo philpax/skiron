@@ -1,0 +1,9 @@
+move r0, z
+cmp r0, z
+je postlabel
+
+rep 4 db 0
+
+postlabel:
+add r0, 1
+halt

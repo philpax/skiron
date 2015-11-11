@@ -190,10 +190,26 @@ Token[] tokenise(string input, string fileName)
 
 struct Assembler
 {
+	struct Relocation
+	{
+		enum Type
+		{
+			// Offset from this instruction to the target
+			Offset,
+			// Upper and lower 16-bits of the label, to be stored in the next two instructions
+			SplitAbsolute
+		}
+
+		string label;
+		size_t location;
+		Type type;
+	}
+
 	Token[] tokens;
 	uint[] output;
 	uint[string] labels;
 	OpcodeDescriptor[][string] descriptors;
+	Relocation[] relocations;
 	size_t repCount = 1;
 
 	alias AssembleFunction = bool delegate(const(OpcodeDescriptor)* descriptor);
@@ -276,7 +292,7 @@ struct Assembler
 		return true;
 	}
 
-	bool parseLabel(ref Token[] tokens, ref uint output)
+	bool parseLabel(ref Token[] tokens, ref string output)
 	{
 		auto token = tokens.front;
 		if (token.type != Token.Type.Identifier)
@@ -286,7 +302,7 @@ struct Assembler
 		if (!ptr)
 			return false;
 
-		output = *ptr;
+		output = token.text;
 		tokens.popFront();
 
 		return true;
@@ -385,14 +401,14 @@ struct Assembler
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 
-		uint offset;
-		if (!this.parseLabel(newTokens, offset)) return false;
+		string label;
+		if (!this.parseLabel(newTokens, label)) return false;
 
 		foreach (_; 0..this.repCount)
 		{
-			auto currentPosition = cast(int)(output.length * uint.sizeof);
-			opcode.offset = offset - currentPosition - 4;
 			this.output ~= opcode.value;
+			this.relocations ~= Relocation(
+				label, this.output.length-1, Relocation.Type.Offset);
 		}
 		this.finishAssemble(newTokens);
 
@@ -469,9 +485,10 @@ struct Assembler
 
 		ubyte register;
 		uint value;
+		string label;
 
 		if (!this.parseRegister(newTokens, register)) return false;
-		if (!(this.parseNumber(newTokens, value) || this.parseLabel(newTokens, value)))
+		if (!(this.parseNumber(newTokens, value) || this.parseLabel(newTokens, label)))
 			return false;
 
 		// Synthesize loadui, loadli
@@ -489,6 +506,12 @@ struct Assembler
 		{
 			this.output ~= loadui.value;
 			this.output ~= loadli.value;
+
+			if (label.length)
+			{
+				this.relocations ~= Relocation(
+					label, this.output.length - 2, Relocation.Type.SplitAbsolute);
+			}
 		}
 
 		this.finishAssemble(newTokens);
@@ -578,15 +601,24 @@ struct Assembler
 
 	void assembleLabelToken(ref Token token)
 	{
-		auto text = token.text;
-		if (text in this.labels)
-			token.error("Redefining label `%s`", text);
-		this.labels[text] = cast(uint)(this.output.length * uint.sizeof);
+		this.labels[token.text] = cast(uint)(this.output.length * uint.sizeof);
 		this.tokens.popFront();
 	}
 
 	void assemble()
 	{
+		// Prefill the labels AA
+		foreach (token; this.tokens)
+		{
+			if (token.type == Token.Type.Label)
+			{
+				auto text = token.text;
+				if (text in this.labels)
+					token.error("Redefining label `%s`", text);
+				this.labels[token.text] = 0;
+			}
+		}
+
 		while (!this.tokens.empty)
 		{
 			auto token = this.tokens.front;
@@ -597,6 +629,28 @@ struct Assembler
 				this.assembleLabelToken(token);
 			else
 				token.error("Unhandled token: %s.", token.to!string());
+		}
+
+		auto opcodes = cast(Opcode[])this.output;
+		foreach (const relocation; this.relocations)
+		{
+			final switch (relocation.type)
+			{
+			case Relocation.Type.Offset:
+				auto location = relocation.location;
+				auto currentPosition = location * uint.sizeof;
+
+				opcodes[location].offset =
+					cast(int)(this.labels[relocation.label] - currentPosition - 4);
+				break;
+			case Relocation.Type.SplitAbsolute:
+				auto location = relocation.location;
+				auto label = this.labels[relocation.label];
+
+				opcodes[location].immediate = (label >> 16) & 0xFFFF;
+				opcodes[location+1].immediate = label & 0xFFFF;
+				break;
+			}
 		}
 	}
 }
