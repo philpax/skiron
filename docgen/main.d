@@ -4,6 +4,7 @@ import std.file;
 import std.string;
 import std.conv;
 import std.algorithm;
+import std.range;
 
 import common.opcode;
 import common.cpu;
@@ -27,8 +28,24 @@ void main(string[] args)
 	file.writefln("Opcode | Instruction | Operands | Description");
 	file.writefln("-------|-------------|----------|------------");
 
-	foreach (descriptor; descriptors)
+	foreach (index, descriptor; descriptors.enumerate)
 	{
+		if (index > 0)
+		{
+			auto prevDescriptor = descriptors[index-1];
+			auto diff = descriptor.opcode - prevDescriptor.opcode;
+
+			if (diff == 2)
+			{
+				file.writefln("`0x%02X` | | | Unallocated opcode", descriptor.opcode - 1);
+			}
+			else if (diff > 2)
+			{
+				file.writefln("`0x%02X - 0x%02X` | | | Unallocated opcodes (%s free)",
+					prevDescriptor.opcode + 1, descriptor.opcode - 1, diff -  1);
+			}
+		}
+
 		if (descriptor.operandFormat != OperandFormat.Pseudo)
 			file.writef("`0x%02X`", descriptor.opcode);
 		else
