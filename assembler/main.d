@@ -222,17 +222,14 @@ struct Assembler
 		foreach (member; EnumMembers!Opcodes)
 			this.descriptors[member.name] ~= member;
 
+		// Construct the AA of pseudoinstructions => assemble functions
 		auto generatePseudoAssemble()
 		{
 			string ret = "[";
 
 			foreach (member; EnumMembers!Opcodes)
-			{
 				static if (member.operandFormat == OperandFormat.Pseudo)
-				{
 					ret ~= (`"%s" : &assemble%s, `).format(member.name, member.to!string);
-				}
-			}
 
 			ret ~= "]";
 
