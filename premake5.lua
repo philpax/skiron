@@ -42,5 +42,7 @@ solution "skiron"
 
 		files { "common/**.d", "docgen/**.d" }
 
+		postbuildcommands "{CHDIR} bin && ./docgen"
+
 		filter "configurations:unittest"
 			flags { "UnitTest" }
