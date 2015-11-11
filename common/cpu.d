@@ -6,7 +6,9 @@ enum RegisterCount = (1 << 7);
 enum Register
 {
 	// Zero register (always 0)
-	Z = RegisterCount-4,
+	Z = RegisterCount-5,
+	// Return address (address to return to after current function executes)
+	RA = RegisterCount-4,
 	// Stack base pointer
 	BP = RegisterCount-3,
 	// Stack top pointer
@@ -35,6 +37,8 @@ char[] registerName(ubyte index, char[] buffer) @nogc nothrow
 		return "bp".sformat(buffer);
 	else if (index == Register.Z)
 		return "z".sformat(buffer);
+	else if (index == Register.RA)
+		return "ra".sformat(buffer);
 	else if (index == Register.Flags)
 		return "flags".sformat(buffer);
 	else

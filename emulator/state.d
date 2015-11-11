@@ -14,16 +14,7 @@ string generateOpcodeSwitch()
 {
 	import std.traits, std.string, std.conv;
 	string s = 
-`auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
-
-if (this.printOpcodes)
-{
-	char[64] buffer;
-	auto inst = opcode.disassemble(buffer);
-	printf("C%i %i: %.*s\n", this.id, this.ip, inst.length, inst.ptr);
-}
-
-final switch (opcode.opcode)
+`final switch (opcode.opcode)
 {
 `;
 	foreach (member; EnumMembers!Opcodes)
@@ -105,6 +96,11 @@ nothrow:
 		return this.registers[Register.BP];
 	}
 
+	@property ref uint ra()
+	{
+		return this.registers[Register.RA];
+	}
+
 	@property ref uint flags()
 	{
 		return this.registers[Register.Flags];
@@ -113,8 +109,18 @@ nothrow:
 	void step()
 	{
 		auto oldRegisters = this.registers;
-		mixin(generateOpcodeSwitch());
+		auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
+
+		if (this.printOpcodes)
+		{
+			char[64] buffer;
+			auto inst = opcode.disassemble(buffer);
+			printf("C%i %i: %.*s\n", this.id, this.ip, inst.length, inst.ptr);
+		}
+
 		this.ip += uint.sizeof;
+
+		mixin(generateOpcodeSwitch());
 		if (this.printRegisters)
 		{
 			char[8] name;

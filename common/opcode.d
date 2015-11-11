@@ -123,6 +123,8 @@ enum Opcodes
 		"If the greater flag is set, jump to the given label."),
 	Jlt		= OpcodeDescriptor("jlt",		0x25, Encoding.C, false, OperandFormat.Label,
 		"If the less flag is set, jump to the given label."),
+	Call	= OpcodeDescriptor("call",		0x26, Encoding.C, false, OperandFormat.Label,
+		"Store the current instruction pointer in `ra`, and then jump to the given label."),
 	// Pseudoinstructions
 	Push	= PseudoOpcode("push",
 		"Push the given register onto the stack (i.e. `add sp, -4; store sp, register`)."),

@@ -14,7 +14,7 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 			if (c == 's')
 			{
 				size_t currentIndex = 0;
-				
+
 				void autoFormat(FmtArgs...)(const(char)* fmt, FmtArgs fmtArgs)
 				{
 					import core.stdc.stdlib : malloc, free;

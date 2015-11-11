@@ -77,6 +77,11 @@ void attemptTokeniseRegister(ref Token token)
 		token.type = Token.Type.Register;
 		token.number = cast(int)Register.BP;
 	}
+	else if (t == "ra")
+	{
+		token.type = Token.Type.Register;
+		token.number = cast(int)Register.RA;
+	}
 	else if (t == "z")
 	{
 		token.type = Token.Type.Register;
