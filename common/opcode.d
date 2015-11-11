@@ -136,6 +136,8 @@ enum Opcodes
 		"Create a byte containing `arg2`; needs to be used with `rep` where `n > 4 && n % 4 == 0`."),
 	Rep		= PseudoOpcode("rep",
 		"Repeat the following instruction `arg1` times."),
+	Jr		= PseudoOpcode("jr",
+		"Jump to the given register."),
 }
 
 unittest

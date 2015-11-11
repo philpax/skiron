@@ -553,6 +553,27 @@ struct Assembler
 		return true;
 	}
 
+	bool assembleJr(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		ubyte register;
+		if (!this.parseRegister(newTokens, register)) return false;
+
+		// Synthesize move
+		Opcode move;
+		move.opcode = Opcodes.Move.opcode;
+		move.register1 = Register.IP;
+		move.register2 = register;
+
+		foreach (_; 0..this.repCount)
+			this.output ~= move.value;
+
+		this.finishAssemble(newTokens);
+
+		return true;
+	}
+
 	void assembleIdentifierToken(ref Token token)
 	{
 		auto matchingDescriptors = token.text in this.descriptors;

@@ -34,7 +34,7 @@ handle_even:
 	j loop
 
 finish:
-	move ip, ra
+	jr ra
 
 # function: is_even
 is_even:
