@@ -17,17 +17,14 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 
 				void autoFormat(FmtArgs...)(const(char)* fmt, FmtArgs fmtArgs)
 				{
-					import core.stdc.stdlib : malloc, free;
 					import core.stdc.string : memcpy;
 					import std.algorithm : min;
 
-					auto size = snprintf(null, 0, fmt, fmtArgs)+1;
-					auto tmpMemory = cast(char*)malloc(size);
-					scope (exit) free(tmpMemory);
+					char[1024] argBuffer;
 
-					snprintf(tmpMemory, size, fmt, fmtArgs);
-					memcpy(buffer.ptr + index, tmpMemory, min(size, buffer.length - index));
-					index += size-1;
+					auto size = snprintf(argBuffer.ptr, argBuffer.length, fmt, fmtArgs);
+					memcpy(buffer.ptr + index, argBuffer.ptr, min(argBuffer.length, buffer.length - index));
+					index += size;
 				}
 
 				foreach (arg; args)
