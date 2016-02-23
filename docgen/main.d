@@ -65,6 +65,9 @@ void main(string[] args)
 			case OperandFormat.DstImm:
 				file.write("`dst, imm`");
 				break;
+			case OperandFormat.DstSrcImm:
+				file.write("`dst, src, imm`");
+				break;
 			case OperandFormat.Label:
 				file.write("`label`");
 				break;

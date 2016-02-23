@@ -15,6 +15,11 @@ void runAddB(ref Core core, Opcode opcode)
 	core.setDst(opcode, core.getDst(opcode) + opcode.immediate);
 }
 
+void runAddD(ref Core core, Opcode opcode)
+{
+	core.setDst(opcode, core.getSrc1(opcode) + opcode.immediate9);
+}
+
 void runSub(Type = uint)(ref Core core, Opcode opcode)
 {
 	core.setDst!Type(opcode, core.getSrc1!Type(opcode) - core.getSrc2!Type(opcode));

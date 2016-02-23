@@ -26,6 +26,13 @@ struct Opcode
 			ubyte, "", 3,
 			int, "offset", 23));
 
+		mixin(bitfields!(
+			ubyte, "", 6,
+			ubyte, "", 3,
+			ubyte, "", 7,
+			ubyte, "", 7,
+			int, "immediate9", 9));
+
 		uint value;
 	}
 }
@@ -42,8 +49,9 @@ enum OperandSize
 enum Encoding
 {
 	A, // dst, src1, src2
-	B, // dst, imm17
-	C  // imm24 (offset)
+	B, // dst, imm16
+	C, // imm23 (offset)
+	D, // dst, src, imm9
 }
 
 // Not the same as encoding; dictates how many operands there are
@@ -52,6 +60,7 @@ enum OperandFormat
 	DstSrc,
 	DstSrcSrc,
 	DstImm,
+	DstSrcImm,
 	Label,
 	None,
 	Pseudo
@@ -90,23 +99,25 @@ enum Opcodes
 		"Add `src1` and `src2` together, and store the result in `dst`."),
 	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, false, OperandFormat.DstImm,
 		"Add the immediate to `dst`, and store the result in `dst`."),
-	Sub		= OpcodeDescriptor("sub",		0x07, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	AddD	= OpcodeDescriptor("add",		0x07, Encoding.D, false, OperandFormat.DstSrcImm,
+		"Add the immediate to `src`, and store the result in `dst`."),
+	Sub		= OpcodeDescriptor("sub",		0x08, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Subtract `src2` from `src1`, and store the result in `dst`."),
-	Mul		= OpcodeDescriptor("mul",		0x08, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Mul		= OpcodeDescriptor("mul",		0x09, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Multiply `src1` by `src2`, and store the result in `dst`."),
-	Div		= OpcodeDescriptor("div",		0x09, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Div		= OpcodeDescriptor("div",		0x0A, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Divide `src1` by `src2`, and store the result in `dst`."),
-	Not		= OpcodeDescriptor("not",		0x0A, Encoding.A, false, OperandFormat.DstSrc,
+	Not		= OpcodeDescriptor("not",		0x0B, Encoding.A, false, OperandFormat.DstSrc,
 		"Bitwise-NOT `src`, and store the result in `dst`."),
-	And		= OpcodeDescriptor("and",		0x0B, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	And		= OpcodeDescriptor("and",		0x0C, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Bitwise-AND `src1` with `src2`, and store the result in `dst`."),
-	Or		= OpcodeDescriptor("or",		0x0C, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Or		= OpcodeDescriptor("or",		0x0D, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Bitwise-OR `src1` with `src2`, and store the result in `dst`."),
-	Xor		= OpcodeDescriptor("xor",		0x0D, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Xor		= OpcodeDescriptor("xor",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Bitwise-XOR `src1` with `src2`, and store the result in `dst`."),
-	Shl		= OpcodeDescriptor("shl",		0x0E, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Shl		= OpcodeDescriptor("shl",		0x0F, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Shift `src1` by `src2` bits to the left, and store the result in `dst`."),
-	Shr		= OpcodeDescriptor("shr",		0x0F, Encoding.A, true,  OperandFormat.DstSrcSrc,
+	Shr		= OpcodeDescriptor("shr",		0x10, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Shift `src1` by `src2` bits to the right, and store the result in `dst`."),
 	// Control flow
 	Halt	= OpcodeDescriptor("halt",		0x3F, Encoding.A, false, OperandFormat.None,
@@ -224,6 +235,11 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
 		return "%s %s, %s".sformat(output, descriptor.name, reg1, opcode.immediate);
+	case OperandFormat.DstSrcImm:
+		auto reg1 = opcode.register1.registerName(buffers[0]);
+		auto reg2 = opcode.register2.registerName(buffers[1]);
+
+		return "%s %s, %s, %s".sformat(output, descriptor.name, reg1, reg2, opcode.immediate9);
 	case OperandFormat.Label:
 		return "%s %s".sformat(output, descriptor.name, opcode.offset);
 	case OperandFormat.None:

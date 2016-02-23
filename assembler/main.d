@@ -386,6 +386,31 @@ struct Assembler
 		return true;
 	}
 
+	bool assembleDstSrcImm(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		OperandSize operandSize;
+		ubyte register1, register2;
+		int immediate;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
+		if (!this.parseRegister(newTokens, register1)) return false;
+		if (!this.parseRegister(newTokens, register2)) return false;
+		if (!this.parseNumber(newTokens, immediate)) return false;
+
+		Opcode opcode;
+		opcode.opcode = descriptor.opcode;
+		opcode.register1 = register1;
+		opcode.register2 = register2;
+		opcode.immediate9 = immediate;
+
+		foreach (_; 0..this.repCount)
+			this.output ~= opcode.value;
+		this.finishAssemble(newTokens);
+
+		return true;
+	}
+
 	bool assembleNone(const(OpcodeDescriptor)* descriptor)
 	{
 		Opcode opcode;
