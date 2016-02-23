@@ -6,6 +6,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
+		flags { "Symbols" }
 
 		files { "common/**.d", "emulator/**.d" }
 
@@ -17,6 +18,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
+		flags { "Symbols" }
 
 		files { "common/**.d", "assembler/**.d" }
 
@@ -28,6 +30,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
+		flags { "Symbols" }
 
 		files { "common/**.d", "disassembler/**.d" }
 
@@ -39,6 +42,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
+		flags { "Symbols" }
 
 		files { "common/**.d", "docgen/**.d" }
 
