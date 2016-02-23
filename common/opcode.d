@@ -245,5 +245,5 @@ unittest
 	char[64] buffer;
 	auto slice = opcode.disassemble(buffer);
 
-	assert(slice == "load r0, r1");
+	assert(slice == "load byte r0, r1");
 }
