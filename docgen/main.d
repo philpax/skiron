@@ -21,7 +21,8 @@ void main(string[] args)
 		if (a.opcode < b.opcode) return true;
 		if (b.opcode < a.opcode) return false;
 
-		return a.operandFormat == OperandFormat.Pseudo;
+		return a.operandFormat == OperandFormat.Pseudo && 
+				b.operandFormat != OperandFormat.Pseudo;
 	});
 
 	auto file = File("opcodes.md", "w");
