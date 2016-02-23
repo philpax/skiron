@@ -519,27 +519,77 @@ struct Assembler
 		if (!(this.parseNumber(newTokens, value) || this.parseLabel(newTokens, label)))
 			return false;
 
-		// Synthesize loadui, loadli
-		Opcode loadui;
-		loadui.opcode = Opcodes.LoadUi.opcode;
-		loadui.register1 = register;
-		loadui.immediate = (value >> 16) & 0xFFFF;
-
-		Opcode loadli;
-		loadli.opcode = Opcodes.LoadLi.opcode;
-		loadli.register1 = register;
-		loadli.immediate = value & 0xFFFF;
-
-		foreach (_; 0..this.repCount)
+		void writeLoadPair()
 		{
-			this.output ~= loadui.value;
-			this.output ~= loadli.value;
+			// Synthesize loadui, loadli
+			Opcode loadui;
+			loadui.opcode = Opcodes.LoadUi.opcode;
+			loadui.register1 = register;
+			loadui.immediate = (value >> 16) & 0xFFFF;
 
-			if (label.length)
+			Opcode loadli;
+			loadli.opcode = Opcodes.LoadLi.opcode;
+			loadli.register1 = register;
+			loadli.immediate = value & 0xFFFF;
+
+			foreach (_; 0..this.repCount)
 			{
-				this.relocations ~= Relocation(
-					label, this.output.length - 2, Relocation.Type.SplitAbsolute);
+				this.output ~= loadui.value;
+				this.output ~= loadli.value;
+
+				if (label.length)
+				{
+					this.relocations ~= Relocation(
+						label, this.output.length - 2, Relocation.Type.SplitAbsolute);
+				}
 			}
+		}
+
+		// If we're dealing with a value, and it can be packed into 11 bits
+		if (label.empty && (value & 0b0000_0111_1111_1111) == value)
+		{
+			Opcode add;
+			add.opcode = Opcodes.AddD.opcode;
+			add.register1 = register;
+			add.register2 = Register.Z;
+
+			// If the value can be packed into 9 bits, multiplied by 1
+			if ((value & 0b0000_0001_1111_1111) == value)
+			{
+				add.immediate9 = (value & 0b0000_0001_1111_1111) >> 0;
+				add.variant = Variant.Identity;
+
+				foreach (_; 0..this.repCount)
+					this.output ~= add.value;
+			}
+			// If the value can be packed into 9 bits, multiplied by 2
+			else if ((value & 0b0000_0011_1111_1110) == value)
+			{
+				add.immediate9 = (value & 0b0000_0011_1111_1110) >> 1;
+				add.variant = Variant.ShiftLeft1;
+
+				foreach (_; 0..this.repCount)
+					this.output ~= add.value;
+			}
+			// If the value can be packed into 9 bits, multiplied by 4
+			else if ((value & 0b0000_0111_1111_1100) == value)
+			{
+				add.immediate9 = (value & 0b0000_0111_1111_1100) >> 2;
+				add.variant = Variant.ShiftLeft2;
+
+				foreach (_; 0..this.repCount)
+					this.output ~= add.value;
+			}
+			// Otherwise, give up and write a load pair
+			else
+			{
+				writeLoadPair();
+			}
+		}
+		else
+		{
+			// Can't be packed into an add opcode; write a load pair
+			writeLoadPair();
 		}
 
 		this.finishAssemble(newTokens);
