@@ -31,7 +31,7 @@ struct Opcode
 			ubyte, "", 3,
 			ubyte, "", 7,
 			ubyte, "", 7,
-			int, "immediate9", 9));
+			uint, "immediate9", 9));
 
 		uint value;
 	}

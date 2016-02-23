@@ -12,12 +12,12 @@ void runAddA(Type = uint)(ref Core core, Opcode opcode)
 
 void runAddB(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getDst(opcode) + opcode.immediate);
+	core.setDst(opcode, core.getDst(opcode) + core.getImmediate(opcode));
 }
 
 void runAddD(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) + opcode.immediate9);
+	core.setDst(opcode, core.getSrc1(opcode) + core.getImmediate(opcode));
 }
 
 void runSub(Type = uint)(ref Core core, Opcode opcode)

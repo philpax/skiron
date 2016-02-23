@@ -17,13 +17,13 @@ void runStore(Type = uint)(ref Core core, Opcode opcode)
 
 void runLoadLi(ref Core core, Opcode opcode)
 {
-	ushort immediate = opcode.immediate & 0xFFFF;
+	ushort immediate = core.getImmediate(opcode) & 0xFFFF;
 	core.setDst(opcode, (core.getDst(opcode) & 0xFFFF0000) | immediate);
 }
 
 void runLoadUi(ref Core core, Opcode opcode)
 {
-	ushort immediate = opcode.immediate & 0xFFFF;
+	ushort immediate = core.getImmediate(opcode) & 0xFFFF;
 	core.setDst(opcode, (core.getDst(opcode) & 0x0000FFFF) | (immediate << 16));
 }
 

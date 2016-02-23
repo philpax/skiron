@@ -202,14 +202,46 @@ void setDst(Type = uint, IncomingType)(ref Core core, Opcode opcode, IncomingTyp
 		*cast(Type*)&core.registers[opcode.register1] = cast(Type)value;
 }
 
+Type doVariant(Type = uint)(Opcode opcode, Type value)
+{
+	final switch (opcode.variant)
+	{
+		case Variant.Identity:
+			return value;
+		case Variant.ShiftLeft1:
+			return cast(Type)(value << 1);
+		case Variant.ShiftLeft2:
+			return cast(Type)(value << 2);
+	}
+}
+
+int getImmediate(ref Core core, Opcode opcode)
+{
+	const descriptor = opcode.opcode.opcodeToDescriptor();
+	final switch (descriptor.encoding)
+	{
+		case Encoding.A:
+			assert(0);
+		case Encoding.B:
+			return opcode.doVariant(opcode.immediate);
+		case Encoding.C:
+			return opcode.doVariant(opcode.offset);
+		case Encoding.D:
+			return opcode.doVariant(opcode.immediate9);
+	}
+}
+
+Type getSrc(Type = uint)(ref Core core, Opcode opcode)
+{
+	return opcode.doVariant(cast(Type)core.registers[opcode.register2]);
+}
+
 Type getSrc1(Type = uint)(ref Core core, Opcode opcode)
 {
 	return cast(Type)core.registers[opcode.register2];
 }
 
-alias getSrc = getSrc1;
-
 Type getSrc2(Type = uint)(ref Core core, Opcode opcode)
 {
-	return cast(Type)core.registers[opcode.register3];
+	return opcode.doVariant(cast(Type)core.registers[opcode.register3]);
 }
