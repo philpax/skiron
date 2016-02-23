@@ -353,6 +353,7 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		opcode.operandSize = operandSize;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
 		opcode.register3 = register3;
@@ -563,6 +564,7 @@ struct Assembler
 		// Synthesize move
 		Opcode move;
 		move.opcode = Opcodes.Move.opcode;
+		move.operandSize = OperandSize.Qbyte;
 		move.register1 = Register.IP;
 		move.register2 = register;
 
