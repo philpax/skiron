@@ -9,7 +9,7 @@ struct Opcode
 	{
 		mixin(bitfields!(
 			ubyte, "opcode", 6,
-			ubyte, "variant", 3,
+			Variant, "variant", 3,
 			ubyte, "register1", 7,
 			ubyte, "register2", 7,
 			ubyte, "register3", 7,
@@ -44,6 +44,13 @@ enum OperandSize
 	Byte,
 	Dbyte,
 	Qbyte
+}
+
+enum Variant
+{
+	Identity,
+	ShiftLeft1,
+	ShiftLeft2
 }
 
 enum Encoding
