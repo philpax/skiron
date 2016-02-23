@@ -42,7 +42,13 @@ solution "skiron"
 
 		files { "common/**.d", "docgen/**.d" }
 
-		postbuildcommands "{CHDIR} bin && ./docgen"
+		filter "action:vs*"
+			postbuildcommands "chdir bin && docgen && chdir ../"
+
+		filter "action:not vs*"
+			postbuildcommands "{CHDIR} bin && ./docgen"
+
+		filter {}
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
