@@ -225,28 +225,42 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		break;
 	}
 
+	string variant;
+	final switch (opcode.variant)
+	{
+	case Variant.Identity:
+		variant = "";
+		break;
+	case Variant.ShiftLeft1:
+		variant = " << 1";
+		break;
+	case Variant.ShiftLeft2:
+		variant = " << 2";
+		break;
+	}
+
 	final switch (descriptor.operandFormat)
 	{
 	case OperandFormat.DstSrc:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
-		return "%s %s %s, %s".sformat(output, descriptor.name, sizePrefix, reg1, reg2);
+		return "%s %s %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, variant);
 	case OperandFormat.DstSrcSrc:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 		auto reg3 = opcode.register3.registerName(buffers[2]);
 
-		return "%s %s %s, %s, %s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3);
+		return "%s %s %s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
 	case OperandFormat.DstImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
-		return "%s %s, %s".sformat(output, descriptor.name, reg1, opcode.immediate);
+		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediate, variant);
 	case OperandFormat.DstSrcImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
-		return "%s %s, %s, %s".sformat(output, descriptor.name, reg1, reg2, opcode.immediate9);
+		return "%s %s, %s, %s%s".sformat(output, descriptor.name, reg1, reg2, opcode.immediate9, variant);
 	case OperandFormat.Label:
 		return "%s %s".sformat(output, descriptor.name, opcode.offset);
 	case OperandFormat.None:
