@@ -24,7 +24,8 @@ struct Token
 		Label,
 		Byte,
 		Dbyte,
-		Qbyte
+		Qbyte,
+		ShiftLeft
 	}
 
 	string fileName;
@@ -94,6 +95,7 @@ void attemptTokeniseRegister(ref Token token)
 	}
 }
 
+// TODO: Replace with a proper lexer
 Token[] tokenise(string input, string fileName)
 {
 	Token[] tokens;
@@ -106,6 +108,7 @@ Token[] tokenise(string input, string fileName)
 	{
 		currentToken = Token();
 		currentToken.fileName = fileName;
+		currentToken.type = Token.Type.Identifier;
 	}
 
 	makeToken();
@@ -116,7 +119,9 @@ Token[] tokenise(string input, string fileName)
 			return;
 
 		if (currentToken.type == Token.Type.Number)
+		{
 			currentToken.number = currentToken.text.to!int();
+		}
 		else if (currentToken.type == Token.Type.Identifier)
 		{
 			if (currentToken.text == "byte")
@@ -154,37 +159,46 @@ Token[] tokenise(string input, string fileName)
 			if (c.isWhite())
 			{
 				completeToken();
+				continue;
 			}
-			else if (c == '#')
+
+			if (c == '#')
 			{
 				lexingComment = true;
+				continue;
 			}
-			else if (c == ',')
+
+			if (c == ',')
 			{
 				continue;
 			}
-			else if (currentToken.text.length == 0 && (c.isDigit() || c == '-'))
-			{
-				currentToken.type = Token.Type.Number;
-				currentToken.text ~= c;
-			}
-			else if (currentToken.type == Token.Type.Number)
-			{
-				if (!c.isDigit())
-					currentToken.error("Expected digit; got `%s`.", c);
-				currentToken.text ~= c;
-			}
-			else if (currentToken.type == Token.Type.Identifier && (c.isAlphaNum() || c == '_'))
-			{
-				currentToken.text ~= c;
-			}
-			else if (currentToken.type == Token.Type.Identifier && c == ':')
+
+			if (currentToken.type == Token.Type.Identifier && c == ':')
 			{
 				currentToken.type = Token.Type.Label;
+				continue;
 			}
-			else
+
+			currentToken.text ~= c;
+			if (currentToken.text.length == 1 && (c.isDigit() || c == '-'))
 			{
-				currentToken.error("Invalid character `%s` for token `%s`", c, currentToken.to!string());
+				currentToken.type = Token.Type.Number;
+			}
+			else if (currentToken.type == Token.Type.Number && !c.isDigit())
+			{
+				currentToken.error("Expected digit; got `%s`.", c);
+			}
+			else if (c == '<')
+			{
+				if (currentToken.text.length == 2 && currentToken.text == "<<")
+				{
+					currentToken.type = Token.Type.ShiftLeft;
+					completeToken();
+				}
+			}
+			else if (currentToken.type == Token.Type.Identifier && !(c.isAlphaNum() || c == '_'))
+			{
+				completeToken();
 			}
 		}
 		completeToken();
@@ -310,6 +324,46 @@ struct Assembler
 		return true;
 	}
 
+	bool parseVariant(ref Token[] tokens, ref Variant output)
+	{
+		auto token = tokens.front;
+
+		if (token.type == Token.Type.ShiftLeft)
+		{
+			tokens.popFront();
+			token = tokens.front;
+
+			if (token.type != Token.Type.Number) 
+			{
+				token.error("Expected number in shift");
+				return false;
+			}
+
+			if (token.number == 1)
+			{
+				output = Variant.ShiftLeft1;
+			}
+			else if (token.number == 2)
+			{
+				output = Variant.ShiftLeft2;
+			}
+			else
+			{
+				token.error("Shift size not encodable");
+				return false;
+			}
+
+			tokens.popFront();
+		}
+		else
+		{
+			// TODO: Look into why exactly Variant.Default doesn't work
+			output = cast(Variant)0;
+		}
+
+		return true;
+	}
+
 	void finishAssemble(Token[] tokens)
 	{
 		this.tokens = tokens;
@@ -322,9 +376,11 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register1, register2;
+		Variant variant;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register1)) return false;
 		if (!this.parseRegister(newTokens, register2)) return false;
+		if (!this.parseVariant(newTokens, variant)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
@@ -332,6 +388,7 @@ struct Assembler
 		opcode.register1 = register1;
 		opcode.register2 = register2;
 		opcode.register3 = 0;
+		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
 			this.output ~= opcode.value;
@@ -346,10 +403,12 @@ struct Assembler
 
 		OperandSize operandSize;
 		ubyte register1, register2, register3;
+		Variant variant;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register1)) return false;
 		if (!this.parseRegister(newTokens, register2)) return false;
 		if (!this.parseRegister(newTokens, register3)) return false;
+		if (!this.parseVariant(newTokens, variant)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
@@ -357,6 +416,7 @@ struct Assembler
 		opcode.register1 = register1;
 		opcode.register2 = register2;
 		opcode.register3 = register3;
+		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
 			this.output ~= opcode.value;
@@ -371,13 +431,16 @@ struct Assembler
 
 		ubyte register1;
 		int immediate;
+		Variant variant;
 		if (!this.parseRegister(newTokens, register1)) return false;
 		if (!this.parseNumber(newTokens, immediate)) return false;
+		if (!this.parseVariant(newTokens, variant)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
 		opcode.immediate = immediate;
+		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
 			output ~= opcode.value;
@@ -393,16 +456,19 @@ struct Assembler
 		OperandSize operandSize;
 		ubyte register1, register2;
 		int immediate;
+		Variant variant;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register1)) return false;
 		if (!this.parseRegister(newTokens, register2)) return false;
 		if (!this.parseNumber(newTokens, immediate)) return false;
+		if (!this.parseVariant(newTokens, variant)) return false;
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
 		opcode.immediate9 = immediate;
+		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
 			this.output ~= opcode.value;
