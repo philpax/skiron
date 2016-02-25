@@ -99,8 +99,6 @@ enum Opcodes
 		"Load the immediate into the lower half of `src`."),
 	LoadUi	= OpcodeDescriptor("loadui",	0x03, Encoding.B, false, OperandFormat.DstImm,
 		"Load the immediate into the upper half of `src`."),
-	Move	= OpcodeDescriptor("move",		0x04, Encoding.A, true,  OperandFormat.DstSrc,
-		"Copy the value in `src` to `dst`."),
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Add `src1` and `src2` together, and store the result in `dst`."),
@@ -156,6 +154,8 @@ enum Opcodes
 		"Repeat the following instruction `arg1` times."),
 	Jr		= PseudoOpcode("jr",
 		"Jump to the given register."),
+	Move	= PseudoOpcode("move",
+		"Copy the value in `src` to `dst`."),
 }
 
 unittest

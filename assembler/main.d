@@ -702,15 +702,40 @@ struct Assembler
 		ubyte register;
 		if (!this.parseRegister(newTokens, register)) return false;
 
-		// Synthesize move
-		Opcode move;
-		move.opcode = Opcodes.Move.opcode;
-		move.operandSize = OperandSize.Qbyte;
-		move.register1 = Register.IP;
-		move.register2 = register;
+		// Synthesize add
+		Opcode add;
+		add.opcode = Opcodes.AddA.opcode;
+		add.operandSize = OperandSize.Qbyte;
+		add.register1 = Register.IP;
+		add.register2 = register;
+		add.register3 = Register.Z;
 
 		foreach (_; 0..this.repCount)
-			this.output ~= move.value;
+			this.output ~= add.value;
+
+		this.finishAssemble(newTokens);
+
+		return true;
+	}
+
+	bool assembleMove(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		ubyte dst, src;
+		if (!this.parseRegister(newTokens, dst)) return false;
+		if (!this.parseRegister(newTokens, src)) return false;
+
+		// Synthesize add
+		Opcode add;
+		add.opcode = Opcodes.AddA.opcode;
+		add.operandSize = OperandSize.Qbyte;
+		add.register1 = dst;
+		add.register2 = src;
+		add.register3 = Register.Z;
+
+		foreach (_; 0..this.repCount)
+			this.output ~= add.value;
 
 		this.finishAssemble(newTokens);
 
