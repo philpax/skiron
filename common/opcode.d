@@ -278,9 +278,10 @@ unittest
 	opcode.opcode = Opcodes.Load.opcode;
 	opcode.register1 = 0;
 	opcode.register2 = 1;
+	opcode.variant = Variant.ShiftLeft2;
 
 	char[64] buffer;
 	auto slice = opcode.disassemble(buffer);
 
-	assert(slice == "load byte r0, r1");
+	assert(slice == "load byte r0, r1 << 2");
 }
