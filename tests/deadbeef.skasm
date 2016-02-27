@@ -1,2 +1,3 @@
 loadi r0, -559038737
+loadi r1, 0xDEADBEEF
 halt
