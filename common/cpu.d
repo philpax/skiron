@@ -29,18 +29,25 @@ enum Flags
 
 char[] registerName(ubyte index, char[] buffer) @nogc nothrow
 {
-	if (index == Register.IP)
-		return "ip".sformat(buffer);
-	else if (index == Register.SP)
-		return "sp".sformat(buffer);
-	else if (index == Register.BP)
-		return "bp".sformat(buffer);
-	else if (index == Register.Z)
-		return "z".sformat(buffer);
-	else if (index == Register.RA)
-		return "ra".sformat(buffer);
-	else if (index == Register.Flags)
-		return "flags".sformat(buffer);
-	else
-		return "r%s".sformat(buffer, index);
+	string generateRegisterIf()
+	{
+		import std.traits : EnumMembers;
+		import std.conv : to;
+		import std.string : format;
+		import std.uni : toLower;
+
+		string ret = "";
+		foreach (member; EnumMembers!Register)
+		{
+			string name = member.to!string();
+			ret ~= "if (index == Register.%s) return \"%s\".sformat(buffer);\n".format(name, name.toLower());
+		}
+
+		ret ~= `else return "r%s".sformat(buffer, index);`;
+
+		return ret;
+	}
+
+	
+	mixin(generateRegisterIf());		
 }
