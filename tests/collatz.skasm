@@ -42,7 +42,7 @@ is_even:
 	loadi r0, 1
 	and r100, r100, r0
 	pop r0
-	move ip, ra
+	jr ra
 
 stack_end:
 	rep 64 db 0

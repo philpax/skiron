@@ -1,49 +1,20 @@
-import std.exception;
-import std.stdio;
 import std.file;
-import std.ascii;
-import std.string;
-import std.conv;
-import std.traits;
-import std.algorithm;
-import std.array;
 import std.path;
+import std.traits;
+import std.string, std.ascii;
+import std.conv;
+import std.range;
+import std.algorithm;
+import lexer;
 
 import core.stdc.stdlib;
 
 import common.opcode;
 import common.cpu;
 
-struct Token
-{
-	enum Type
-	{
-		Identifier,
-		Number,
-		Register,
-		Label,
-		Byte,
-		Dbyte,
-		Qbyte,
-		ShiftLeft
-	}
-
-	string fileName;
-	int lineNumber;
-	int column;
-
-	Type type;
-	string text;
-	int number;
-
-	string toString()
-	{
-		return "%s:%s".format(type, text);
-	}
-}
-
 void error(Args...)(string text, auto ref Args args)
 {
+	import std.stdio : writefln;
 	writefln(text, args);
 	exit(EXIT_FAILURE);
 }
@@ -54,157 +25,9 @@ void errorIf(Args...)(bool condition, auto ref Args args)
 		error(args);
 }
 
-void error(Args...)(ref Token token, string text, auto ref Args args)
+void error(Args...)(ref const(Token) token, string text, auto ref Args args)
 {
-	writef("%s[%s,%s]: ", token.fileName, token.lineNumber, token.column);
-	error(text, args);
-}
-
-void attemptTokeniseRegister(ref Token token)
-{
-	auto t = token.text;
-	if (t == "ip")
-	{
-		token.type = Token.Type.Register;
-		token.number = cast(int)Register.IP;
-	}
-	else if (t == "sp")
-	{
-		token.type = Token.Type.Register;
-		token.number = cast(int)Register.SP;
-	}
-	else if (t == "bp")
-	{
-		token.type = Token.Type.Register;
-		token.number = cast(int)Register.BP;
-	}
-	else if (t == "ra")
-	{
-		token.type = Token.Type.Register;
-		token.number = cast(int)Register.RA;
-	}
-	else if (t == "z")
-	{
-		token.type = Token.Type.Register;
-		token.number = cast(int)Register.Z;
-	}
-	else if (t.startsWith("r") && t.length > 1 && t[1..$].all!isDigit)
-	{
-		token.type = Token.Type.Register;
-		token.number = t[1..$].to!ubyte();
-	}
-}
-
-// TODO: Replace with a proper lexer
-Token[] tokenise(string input, string fileName)
-{
-	Token[] tokens;
-	Token currentToken;
-
-	int lineNumber = 0;
-	int column = 0;
-
-	void makeToken()
-	{
-		currentToken = Token();
-		currentToken.fileName = fileName;
-		currentToken.type = Token.Type.Identifier;
-	}
-
-	makeToken();
-
-	void completeToken()
-	{
-		if (currentToken.text.length == 0)
-			return;
-
-		if (currentToken.type == Token.Type.Number)
-		{
-			currentToken.number = currentToken.text.to!int();
-		}
-		else if (currentToken.type == Token.Type.Identifier)
-		{
-			if (currentToken.text == "byte")
-				currentToken.type = Token.Type.Byte;
-			else if (currentToken.text == "dbyte")
-				currentToken.type = Token.Type.Dbyte;
-			else if (currentToken.text == "qbyte")
-				currentToken.type = Token.Type.Qbyte;
-			else
-				currentToken.attemptTokeniseRegister();
-		}
-
-		currentToken.lineNumber = lineNumber;
-
-		tokens ~= currentToken;
-		makeToken();
-	}
-
-	bool lexingComment = false;
-	foreach (line; input.lineSplitter)
-	{
-		++lineNumber;
-		column = 0;
-
-		lexingComment = false;
-		currentToken.lineNumber = lineNumber;
-		foreach (c; line)
-		{
-			++column;
-			currentToken.column = column;
-
-			if (lexingComment)
-				break;
-
-			if (c.isWhite())
-			{
-				completeToken();
-				continue;
-			}
-
-			if (c == '#')
-			{
-				lexingComment = true;
-				continue;
-			}
-
-			if (c == ',')
-			{
-				continue;
-			}
-
-			if (currentToken.type == Token.Type.Identifier && c == ':')
-			{
-				currentToken.type = Token.Type.Label;
-				continue;
-			}
-
-			currentToken.text ~= c;
-			if (currentToken.text.length == 1 && (c.isDigit() || c == '-'))
-			{
-				currentToken.type = Token.Type.Number;
-			}
-			else if (currentToken.type == Token.Type.Number && !c.isDigit())
-			{
-				currentToken.error("Expected digit; got `%s`.", c);
-			}
-			else if (c == '<')
-			{
-				if (currentToken.text.length == 2 && currentToken.text == "<<")
-				{
-					currentToken.type = Token.Type.ShiftLeft;
-					completeToken();
-				}
-			}
-			else if (currentToken.type == Token.Type.Identifier && !(c.isAlphaNum() || c == '_'))
-			{
-				completeToken();
-			}
-		}
-		completeToken();
-	}
-
-	return tokens;
+	error("[%s,%s]: " ~ text, token.line, token.column, args);
 }
 
 struct Assembler
@@ -224,7 +47,7 @@ struct Assembler
 		Type type;
 	}
 
-	Token[] tokens;
+	const(Token)[] tokens;
 	uint[] output;
 	uint[string] labels;
 	OpcodeDescriptor[][string] descriptors;
@@ -234,7 +57,7 @@ struct Assembler
 	alias AssembleFunction = bool delegate(const(OpcodeDescriptor)* descriptor);
 	immutable AssembleFunction[string] pseudoAssemble;
 
-	this(Token[] tokens)
+	this(const(Token)[] tokens)
 	{
 		this.tokens = tokens;
 
@@ -258,33 +81,37 @@ struct Assembler
 		this.pseudoAssemble = mixin(generatePseudoAssemble());
 	}
 
-	bool parseNumber(Int)(ref Token[] tokens, ref Int output)
+	bool parseNumber(Int)(ref const(Token)[] tokens, ref Int output)
 		if (is(Int : int))
 	{
 		auto token = tokens.front;
-		if (token.type != Token.Type.Number)
+		if (token.type != tok!"numberLiteral")
 			return false;
 
-		output = cast(Int)token.number;
+		auto text = token.text;
+		if (text.startsWith("0x"))
+			output = cast(Int)text[2..$].to!long(16);
+		else
+			output = cast(Int)text.to!long;
 		tokens.popFront();
 		return true;
 	}
 
-	bool parseSizePrefix(ref Token[] tokens, ref OperandSize output)
+	bool parseSizePrefix(ref const(Token)[] tokens, ref OperandSize output)
 	{
 		auto token = tokens.front;
 
-		if (token.type == Token.Type.Byte)
+		if (token.type == tok!"byte")
 		{
 			tokens.popFront();
 			output = OperandSize.Byte;
 		}
-		else if (token.type == Token.Type.Dbyte)
+		else if (token.type == tok!"dbyte")
 		{
 			tokens.popFront();
 			output = OperandSize.Dbyte;
 		}
-		else if (token.type == Token.Type.Qbyte)
+		else if (token.type == tok!"qbyte")
 		{
 			tokens.popFront();
 			output = OperandSize.Qbyte;
@@ -297,21 +124,36 @@ struct Assembler
 		return true;
 	}
 
-	bool parseRegister(ref Token[] tokens, ref ubyte output)
+	bool parseRegister(ref const(Token)[] tokens, ref ubyte output)
 	{
 		auto token = tokens.front;
-		if (token.type != Token.Type.Register)
+		if (token.type != tok!"identifier")
 			return false;
 
-		output = cast(ubyte)token.number;
+		auto t = token.text;
+		if (t == "ip")
+			output = cast(ubyte)Register.IP;
+		else if (t == "sp")
+			output = cast(ubyte)Register.SP;
+		else if (t == "bp")
+			output = cast(ubyte)Register.BP;
+		else if (t == "ra")
+			output = cast(ubyte)Register.RA;
+		else if (t == "z")
+			output = cast(ubyte)Register.Z;
+		else if (t.startsWith("r") && t.length > 1 && t[1..$].all!isDigit)
+			output = t[1..$].to!ubyte();
+		else
+			return false;
+
 		tokens.popFront();
 		return true;
 	}
 
-	bool parseLabel(ref Token[] tokens, ref string output)
+	bool parseLabel(ref const(Token)[] tokens, ref string output)
 	{
 		auto token = tokens.front;
-		if (token.type != Token.Type.Identifier)
+		if (token.type != tok!"identifier")
 			return false;
 
 		auto ptr = token.text in this.labels;
@@ -324,26 +166,26 @@ struct Assembler
 		return true;
 	}
 
-	bool parseVariant(ref Token[] tokens, ref Variant output)
+	bool parseVariant(ref const(Token)[] tokens, ref Variant output)
 	{
-		auto token = tokens.front;
+		Token token = tokens.front;
 
-		if (token.type == Token.Type.ShiftLeft)
+		if (token.type == tok!"<<")
 		{
 			tokens.popFront();
-			token = tokens.front;
 
-			if (token.type != Token.Type.Number) 
+			int shift;
+			if (!this.parseNumber(tokens, shift))
 			{
 				token.error("Expected number in shift");
 				return false;
 			}
 
-			if (token.number == 1)
+			if (shift == 1)
 			{
 				output = Variant.ShiftLeft1;
 			}
-			else if (token.number == 2)
+			else if (shift == 2)
 			{
 				output = Variant.ShiftLeft2;
 			}
@@ -352,8 +194,6 @@ struct Assembler
 				token.error("Shift size not encodable");
 				return false;
 			}
-
-			tokens.popFront();
 		}
 		else
 		{
@@ -364,7 +204,7 @@ struct Assembler
 		return true;
 	}
 
-	void finishAssemble(Token[] tokens)
+	void finishAssemble(const(Token)[] tokens)
 	{
 		this.tokens = tokens;
 		this.repCount = 1;
@@ -578,7 +418,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		ubyte register;
-		uint value;
+		int value;
 		string label;
 
 		if (!this.parseRegister(newTokens, register)) return false;
@@ -587,16 +427,19 @@ struct Assembler
 
 		void writeLoadPair()
 		{
+			ushort high = (value >> 16) & 0xFFFF;
+			ushort low =  (value >>  0) & 0xFFFF;
+
 			// Synthesize loadui, loadli
 			Opcode loadui;
 			loadui.opcode = Opcodes.LoadUi.opcode;
 			loadui.register1 = register;
-			loadui.immediate = (value >> 16) & 0xFFFF;
+			loadui.immediate = *cast(short*)&high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
 			loadli.register1 = register;
-			loadli.immediate = value & 0xFFFF;
+			loadli.immediate = *cast(short*)&low;
 
 			foreach (_; 0..this.repCount)
 			{
@@ -702,22 +545,47 @@ struct Assembler
 		ubyte register;
 		if (!this.parseRegister(newTokens, register)) return false;
 
-		// Synthesize move
-		Opcode move;
-		move.opcode = Opcodes.Move.opcode;
-		move.operandSize = OperandSize.Qbyte;
-		move.register1 = Register.IP;
-		move.register2 = register;
+		// Synthesize add
+		Opcode add;
+		add.opcode = Opcodes.AddA.opcode;
+		add.operandSize = OperandSize.Qbyte;
+		add.register1 = Register.IP;
+		add.register2 = register;
+		add.register3 = Register.Z;
 
 		foreach (_; 0..this.repCount)
-			this.output ~= move.value;
+			this.output ~= add.value;
 
 		this.finishAssemble(newTokens);
 
 		return true;
 	}
 
-	void assembleIdentifierToken(ref Token token)
+	bool assembleMove(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		ubyte dst, src;
+		if (!this.parseRegister(newTokens, dst)) return false;
+		if (!this.parseRegister(newTokens, src)) return false;
+
+		// Synthesize add
+		Opcode add;
+		add.opcode = Opcodes.AddA.opcode;
+		add.operandSize = OperandSize.Qbyte;
+		add.register1 = dst;
+		add.register2 = src;
+		add.register3 = Register.Z;
+
+		foreach (_; 0..this.repCount)
+			this.output ~= add.value;
+
+		this.finishAssemble(newTokens);
+
+		return true;
+	}
+
+	void assembleIdentifierToken(ref const(Token) token)
 	{
 		auto matchingDescriptors = token.text in this.descriptors;
 		if (!matchingDescriptors)
@@ -765,7 +633,7 @@ struct Assembler
 			token.error("No valid overloads for `%s` found.", token.text);
 	}
 
-	void assembleLabelToken(ref Token token)
+	void assembleLabelToken(ref const(Token) token)
 	{
 		this.labels[token.text] = cast(uint)(this.output.length * uint.sizeof);
 		this.tokens.popFront();
@@ -776,7 +644,7 @@ struct Assembler
 		// Prefill the labels AA
 		foreach (token; this.tokens)
 		{
-			if (token.type == Token.Type.Label)
+			if (token.type == tok!"label")
 			{
 				auto text = token.text;
 				if (text in this.labels)
@@ -789,10 +657,12 @@ struct Assembler
 		{
 			auto token = this.tokens.front;
 
-			if (token.type == Token.Type.Identifier)
+			if (token.type == tok!"identifier")
 				this.assembleIdentifierToken(token);
-			else if (token.type == Token.Type.Label)
+			else if (token.type == tok!"label")
 				this.assembleLabelToken(token);
+			else if (token.type == tok!"")
+				break;
 			else
 				token.error("Unhandled token: %s.", token.to!string());
 		}
@@ -828,8 +698,7 @@ void main(string[] args)
 	errorIf(!inputPath.exists(), "%s: No such file or directory", inputPath);
 	string outputPath = args.length >= 3 ? args[2] : inputPath.setExtension("bin");
 
-	auto input = inputPath.readText();
-	auto tokens = input.tokenise(inputPath);
+	auto tokens = (cast(ubyte[])inputPath.read()).tokenise();
 	auto assembler = Assembler(tokens);
 	assembler.assemble();
 
