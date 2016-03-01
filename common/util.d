@@ -73,6 +73,8 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 	return buffer[0..index];
 }
 
+enum uint HeaderMagicCode = 0xDDBF;
+
 unittest
 {
 	import std.stdio;

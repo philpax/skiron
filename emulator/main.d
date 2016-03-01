@@ -5,6 +5,7 @@ import core.stdc.stdlib;
 import std.exception;
 
 import common.opcode;
+import common.util;
 
 import emulator.state;
 
@@ -41,8 +42,20 @@ void main(string[] args)
 	auto fileSize = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
+	auto memory = malloc(fileSize);
+	scope (exit) free(memory);
+	fread(memory, fileSize, 1, file);
+
+	if ((cast(uint*)memory)[0] != HeaderMagicCode)
+	{
+		printf("Invalid header code");
+		return;
+	}
+
+	auto dataPtr = memory + uint.sizeof;
+	auto dataSize = fileSize - uint.sizeof;
 	auto state = State(1024 * 1024, 1);
-	fread(state.memory.ptr, fileSize, 1, file);
+	memcpy(state.memory.ptr, dataPtr, dataSize);
 
 	state.run();
 }

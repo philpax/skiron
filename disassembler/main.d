@@ -8,11 +8,14 @@ import std.range;
 
 import common.opcode;
 import common.cpu;
+import common.util;
 
 void main(string[] args)
 {
 	enforce(args.length >= 2, "Expected at least one argument");
-	auto opcodes = cast(Opcode[])std.file.read(args[1]);
+	auto fileContents = cast(uint[])std.file.read(args[1]);
+	enforce(fileContents[0] == HeaderMagicCode);
+	auto opcodes = cast(Opcode[])fileContents[1..$];
 
 	OpcodeDescriptor[ubyte] descriptors;
 

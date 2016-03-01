@@ -11,6 +11,7 @@ import core.stdc.stdlib;
 
 import common.opcode;
 import common.cpu;
+import common.util;
 
 void error(Args...)(string text, auto ref Args args)
 {
@@ -641,6 +642,8 @@ struct Assembler
 
 	void assemble()
 	{
+		this.output ~= HeaderMagicCode;
+
 		// Prefill the labels AA
 		foreach (token; this.tokens)
 		{
