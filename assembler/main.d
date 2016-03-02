@@ -679,7 +679,7 @@ struct Assembler
 				auto location = relocation.location;
 				auto currentPosition = location * uint.sizeof;
 
-				opcodes[location].offset =
+				opcodes[location].immediate23 =
 					cast(int)(this.labels[relocation.label] - currentPosition - 4);
 				break;
 			case Relocation.Type.SplitAbsolute:

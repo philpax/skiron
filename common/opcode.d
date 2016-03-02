@@ -24,7 +24,7 @@ struct Opcode
 		mixin(bitfields!(
 			ubyte, "", 6,
 			ubyte, "", 3,
-			int, "offset", 23));
+			int, "immediate23", 23));
 
 		mixin(bitfields!(
 			ubyte, "", 6,
@@ -57,7 +57,7 @@ enum Encoding
 {
 	A, // dst, src1, src2
 	B, // dst, imm16
-	C, // imm23 (offset)
+	C, // imm23
 	D, // dst, src, imm9
 }
 
@@ -262,7 +262,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 
 		return "%s %s, %s, %s%s".sformat(output, descriptor.name, reg1, reg2, opcode.immediate9, variant);
 	case OperandFormat.Label:
-		return "%s %s".sformat(output, descriptor.name, opcode.offset);
+		return "%s %s".sformat(output, descriptor.name, opcode.immediate23);
 	case OperandFormat.None:
 		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo:
