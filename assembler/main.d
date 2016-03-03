@@ -280,7 +280,7 @@ struct Assembler
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
-		opcode.immediate = immediate;
+		opcode.immediate16 = immediate;
 		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
@@ -363,7 +363,7 @@ struct Assembler
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
 		add.register1 = Register.SP;
-		add.immediate = -4;
+		add.immediate16 = -4;
 
 		Opcode store;
 		store.opcode = Opcodes.Store.opcode;
@@ -401,7 +401,7 @@ struct Assembler
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
 		add.register1 = Register.SP;
-		add.immediate = 4;
+		add.immediate16 = 4;
 
 		foreach (_; 0..this.repCount)
 		{
@@ -435,12 +435,12 @@ struct Assembler
 			Opcode loadui;
 			loadui.opcode = Opcodes.LoadUi.opcode;
 			loadui.register1 = register;
-			loadui.immediate = *cast(short*)&high;
+			loadui.immediate16 = *cast(short*)&high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
 			loadli.register1 = register;
-			loadli.immediate = *cast(short*)&low;
+			loadli.immediate16 = *cast(short*)&low;
 
 			foreach (_; 0..this.repCount)
 			{
@@ -686,8 +686,8 @@ struct Assembler
 				auto location = relocation.location;
 				auto label = this.labels[relocation.label];
 
-				opcodes[location].immediate = (label >> 16) & 0xFFFF;
-				opcodes[location+1].immediate = label & 0xFFFF;
+				opcodes[location].immediate16 = (label >> 16) & 0xFFFF;
+				opcodes[location+1].immediate16 = label & 0xFFFF;
 				break;
 			}
 		}

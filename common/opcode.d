@@ -19,7 +19,7 @@ struct Opcode
 			ubyte, "", 6,
 			ubyte, "", 3,
 			ubyte, "", 7,
-			int, "immediate", 16));
+			int, "immediate16", 16));
 
 		mixin(bitfields!(
 			ubyte, "", 6,
@@ -255,7 +255,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	case OperandFormat.DstImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
-		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediate, variant);
+		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediate16, variant);
 	case OperandFormat.DstSrcImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);

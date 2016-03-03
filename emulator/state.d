@@ -223,7 +223,7 @@ int getImmediate(ref Core core, Opcode opcode)
 		case Encoding.A:
 			assert(0);
 		case Encoding.B:
-			return opcode.doVariant(opcode.immediate);
+			return opcode.doVariant(opcode.immediate16);
 		case Encoding.C:
 			return opcode.doVariant(opcode.immediate23);
 		case Encoding.D:
