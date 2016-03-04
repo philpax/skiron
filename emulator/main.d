@@ -3,6 +3,7 @@ import core.stdc.string;
 import core.stdc.stdlib;
 
 import std.exception;
+import std.internal.cstring;
 
 import common.opcode;
 import common.util;
@@ -12,7 +13,7 @@ import emulator.state;
 @nogc:
 nothrow:
 
-void main(string[] args)
+void main(string[] args) @nogc
 {
 	if (args.length < 2)
 	{
@@ -22,13 +23,8 @@ void main(string[] args)
 
 	printf("Skiron Emulator\n");
 
-	// Temporary workaround until Runtime.cArgs is @nogc
-	auto filePath = args[1];
-	auto cString = cast(char*)alloca(filePath.length + 1);
-	memcpy(cString, filePath.ptr, filePath.length);
-	cString[filePath.length] = '\0';
-
-	auto file = fopen(cString, "rb");
+	auto filePath = args[1].tempCString();
+	auto file = fopen(filePath, "rb");
 
 	if (file == null)
 	{
