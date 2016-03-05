@@ -1,57 +1,47 @@
-import core.stdc.stdio;
-import core.stdc.string;
-import core.stdc.stdlib;
-
+import std.file;
+import std.path;
+import std.stdio;
 import std.exception;
-import std.internal.cstring;
 
-import common.opcode;
 import common.util;
 
 import emulator.state;
 
-@nogc:
-nothrow:
+void runEmulator(ubyte[] program) @nogc nothrow
+{
+	printf("Skiron Emulator\n");
+	auto state = State(1024 * 1024, 1);
+	state.memory[] = program[uint.sizeof .. $];
+	state.run();
+}
 
-void main(string[] args) @nogc
+void main(string[] args)
 {
 	if (args.length < 2)
 	{
-		printf("emulator filename\n");
+		writeln("emulator filename");
 		return;
 	}
 
-	printf("Skiron Emulator\n");
-
-	auto filePath = args[1].tempCString();
-	auto file = fopen(filePath, "rb");
-
-	if (file == null)
+	auto filePath = args[1];
+	if (!filePath.exists())
 	{
-		printf("Failed to open file: %s\n", args[1].ptr);
+		writefln("File '%s' does not exist", filePath);
 		return;
 	}
 
-	scope (exit) fclose(file);
-
-	fseek(file, 0, SEEK_END);
-	auto fileSize = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	auto memory = malloc(fileSize);
-	scope (exit) free(memory);
-	fread(memory, fileSize, 1, file);
-
-	if ((cast(uint*)memory)[0] != HeaderMagicCode)
+	auto program = cast(ubyte[])filePath.read();
+	if (program.length < 4)
 	{
-		printf("Invalid header code");
+		writefln("File '%s' too small", filePath);
 		return;
 	}
 
-	auto dataPtr = memory + uint.sizeof;
-	auto dataSize = fileSize - uint.sizeof;
-	auto state = State(1024 * 1024, 1);
-	memcpy(state.memory.ptr, dataPtr, dataSize);
+	if ((cast(uint*)program.ptr)[0] != HeaderMagicCode)
+	{
+		writefln("Expected file '%s' to start with Skiron header", filePath);
+		return;
+	}
 
-	state.run();
+	program.runEmulator();
 }
