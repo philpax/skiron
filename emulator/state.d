@@ -160,6 +160,7 @@ nothrow:
 	{
 		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
 		this.cores = (cast(Core*)malloc(coreCount * Core.sizeof))[0..coreCount];
+		printf("Memory: %u kB | Core count: %u\n", memorySize/1024, coreCount);
 
 		uint index = 0;
 		foreach (ref core; this.cores)
