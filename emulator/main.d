@@ -1,6 +1,7 @@
 import std.file;
 import std.path;
 import std.stdio;
+import std.process;
 
 import common.util;
 
@@ -27,6 +28,24 @@ void main(string[] args)
 	{
 		writefln("File '%s' does not exist", filePath);
 		return;
+	}
+
+	if (filePath.extension() == ".skasm")
+	{
+		writefln("Assembling '%s'", filePath);
+		auto assembler = ["assembler", filePath].execute();
+
+		if (assembler.status != 0)
+		{
+			writefln("Failed to assemble '%s'", filePath);
+			writefln("Assembler output: %s", assembler.output);
+		}
+		else
+		{
+			writefln("Successfully assembled '%s'", filePath);
+		}
+
+		filePath = filePath.setExtension(".bin");
 	}
 
 	auto program = cast(ubyte[])filePath.read();
