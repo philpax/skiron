@@ -1,7 +1,6 @@
 import std.file;
 import std.path;
 import std.stdio;
-import std.exception;
 
 import common.util;
 
@@ -11,7 +10,7 @@ void runEmulator(ubyte[] program) @nogc nothrow
 {
 	printf("Skiron Emulator\n");
 	auto state = State(1024 * 1024, 1);
-	state.memory[] = program[uint.sizeof .. $];
+	state.memory[0 .. program.length] = program;
 	state.run();
 }
 
@@ -43,5 +42,6 @@ void main(string[] args)
 		return;
 	}
 
+	program = program[uint.sizeof .. $];
 	program.runEmulator();
 }
