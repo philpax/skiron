@@ -1,6 +1,8 @@
 module common.opcode;
 
+import common.cpu;
 import common.util;
+
 import std.bitmanip;
 
 struct Opcode
@@ -10,15 +12,15 @@ struct Opcode
 		mixin(bitfields!(
 			ubyte, "opcode", 6,
 			Variant, "variant", 3,
-			ubyte, "register1", 7,
-			ubyte, "register2", 7,
-			ubyte, "register3", 7,
+			ubyte, "register1", RegisterBitCount,
+			ubyte, "register2", RegisterBitCount,
+			ubyte, "register3", RegisterBitCount,
 			OperandSize, "operandSize", 2));
 
 		mixin(bitfields!(
 			ubyte, "", 6,
 			ubyte, "", 3,
-			ubyte, "", 7,
+			ubyte, "", RegisterBitCount,
 			int, "immediate16", 16));
 
 		mixin(bitfields!(
@@ -29,8 +31,8 @@ struct Opcode
 		mixin(bitfields!(
 			ubyte, "", 6,
 			ubyte, "", 3,
-			ubyte, "", 7,
-			ubyte, "", 7,
+			ubyte, "", RegisterBitCount,
+			ubyte, "", RegisterBitCount,
 			uint, "immediate9", 9));
 
 		uint value;
