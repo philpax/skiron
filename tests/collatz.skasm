@@ -18,9 +18,7 @@ loop:
 	
 	# Check for evenness
 	move r100, r0
-	push ra
-	call is_even
-	pop ra
+	callsv is_even
 	cmp r100, z
 	je handle_even
 

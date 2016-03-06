@@ -148,6 +148,8 @@ enum Opcodes
 		"Push the given register onto the stack (i.e. `add sp, -4; store sp, register`)."),
 	Pop		= PseudoOpcode("pop",
 		"Pop the given register from the stack (i.e. `load register, sp; add sp, 4`)."),
+	CallSv	= PseudoOpcode("callsv",
+		"Push the current return address, call the given label, and pop the return address."),
 	LoadI	= PseudoOpcode("loadi",
 		"Load the given 32-bit immediate, or label, into a register."),
 	Db		= PseudoOpcode("db",

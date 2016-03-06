@@ -350,16 +350,9 @@ struct Assembler
 		return true;
 	}
 
-	bool assemblePush(const(OpcodeDescriptor)* descriptor)
+	void assemblePushManual(ubyte register, OperandSize operandSize = OperandSize.Qbyte)
 	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		ubyte register;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register)) return false;
-
-		// Synthesize store, add
+		// Synthesize add, store
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
 		add.register1 = Register.SP;
@@ -371,18 +364,11 @@ struct Assembler
 		store.register1 = Register.SP;
 		store.register2 = register;
 
-		foreach (_; 0..this.repCount)
-		{
-			this.output ~= add.value;
-			this.output ~= store.value;
-		}
-
-		this.finishAssemble(newTokens);
-
-		return true;
+		this.output ~= add.value;
+		this.output ~= store.value;
 	}
 
-	bool assemblePop(const(OpcodeDescriptor)* descriptor)
+	bool assemblePush(const(OpcodeDescriptor)* descriptor)
 	{
 		auto newTokens = this.tokens;
 
@@ -391,6 +377,16 @@ struct Assembler
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register)) return false;
 
+		foreach (_; 0..this.repCount)
+			this.assemblePushManual(register, operandSize);
+
+		this.finishAssemble(newTokens);
+
+		return true;
+	}
+
+	void assemblePopManual(ubyte register, OperandSize operandSize = OperandSize.Qbyte)
+	{
 		// Synthesize load, add
 		Opcode load;
 		load.opcode = Opcodes.Load.opcode;
@@ -403,12 +399,47 @@ struct Assembler
 		add.register1 = Register.SP;
 		add.immediate16 = 4;
 
+		this.output ~= load.value;
+		this.output ~= add.value;
+	}
+
+	bool assemblePop(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		OperandSize operandSize;
+		ubyte register;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
+		if (!this.parseRegister(newTokens, register)) return false;
+
+		foreach (_; 0..this.repCount)
+			this.assemblePopManual(register, operandSize);
+
+		this.finishAssemble(newTokens);
+
+		return true;
+	}
+
+	bool assembleCallSv(const(OpcodeDescriptor)* descriptor)
+	{
+		auto newTokens = this.tokens;
+
+		Opcode call;
+		call.opcode = Opcodes.Call.opcode;
+
+		string label;
+		if (!this.parseLabel(newTokens, label)) return false;
+
 		foreach (_; 0..this.repCount)
 		{
-			this.output ~= load.value;
-			this.output ~= add.value;
+			this.assemblePushManual(Register.RA);
+			
+			this.output ~= call.value;
+			this.relocations ~= Relocation(
+				label, this.output.length-1, Relocation.Type.Offset);
+			
+			this.assemblePopManual(Register.RA);
 		}
-
 		this.finishAssemble(newTokens);
 
 		return true;
