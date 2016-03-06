@@ -12,27 +12,27 @@ struct Opcode
 		mixin(bitfields!(
 			ubyte, "opcode", 6,
 			Variant, "variant", 3,
-			ubyte, "register1", RegisterBitCount,
-			ubyte, "register2", RegisterBitCount,
-			ubyte, "register3", RegisterBitCount,
+			Register, "register1", RegisterBitCount,
+			Register, "register2", RegisterBitCount,
+			Register, "register3", RegisterBitCount,
 			OperandSize, "operandSize", 2));
 
 		mixin(bitfields!(
 			ubyte, "", 6,
-			ubyte, "", 3,
-			ubyte, "", RegisterBitCount,
+			Variant, "", 3,
+			Register, "", RegisterBitCount,
 			int, "immediate16", 16));
 
 		mixin(bitfields!(
 			ubyte, "", 6,
-			ubyte, "", 3,
+			Variant, "", 3,
 			int, "immediate23", 23));
 
 		mixin(bitfields!(
 			ubyte, "", 6,
-			ubyte, "", 3,
-			ubyte, "", RegisterBitCount,
-			ubyte, "", RegisterBitCount,
+			Variant, "", 3,
+			Register, "", RegisterBitCount,
+			Register, "", RegisterBitCount,
 			uint, "immediate9", 9));
 
 		uint value;
@@ -166,14 +166,14 @@ unittest
 {
 	Opcode opcode;
 	opcode.opcode = Opcodes.Load.opcode;
-	opcode.register1 = 0;
-	opcode.register2 = 1;
-	opcode.register3 = 2;
+	opcode.register1 = cast(Register)0;
+	opcode.register2 = cast(Register)1;
+	opcode.register3 = cast(Register)2;
 
 	assert(opcode.opcode == Opcodes.Load.opcode);
-	assert(opcode.register1 == 0);
-	assert(opcode.register2 == 1);
-	assert(opcode.register3 == 2);
+	assert(opcode.register1 == cast(Register)0);
+	assert(opcode.register2 == cast(Register)1);
+	assert(opcode.register3 == cast(Register)2);
 }
 
 string generateOpcodeToDescriptor()
@@ -280,8 +280,8 @@ unittest
 {
 	Opcode opcode;
 	opcode.opcode = Opcodes.Load.opcode;
-	opcode.register1 = 0;
-	opcode.register2 = 1;
+	opcode.register1 = cast(Register)0;
+	opcode.register2 = cast(Register)1;
 	opcode.variant = Variant.ShiftLeft2;
 
 	char[64] buffer;

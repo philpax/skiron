@@ -133,7 +133,7 @@ nothrow:
 				if (oldValue == newValue)
 					continue;
 
-				auto reg = registerName(cast(ubyte)index, name);
+				auto reg = registerName(cast(Register)index, name);
 
 				if (!first)
 					printf(", ");

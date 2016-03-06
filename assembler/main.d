@@ -125,7 +125,7 @@ struct Assembler
 		return true;
 	}
 
-	bool parseRegister(ref const(Token)[] tokens, ref ubyte output)
+	bool parseRegister(ref const(Token)[] tokens, ref Register output)
 	{
 		auto token = tokens.front;
 		if (token.type != tok!"identifier")
@@ -133,17 +133,17 @@ struct Assembler
 
 		auto t = token.text;
 		if (t == "ip")
-			output = cast(ubyte)Register.IP;
+			output = Register.IP;
 		else if (t == "sp")
-			output = cast(ubyte)Register.SP;
+			output = Register.SP;
 		else if (t == "bp")
-			output = cast(ubyte)Register.BP;
+			output = Register.BP;
 		else if (t == "ra")
-			output = cast(ubyte)Register.RA;
+			output = Register.RA;
 		else if (t == "z")
-			output = cast(ubyte)Register.Z;
+			output = Register.Z;
 		else if (t.startsWith("r") && t.length > 1 && t[1..$].all!isDigit)
-			output = t[1..$].to!ubyte();
+			output = cast(Register)t[1..$].to!ubyte();
 		else
 			return false;
 
@@ -216,7 +216,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		OperandSize operandSize;
-		ubyte register1, register2;
+		Register register1, register2;
 		Variant variant;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register1)) return false;
@@ -228,7 +228,7 @@ struct Assembler
 		opcode.operandSize = operandSize;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
-		opcode.register3 = 0;
+		opcode.register3 = cast(Register)0;
 		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
@@ -243,7 +243,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		OperandSize operandSize;
-		ubyte register1, register2, register3;
+		Register register1, register2, register3;
 		Variant variant;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register1)) return false;
@@ -270,7 +270,7 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
-		ubyte register1;
+		Register register1;
 		int immediate;
 		Variant variant;
 		if (!this.parseRegister(newTokens, register1)) return false;
@@ -295,7 +295,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		OperandSize operandSize;
-		ubyte register1, register2;
+		Register register1, register2;
 		int immediate;
 		Variant variant;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
@@ -350,7 +350,7 @@ struct Assembler
 		return true;
 	}
 
-	void assemblePushManual(ubyte register, OperandSize operandSize = OperandSize.Qbyte)
+	void assemblePushManual(Register register, OperandSize operandSize = OperandSize.Qbyte)
 	{
 		// Synthesize add, store
 		Opcode add;
@@ -373,7 +373,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		OperandSize operandSize;
-		ubyte register;
+		Register register;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register)) return false;
 
@@ -385,7 +385,7 @@ struct Assembler
 		return true;
 	}
 
-	void assemblePopManual(ubyte register, OperandSize operandSize = OperandSize.Qbyte)
+	void assemblePopManual(Register register, OperandSize operandSize = OperandSize.Qbyte)
 	{
 		// Synthesize load, add
 		Opcode load;
@@ -408,7 +408,7 @@ struct Assembler
 		auto newTokens = this.tokens;
 
 		OperandSize operandSize;
-		ubyte register;
+		Register register;
 		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register)) return false;
 
@@ -449,7 +449,7 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
-		ubyte register;
+		Register register;
 		int value;
 		string label;
 
@@ -574,7 +574,7 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
-		ubyte register;
+		Register register;
 		if (!this.parseRegister(newTokens, register)) return false;
 
 		// Synthesize add
@@ -597,7 +597,7 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
-		ubyte dst, src;
+		Register dst, src;
 		if (!this.parseRegister(newTokens, dst)) return false;
 		if (!this.parseRegister(newTokens, src)) return false;
 

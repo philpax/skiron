@@ -28,7 +28,7 @@ enum Flags
 	Less = 1 << 2
 }
 
-char[] registerName(ubyte index, char[] buffer) @nogc nothrow
+char[] registerName(Register index, char[] buffer) @nogc nothrow
 {
 	string generateRegisterIf()
 	{
@@ -44,7 +44,7 @@ char[] registerName(ubyte index, char[] buffer) @nogc nothrow
 			ret ~= "if (index == Register.%s) return \"%s\".sformat(buffer);\n".format(name, name.toLower());
 		}
 
-		ret ~= `else return "r%s".sformat(buffer, index);`;
+		ret ~= `else return "r%s".sformat(buffer, cast(ubyte)index);`;
 
 		return ret;
 	}
