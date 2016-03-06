@@ -1,0 +1,31 @@
+# entry point
+main:
+    loadi sp, stack_begin
+    loadi r100, 7
+    call factorial
+    halt
+
+factorial:
+    # Load r1 with the factorial argument, and r2 with 1
+    move r1, r100
+    loadi r2, 1
+
+    # If n == 1, return 1
+    cmp r1, r2
+    je finish
+
+    # Otherwise, r3 = r1 - r2; r0 = factorial(r3); r1 = r1 * r0;
+    sub r3, r1, r2
+    move r100, r3
+    push r1
+    callsv factorial
+    pop r1
+    mul r1, r1, r0
+
+  finish:
+    move r0, r1
+    jr ra
+
+stack_end:
+    rep 64 db 0
+stack_begin:
