@@ -39,6 +39,7 @@ void main(string[] args)
 		{
 			writefln("Failed to assemble '%s'", filePath);
 			writefln("Assembler output: %s", assembler.output);
+			return;
 		}
 		else
 		{
