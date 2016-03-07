@@ -5,6 +5,7 @@ import std.string, std.ascii;
 import std.conv;
 import std.range;
 import std.algorithm;
+import std.stdio;
 import lexer;
 
 import core.stdc.stdlib;
@@ -15,7 +16,6 @@ import common.util;
 
 void error(Args...)(string text, auto ref Args args)
 {
-	import std.stdio : writefln;
 	writefln(text, args);
 	exit(EXIT_FAILURE);
 }
@@ -727,6 +727,10 @@ struct Assembler
 
 void main(string[] args)
 {
+	import std.getopt, std.process;
+	bool disassemble = false;
+	args.getopt("disassemble|d", &disassemble);
+
 	errorIf(args.length < 2, "expected at least one argument");
 	string inputPath = args[1];
 	errorIf(!inputPath.exists(), "%s: No such file or directory", inputPath);
@@ -737,4 +741,7 @@ void main(string[] args)
 	assembler.assemble();
 
 	std.file.write(outputPath, assembler.output);
+
+	if (disassemble)
+		["disassembler", outputPath].execute.output.writeln();
 }
