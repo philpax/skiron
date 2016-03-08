@@ -1,3 +1,5 @@
+import core.memory;
+
 import std.file;
 import std.path;
 import std.stdio;
@@ -61,6 +63,9 @@ void main(string[] args)
 		writefln("Expected file '%s' to start with Skiron header", filePath);
 		return;
 	}
+
+	GC.collect();
+	GC.disable();
 
 	program = program[uint.sizeof .. $];
 	program.runEmulator();
