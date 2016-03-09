@@ -36,7 +36,7 @@ struct Opcode
 
 		mixin(bitfields!(
 			ubyte,			"",				OpcodeBitCount,
-			Encoding,		"",				VariantBitCount,
+			Encoding,		"",				EncodingBitCount,
 			Variant,		"",				VariantBitCount,
 			OperandSize,	"",				OperandSizeBitCount,
 			int,			"immediateC",	20
