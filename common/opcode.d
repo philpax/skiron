@@ -9,31 +9,48 @@ struct Opcode
 {
 	union
 	{
-		mixin(bitfields!(
-			ubyte, "opcode", 6,
-			Variant, "variant", 3,
-			Register, "register1", RegisterBitCount,
-			Register, "register2", RegisterBitCount,
-			Register, "register3", RegisterBitCount,
-			OperandSize, "operandSize", 2));
+		enum OpcodeBitCount = 6;
+		enum EncodingBitCount = 2;
+		enum VariantBitCount = 2;
+		enum OperandSizeBitCount = 2;
 
 		mixin(bitfields!(
-			ubyte, "", 6,
-			Variant, "", 3,
-			Register, "", RegisterBitCount,
-			int, "immediate16", 16));
+			ubyte,			"opcode",		OpcodeBitCount,
+			Encoding,		"encoding",		EncodingBitCount,
+			Variant,		"variant",		VariantBitCount,
+			ubyte,			"",				2, // padding
+			Register,		"register1",	RegisterBitCount,
+			Register,		"register2",	RegisterBitCount,
+			Register,		"register3",	RegisterBitCount,
+			OperandSize,	"operandSize",	OperandSizeBitCount
+		));
 
 		mixin(bitfields!(
-			ubyte, "", 6,
-			Variant, "", 3,
-			int, "immediate23", 23));
+			ubyte,			"",				OpcodeBitCount,
+			Encoding,		"",				EncodingBitCount,
+			Variant,		"",				VariantBitCount,
+			Register,		"",				RegisterBitCount,
+			OperandSize,	"",				OperandSizeBitCount,
+			int,			"immediateB",	14
+		));
 
 		mixin(bitfields!(
-			ubyte, "", 6,
-			Variant, "", 3,
-			Register, "", RegisterBitCount,
-			Register, "", RegisterBitCount,
-			uint, "immediate9", 9));
+			ubyte,			"",				OpcodeBitCount,
+			Encoding,		"",				VariantBitCount,
+			Variant,		"",				VariantBitCount,
+			OperandSize,	"",				OperandSizeBitCount,
+			int,			"immediateC",	20
+		));
+
+		mixin(bitfields!(
+			ubyte,			"",				OpcodeBitCount,
+			Encoding,		"",				EncodingBitCount,
+			Variant,		"",				VariantBitCount,
+			Register,		"",				RegisterBitCount,
+			Register,		"",				RegisterBitCount,
+			OperandSize,	"",				OperandSizeBitCount,
+			int,			"immediateD",	8			
+		));
 
 		uint value;
 	}
@@ -259,14 +276,14 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	case OperandFormat.DstImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
-		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediate16, variant);
+		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
 	case OperandFormat.DstSrcImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
-		return "%s %s, %s, %s%s".sformat(output, descriptor.name, reg1, reg2, opcode.immediate9, variant);
+		return "%s %s, %s, %s%s".sformat(output, descriptor.name, reg1, reg2, opcode.immediateD, variant);
 	case OperandFormat.Label:
-		return "%s %s".sformat(output, descriptor.name, opcode.immediate23);
+		return "%s %s".sformat(output, descriptor.name, opcode.immediateC);
 	case OperandFormat.None:
 		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo:

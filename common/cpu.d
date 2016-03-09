@@ -2,7 +2,7 @@ module common.cpu;
 
 import common.util;
 
-enum RegisterBitCount = 7;
+enum RegisterBitCount = 6;
 enum RegisterCount = (1 << RegisterBitCount);
 enum Register
 {

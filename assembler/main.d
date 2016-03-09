@@ -280,7 +280,7 @@ struct Assembler
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
-		opcode.immediate16 = immediate;
+		opcode.immediateB = immediate;
 		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
@@ -308,7 +308,7 @@ struct Assembler
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
-		opcode.immediate9 = immediate;
+		opcode.immediateD = immediate;
 		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
@@ -356,7 +356,7 @@ struct Assembler
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
 		add.register1 = Register.SP;
-		add.immediate16 = -4;
+		add.immediateB = -4;
 
 		Opcode store;
 		store.opcode = Opcodes.Store.opcode;
@@ -397,7 +397,7 @@ struct Assembler
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
 		add.register1 = Register.SP;
-		add.immediate16 = 4;
+		add.immediateB = 4;
 
 		this.output ~= load.value;
 		this.output ~= add.value;
@@ -466,12 +466,12 @@ struct Assembler
 			Opcode loadui;
 			loadui.opcode = Opcodes.LoadUi.opcode;
 			loadui.register1 = register;
-			loadui.immediate16 = *cast(short*)&high;
+			loadui.immediateB = *cast(short*)&high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
 			loadli.register1 = register;
-			loadli.immediate16 = *cast(short*)&low;
+			loadli.immediateB = *cast(short*)&low;
 
 			foreach (_; 0..this.repCount)
 			{
@@ -486,36 +486,36 @@ struct Assembler
 			}
 		}
 
-		// If we're dealing with a value, and it can be packed into 11 bits
-		if (label.empty && (value & 0b0000_0111_1111_1111) == value)
+		// If we're dealing with a value, and it can be packed into 10 bits
+		if (label.empty && (value & 0b0000_0011_1111_1111) == value)
 		{
 			Opcode add;
 			add.opcode = Opcodes.AddD.opcode;
 			add.register1 = register;
 			add.register2 = Register.Z;
 
-			// If the value can be packed into 9 bits, multiplied by 1
-			if ((value & 0b0000_0001_1111_1111) == value)
+			// If the value can be packed into 8 bits, multiplied by 1
+			if ((value & 0b0000_0000_1111_1111) == value)
 			{
-				add.immediate9 = (value & 0b0000_0001_1111_1111) >> 0;
+				add.immediateD = (value & 0b0000_0000_1111_1111) >> 0;
 				add.variant = Variant.Identity;
 
 				foreach (_; 0..this.repCount)
 					this.output ~= add.value;
 			}
-			// If the value can be packed into 9 bits, multiplied by 2
-			else if ((value & 0b0000_0011_1111_1110) == value)
+			// If the value can be packed into 8 bits, multiplied by 2
+			else if ((value & 0b0000_0001_1111_1110) == value)
 			{
-				add.immediate9 = (value & 0b0000_0011_1111_1110) >> 1;
+				add.immediateD = (value & 0b0000_0001_1111_1110) >> 1;
 				add.variant = Variant.ShiftLeft1;
 
 				foreach (_; 0..this.repCount)
 					this.output ~= add.value;
 			}
-			// If the value can be packed into 9 bits, multiplied by 4
-			else if ((value & 0b0000_0111_1111_1100) == value)
+			// If the value can be packed into 8 bits, multiplied by 4
+			else if ((value & 0b0000_0011_1111_1100) == value)
 			{
-				add.immediate9 = (value & 0b0000_0111_1111_1100) >> 2;
+				add.immediateD = (value & 0b0000_0011_1111_1100) >> 2;
 				add.variant = Variant.ShiftLeft2;
 
 				foreach (_; 0..this.repCount)
@@ -710,15 +710,15 @@ struct Assembler
 				auto location = relocation.location;
 				auto currentPosition = location * uint.sizeof;
 
-				opcodes[location].immediate23 =
+				opcodes[location].immediateC =
 					cast(int)(this.labels[relocation.label] - currentPosition - 4);
 				break;
 			case Relocation.Type.SplitAbsolute:
 				auto location = relocation.location;
 				auto label = this.labels[relocation.label];
 
-				opcodes[location].immediate16 = (label >> 16) & 0xFFFF;
-				opcodes[location+1].immediate16 = label & 0xFFFF;
+				opcodes[location].immediateB = (label >> 16) & 0xFFFF;
+				opcodes[location+1].immediateB = label & 0xFFFF;
 				break;
 			}
 		}

@@ -1,13 +1,13 @@
 # entry point
 main:
-	loadi r100, 6
+	loadi r50, 6
 	loadi sp, stack_begin
 	call collatz
 	halt
 
 # function: collatz
 collatz:
-	move r0, r100
+	move r0, r50
 	loadi r1, 1
 	loadi r2, 2
 	loadi r3, 3
@@ -17,9 +17,9 @@ loop:
 	je finish
 	
 	# Check for evenness
-	move r100, r0
+	move r50, r0
 	callsv is_even
-	cmp r100, z
+	cmp r50, z
 	je handle_even
 
 handle_odd:
@@ -38,7 +38,7 @@ finish:
 is_even:
 	push r0
 	loadi r0, 1
-	and r100, r100, r0
+	and r50, r50, r0
 	pop r0
 	jr ra
 
