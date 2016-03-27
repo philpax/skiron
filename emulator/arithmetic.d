@@ -10,14 +10,14 @@ void runAddA(Type = uint)(ref Core core, Opcode opcode)
 	core.setDst!Type(opcode, core.getSrc1!Type(opcode) + core.getSrc2!Type(opcode));
 }
 
-void runAddB(ref Core core, Opcode opcode)
+void runAddB(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getDst(opcode) + core.getImmediate(opcode));
+	core.setDst!Type(opcode, core.getDst!Type(opcode) + core.getImmediate(opcode));
 }
 
-void runAddD(ref Core core, Opcode opcode)
+void runAddD(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, core.getSrc1(opcode) + core.getImmediate(opcode));
+	core.setDst!Type(opcode, core.getSrc1!Type(opcode) + core.getImmediate(opcode));
 }
 
 void runSub(Type = uint)(ref Core core, Opcode opcode)

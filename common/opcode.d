@@ -129,9 +129,9 @@ enum Opcodes
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		0x05, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Add `src1` and `src2` together, and store the result in `dst`."),
-	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, false, OperandFormat.DstImm,
+	AddB	= OpcodeDescriptor("add",		0x06, Encoding.B, true, OperandFormat.DstImm,
 		"Add the immediate to `dst`, and store the result in `dst`."),
-	AddD	= OpcodeDescriptor("add",		0x07, Encoding.D, false, OperandFormat.DstSrcImm,
+	AddD	= OpcodeDescriptor("add",		0x07, Encoding.D, true, OperandFormat.DstSrcImm,
 		"Add the immediate to `src`, and store the result in `dst`."),
 	Sub		= OpcodeDescriptor("sub",		0x08, Encoding.A, true,  OperandFormat.DstSrcSrc,
 		"Subtract `src2` from `src1`, and store the result in `dst`."),
