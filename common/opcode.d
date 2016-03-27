@@ -18,10 +18,10 @@ struct Opcode
 			ubyte,			"opcode",		OpcodeBitCount,
 			Encoding,		"encoding",		EncodingBitCount,
 			Variant,		"variant",		VariantBitCount,
-			ubyte,			"",				2, // padding
 			Register,		"register1",	RegisterBitCount,
 			Register,		"register2",	RegisterBitCount,
 			Register,		"register3",	RegisterBitCount,
+			ubyte,			"",				2, // padding
 			OperandSize,	"operandSize",	OperandSizeBitCount
 		));
 
@@ -30,16 +30,24 @@ struct Opcode
 			Encoding,		"",				EncodingBitCount,
 			Variant,		"",				VariantBitCount,
 			Register,		"",				RegisterBitCount,
-			OperandSize,	"",				OperandSizeBitCount,
-			int,			"immediateB",	14
+			int,			"immediateB",	14,
+			OperandSize,	"",				OperandSizeBitCount
 		));
 
 		mixin(bitfields!(
 			ubyte,			"",				OpcodeBitCount,
 			Encoding,		"",				EncodingBitCount,
 			Variant,		"",				VariantBitCount,
-			OperandSize,	"",				OperandSizeBitCount,
-			int,			"immediateC",	20
+			Register,		"",				RegisterBitCount,
+			int,			"immediateB16",	16
+		));
+
+		mixin(bitfields!(
+			ubyte,			"",				OpcodeBitCount,
+			Encoding,		"",				EncodingBitCount,
+			Variant,		"",				VariantBitCount,
+			int,			"immediateC",	20,
+			OperandSize,	"",				OperandSizeBitCount
 		));
 
 		mixin(bitfields!(
@@ -48,8 +56,8 @@ struct Opcode
 			Variant,		"",				VariantBitCount,
 			Register,		"",				RegisterBitCount,
 			Register,		"",				RegisterBitCount,
-			OperandSize,	"",				OperandSizeBitCount,
-			int,			"immediateD",	8			
+			int,			"immediateD",	8,
+			OperandSize,	"",				OperandSizeBitCount
 		));
 
 		uint value;
