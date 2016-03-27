@@ -270,9 +270,11 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
+		OperandSize operandSize;
 		Register register1;
 		int immediate;
 		Variant variant;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, register1)) return false;
 		if (!this.parseNumber(newTokens, immediate)) return false;
 		if (!this.parseVariant(newTokens, variant)) return false;
@@ -280,7 +282,15 @@ struct Assembler
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
-		opcode.immediateB = immediate;
+		if (descriptor.supportsOperandSize)
+		{
+			opcode.operandSize = operandSize;
+			opcode.immediateB = immediate;
+		}
+		else
+		{
+			opcode.immediateB16 = immediate;
+		}
 		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
@@ -305,6 +315,7 @@ struct Assembler
 		if (!this.parseVariant(newTokens, variant)) return false;
 
 		Opcode opcode;
+		opcode.operandSize = operandSize;
 		opcode.opcode = descriptor.opcode;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
@@ -466,12 +477,12 @@ struct Assembler
 			Opcode loadui;
 			loadui.opcode = Opcodes.LoadUi.opcode;
 			loadui.register1 = register;
-			loadui.immediateB = *cast(short*)&high;
+			loadui.immediateB16 = *cast(short*)&high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
 			loadli.register1 = register;
-			loadli.immediateB = *cast(short*)&low;
+			loadli.immediateB16 = *cast(short*)&low;
 
 			foreach (_; 0..this.repCount)
 			{
@@ -497,7 +508,8 @@ struct Assembler
 			// If the value can be packed into 8 bits, multiplied by 1
 			if ((value & 0b0000_0000_1111_1111) == value)
 			{
-				add.immediateD = (value & 0b0000_0000_1111_1111) >> 0;
+				auto encodedValue = (value & 0b0000_0000_1111_1111) >> 0;
+				add.immediateD = *cast(byte*)&encodedValue;
 				add.variant = Variant.Identity;
 
 				foreach (_; 0..this.repCount)
@@ -506,7 +518,8 @@ struct Assembler
 			// If the value can be packed into 8 bits, multiplied by 2
 			else if ((value & 0b0000_0001_1111_1110) == value)
 			{
-				add.immediateD = (value & 0b0000_0001_1111_1110) >> 1;
+				auto encodedValue = (value & 0b0000_0001_1111_1110) >> 1;
+				add.immediateD = *cast(byte*)&encodedValue;
 				add.variant = Variant.ShiftLeft1;
 
 				foreach (_; 0..this.repCount)
@@ -515,7 +528,8 @@ struct Assembler
 			// If the value can be packed into 8 bits, multiplied by 4
 			else if ((value & 0b0000_0011_1111_1100) == value)
 			{
-				add.immediateD = (value & 0b0000_0011_1111_1100) >> 2;
+				auto encodedValue = (value & 0b0000_0011_1111_1100) >> 2;
+				add.immediateD = *cast(byte*)&encodedValue;
 				add.variant = Variant.ShiftLeft2;
 
 				foreach (_; 0..this.repCount)
@@ -717,8 +731,8 @@ struct Assembler
 				auto location = relocation.location;
 				auto label = this.labels[relocation.label];
 
-				opcodes[location].immediateB = (label >> 16) & 0xFFFF;
-				opcodes[location+1].immediateB = label & 0xFFFF;
+				opcodes[location].immediateB16 = (label >> 16) & 0xFFFF;
+				opcodes[location+1].immediateB16 = label & 0xFFFF;
 				break;
 			}
 		}
