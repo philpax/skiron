@@ -10,5 +10,5 @@ pop r1
 halt
 
 stack_end:
-rep 16 db 0
+rep 4 dw 0
 stack_begin:

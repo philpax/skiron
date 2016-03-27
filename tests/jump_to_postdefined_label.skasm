@@ -1,7 +1,7 @@
 move r0, z
 j postlabel
 
-rep 4 db 0
+dw 0
 
 postlabel:
 add r0, 1

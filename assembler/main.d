@@ -552,20 +552,15 @@ struct Assembler
 		return true;
 	}
 
-	bool assembleDb(const(OpcodeDescriptor)* descriptor)
+	bool assembleDw(const(OpcodeDescriptor)* descriptor)
 	{
 		auto newTokens = this.tokens;
 
 		int value;
 		if (!this.parseNumber(newTokens, value)) return false;
 
-		if (this.repCount % 4 != 0)
-			throw new Exception("Expected 4-byte alignment compatibility for db");
-
-		auto b = cast(ubyte)value;
-
-		foreach (i; 0..this.repCount/4)
-			output ~= b || b << 8 || b << 16 || b << 24;
+		foreach (i; 0..this.repCount)
+			output ~= value;
 
 		this.finishAssemble(newTokens);
 

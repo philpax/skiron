@@ -43,5 +43,5 @@ is_even:
 	jr ra
 
 stack_end:
-	rep 64 db 0
+	rep 16 dw 0
 stack_begin:
