@@ -237,21 +237,22 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 
 	auto descriptor = opcode.opcode.opcodeToDescriptor();
 
-	string sizePrefix;
-	switch (opcode.operandSize)
+	string sizePrefix = "";
+	if (descriptor.supportsOperandSize)
 	{
-	case OperandSize.Byte:
-		sizePrefix = "byte";
-		break;
-	case OperandSize.Dbyte:
-		sizePrefix = "dbyte";
-		break;
-	case OperandSize.Qbyte:
-		sizePrefix = "qbyte";
-		break;
-	default:
-		sizePrefix = "";
-		break;
+		import core.stdc.stdio;
+		final switch (opcode.operandSize)
+		{
+		case OperandSize.Byte:
+			sizePrefix = "byte ";
+			break;
+		case OperandSize.Dbyte:
+			sizePrefix = "dbyte ";
+			break;
+		case OperandSize.Qbyte:
+			sizePrefix = "qbyte ";
+			break;
+		}
 	}
 
 	string variant;
@@ -274,22 +275,25 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
-		return "%s %s %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, variant);
+		return "%s %s%s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, variant);
 	case OperandFormat.DstSrcSrc:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 		auto reg3 = opcode.register3.registerName(buffers[2]);
 
-		return "%s %s %s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
+		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
 	case OperandFormat.DstImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
-		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
+		if (descriptor.supportsOperandSize)
+			return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
+		else
+			return "%s %s%s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, opcode.immediateB16, variant);
 	case OperandFormat.DstSrcImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
-		return "%s %s, %s, %s%s".sformat(output, descriptor.name, reg1, reg2, opcode.immediateD, variant);
+		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, opcode.immediateD, variant);
 	case OperandFormat.Label:
 		return "%s %s".sformat(output, descriptor.name, opcode.immediateC);
 	case OperandFormat.None:
