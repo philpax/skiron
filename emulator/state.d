@@ -224,7 +224,10 @@ int getImmediate(ref Core core, Opcode opcode)
 		case Encoding.A:
 			assert(0);
 		case Encoding.B:
-			return opcode.doVariant(opcode.immediateB);
+			if (descriptor.supportsOperandSize)
+				return opcode.doVariant(opcode.immediateB);
+			else
+				return opcode.doVariant(opcode.immediateB16);
 		case Encoding.C:
 			return opcode.doVariant(opcode.immediateC);
 		case Encoding.D:
