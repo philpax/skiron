@@ -611,14 +611,16 @@ struct Assembler
 	{
 		auto newTokens = this.tokens;
 
+		OperandSize operandSize;
 		Register dst, src;
+		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
 		if (!this.parseRegister(newTokens, dst)) return false;
 		if (!this.parseRegister(newTokens, src)) return false;
 
 		// Synthesize add
 		Opcode add;
 		add.opcode = Opcodes.AddA.opcode;
-		add.operandSize = OperandSize.Qbyte;
+		add.operandSize = operandSize;
 		add.register1 = dst;
 		add.register2 = src;
 		add.register3 = Register.Z;
