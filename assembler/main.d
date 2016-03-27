@@ -225,6 +225,7 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		opcode.encoding = descriptor.encoding;
 		opcode.operandSize = operandSize;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
@@ -253,6 +254,7 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		opcode.encoding = descriptor.encoding;
 		opcode.operandSize = operandSize;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
@@ -281,6 +283,7 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		opcode.encoding = descriptor.encoding;
 		opcode.register1 = register1;
 		if (descriptor.supportsOperandSize)
 		{
@@ -317,6 +320,7 @@ struct Assembler
 		Opcode opcode;
 		opcode.operandSize = operandSize;
 		opcode.opcode = descriptor.opcode;
+		opcode.encoding = descriptor.encoding;
 		opcode.register1 = register1;
 		opcode.register2 = register2;
 		opcode.immediateD = immediate;
@@ -333,6 +337,7 @@ struct Assembler
 	{
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		opcode.encoding = descriptor.encoding;
 
 		foreach (_; 0..this.repCount)
 			this.output ~= opcode.value;
@@ -346,6 +351,7 @@ struct Assembler
 
 		Opcode opcode;
 		opcode.opcode = descriptor.opcode;
+		opcode.encoding = descriptor.encoding;
 
 		string label;
 		if (!this.parseLabel(newTokens, label)) return false;
@@ -366,11 +372,13 @@ struct Assembler
 		// Synthesize add, store
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
+		add.encoding = Opcodes.AddB.encoding;
 		add.register1 = Register.SP;
 		add.immediateB = -4;
 
 		Opcode store;
 		store.opcode = Opcodes.Store.opcode;
+		store.encoding = Opcodes.Store.encoding;
 		store.operandSize = operandSize;
 		store.register1 = Register.SP;
 		store.register2 = register;
@@ -401,12 +409,14 @@ struct Assembler
 		// Synthesize load, add
 		Opcode load;
 		load.opcode = Opcodes.Load.opcode;
+		load.encoding = Opcodes.Load.encoding;
 		load.operandSize = operandSize;
 		load.register1 = register;
 		load.register2 = Register.SP;
 
 		Opcode add;
 		add.opcode = Opcodes.AddB.opcode;
+		add.encoding = Opcodes.AddB.encoding;
 		add.register1 = Register.SP;
 		add.immediateB = 4;
 
@@ -437,6 +447,7 @@ struct Assembler
 
 		Opcode call;
 		call.opcode = Opcodes.Call.opcode;
+		call.encoding = Opcodes.Call.encoding;
 
 		string label;
 		if (!this.parseLabel(newTokens, label)) return false;
@@ -476,11 +487,13 @@ struct Assembler
 			// Synthesize loadui, loadli
 			Opcode loadui;
 			loadui.opcode = Opcodes.LoadUi.opcode;
+			loadui.encoding = Opcodes.LoadUi.encoding;
 			loadui.register1 = register;
 			loadui.immediateB16 = *cast(short*)&high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
+			loadli.encoding = Opcodes.LoadLi.encoding;
 			loadli.register1 = register;
 			loadli.immediateB16 = *cast(short*)&low;
 
@@ -502,6 +515,7 @@ struct Assembler
 		{
 			Opcode add;
 			add.opcode = Opcodes.AddD.opcode;
+			add.encoding = Opcodes.AddD.encoding;
 			add.register1 = register;
 			add.register2 = Register.Z;
 
@@ -589,6 +603,7 @@ struct Assembler
 		// Synthesize add
 		Opcode add;
 		add.opcode = Opcodes.AddA.opcode;
+		add.encoding = Opcodes.AddA.encoding;
 		add.operandSize = OperandSize.Qbyte;
 		add.register1 = Register.IP;
 		add.register2 = register;
@@ -615,6 +630,7 @@ struct Assembler
 		// Synthesize add
 		Opcode add;
 		add.opcode = Opcodes.AddA.opcode;
+		add.encoding = Opcodes.AddA.encoding;
 		add.operandSize = operandSize;
 		add.register1 = dst;
 		add.register2 = src;

@@ -218,16 +218,48 @@ Type doVariant(Type = uint)(Opcode opcode, Type value)
 
 int getImmediate(ref Core core, Opcode opcode)
 {
-	const descriptor = opcode.opcode.opcodeToDescriptor();
-	final switch (descriptor.encoding)
+	string generateB16Switch()
+	{
+			import std.traits, std.string, std.conv;
+
+	string ret =
+`bool isB16Necessary(Opcode opcode) @nogc nothrow
+{
+	switch (opcode.opcode)
+	{
+`;
+
+		foreach (member; EnumMembers!Opcodes)
+		{
+			if (member.encoding != Encoding.B)
+				continue;
+
+			if (!member.supportsOperandSize)
+				continue;
+
+			ret ~= "case Opcodes.%s.opcode: return true;\n".format(member.to!string());
+		}
+
+		ret ~= "default: return false;\n";
+		ret ~= 
+`	}
+}`;
+
+		return ret;
+	}
+
+	mixin(generateB16Switch());
+	final switch (opcode.encoding)
 	{
 		case Encoding.A:
 			assert(0);
 		case Encoding.B:
-			if (descriptor.supportsOperandSize)
-				return opcode.doVariant(opcode.immediateB);
-			else
+			bool requiresB16 = isB16Necessary(opcode);
+
+			if (requiresB16)
 				return opcode.doVariant(opcode.immediateB16);
+			else
+				return opcode.doVariant(opcode.immediateB);
 		case Encoding.C:
 			return opcode.doVariant(opcode.immediateC);
 		case Encoding.D:
