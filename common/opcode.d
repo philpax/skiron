@@ -4,6 +4,7 @@ import common.cpu;
 import common.util;
 
 import std.bitmanip;
+import std.meta;
 
 struct Opcode
 {
@@ -14,50 +15,81 @@ struct Opcode
 		enum VariantBitCount = 2;
 		enum OperandSizeBitCount = 2;
 
-		mixin(bitfields!(
+		mixin(defineEncoding!("A",
 			ubyte,			"opcode",		OpcodeBitCount,
+			"The opcode number.",
 			Encoding,		"encoding",		EncodingBitCount,
+			"The encoding in use.",
 			Variant,		"variant",		VariantBitCount,
+			"The variant/modifier to apply to register3.",
 			Register,		"register1",	RegisterBitCount,
+			"The destination register.",
 			Register,		"register2",	RegisterBitCount,
+			"The first source register.",
 			Register,		"register3",	RegisterBitCount,
-			ubyte,			"",				2, // padding
-			OperandSize,	"operandSize",	OperandSizeBitCount
+			"The second source register.",
+			ubyte,			"_padding",		2,
+			"",
+			OperandSize,	"operandSize",	OperandSizeBitCount,
+			"The sizes of the operands being used.",
 		));
 
-		mixin(bitfields!(
-			ubyte,			"",				OpcodeBitCount,
-			Encoding,		"",				EncodingBitCount,
-			Variant,		"",				VariantBitCount,
-			Register,		"",				RegisterBitCount,
+		mixin(defineEncoding!("B",
+			ubyte,			"_opcode",		OpcodeBitCount,
+			"",
+			Encoding,		"_encoding",	EncodingBitCount,
+			"",
+			Variant,		"_variant",		VariantBitCount,
+			"The variant/modifier to apply to immediateB.",
+			Register,		"_register1",	RegisterBitCount,
+			"The destination/source register.",
 			int,			"immediateB",	14,
-			OperandSize,	"",				OperandSizeBitCount
+			"The encoded immediate value.",
+			OperandSize,	"_operandSize",	OperandSizeBitCount,
+			"",
 		));
 
-		mixin(bitfields!(
-			ubyte,			"",				OpcodeBitCount,
-			Encoding,		"",				EncodingBitCount,
-			Variant,		"",				VariantBitCount,
-			Register,		"",				RegisterBitCount,
-			int,			"immediateB16",	16
+		mixin(defineEncoding!("B16",
+			ubyte,			"_opcode",		OpcodeBitCount,
+			"",
+			Encoding,		"_encoding",	EncodingBitCount,
+			"",
+			Variant,		"_variant",		VariantBitCount,
+			"The variant/modifier to apply to immediateB.",
+			Register,		"_register1",	RegisterBitCount,
+			"The destination/source register.",
+			int,			"immediateB16",	16,
+			"The 16-bit encoded immediate value.",
 		));
 
-		mixin(bitfields!(
-			ubyte,			"",				OpcodeBitCount,
-			Encoding,		"",				EncodingBitCount,
-			Variant,		"",				VariantBitCount,
+		mixin(defineEncoding!("C",
+			ubyte,			"_opcode",		OpcodeBitCount,
+			"",
+			Encoding,		"_encoding",	EncodingBitCount,
+			"",
+			Variant,		"_variant",		VariantBitCount,
+			"The variant/modifier to apply to immediateC.",
 			int,			"immediateC",	20,
-			OperandSize,	"",				OperandSizeBitCount
+			"The encoded immediate value.",
+			OperandSize,	"_operandSize",	OperandSizeBitCount,
+			"",
 		));
 
-		mixin(bitfields!(
-			ubyte,			"",				OpcodeBitCount,
-			Encoding,		"",				EncodingBitCount,
-			Variant,		"",				VariantBitCount,
-			Register,		"",				RegisterBitCount,
-			Register,		"",				RegisterBitCount,
+		mixin(defineEncoding!("D",
+			ubyte,			"_opcode",		OpcodeBitCount,
+			"",
+			Encoding,		"_encoding",	EncodingBitCount,
+			"",
+			Variant,		"_variant",		VariantBitCount,
+			"",
+			Register,		"_register1",	RegisterBitCount,
+			"The destination register.",
+			Register,		"_register2",	RegisterBitCount,
+			"The source register.",
 			int,			"immediateD",	8,
-			OperandSize,	"",				OperandSizeBitCount
+			"The encoded immediate value.",
+			OperandSize,	"_operandSize",	OperandSizeBitCount,
+			"",
 		));
 
 		uint value;
@@ -65,6 +97,59 @@ struct Opcode
 }
 
 static assert(Opcode.sizeof == uint.sizeof);
+
+private:
+string removeUnderscored(string s)
+{
+	if (s.length && s[0] == '_')
+		return "";
+	else
+		return s;
+}
+
+template encodingFilter(Args...)
+{
+	static if (Args.length > 4)
+		alias encodingFilter = AliasSeq!(encodingFilter!(Args[0..4]), encodingFilter!(Args[4..$]));
+	else
+		alias encodingFilter = AliasSeq!(Args[0], removeUnderscored(Args[1]), Args[2]);
+}
+
+string encodingDocsMake(Args...)()
+{
+	import std.string : format;
+
+	static if (Args.length)
+	{
+		auto field = Args[1];
+
+		if (field[0] == '_')
+			field = field[1..$];
+
+		return `AliasSeq!(%s, "%s", %s, "%s"),`.format(Args[0].stringof, field, Args[2], Args[3]) ~ encodingDocsMake!(Args[4..$]);
+	}
+	else
+	{
+		return ``;
+	}
+}
+
+string encodingDocs(string Name, Args...)()
+{
+	auto ret = `alias EncodingSeq` ~ Name ~ ` = AliasSeq!(`;
+	ret ~= encodingDocsMake!(Args);
+	ret ~= ");\n";
+	return ret;
+}
+
+string defineEncoding(string Name, Args...)()
+{
+	auto ret = bitfields!(encodingFilter!Args);
+	ret ~= encodingDocs!(Name, Args);
+	return ret;
+}
+
+public:
 
 enum OperandSize
 {
