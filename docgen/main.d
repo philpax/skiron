@@ -5,11 +5,12 @@ import std.string;
 import std.conv;
 import std.algorithm;
 import std.range;
+import std.meta;
 
 import common.opcode;
 import common.cpu;
 
-void main(string[] args)
+void writeOpcodes()
 {
 	OpcodeDescriptor[] descriptors;
 
@@ -82,4 +83,36 @@ void main(string[] args)
 		file.write(descriptor.description);
 		file.writeln();
 	}
+}
+
+void writeEncodings()
+{
+	auto file = File("encodings.md", "w");
+
+	string getFormattedFields(Args...)()
+	{
+		static if (Args.length)
+			return "`%s` (`%s`, %s bytes): %s\n".format(Args[1], Args[0].stringof, Args[2], Args[3]) ~ getFormattedFields!(Args[4..$]);
+		else
+			return "";
+	}
+
+	
+	enum prefix = "EncodingSeq";
+	enum isEncodingSeq(string String) = String.startsWith(prefix);
+	foreach (encodingSeqName; Filter!(isEncodingSeq, __traits(allMembers, Opcode)))
+	{
+		alias field = AliasSeq!(__traits(getMember, Opcode, encodingSeqName));
+		auto encodingName = encodingSeqName[prefix.length .. $];
+
+		file.writefln("## Encoding %s", encodingName);
+		file.write(getFormattedFields!field);
+		file.writeln();
+	}
+}
+
+void main(string[] args)
+{
+	writeOpcodes();
+	writeEncodings();
 }
