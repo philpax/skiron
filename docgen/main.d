@@ -116,7 +116,7 @@ void writeEncodings()
 			else if (description.empty)
 				description = fieldDescriptions[field.name];
 
-			file.writef("* `%s` (`%s`, %s bytes)", field.name, field.type, field.size);
+			file.writef("* `%s` (`%s`, %s bits)", field.name, field.type, field.size);
 
 			if (description.length)
 				file.writef(": %s", description);
