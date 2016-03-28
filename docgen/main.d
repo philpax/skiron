@@ -92,7 +92,7 @@ void writeEncodings()
 	string getFormattedFields(Args...)()
 	{
 		static if (Args.length)
-			return "`%s` (`%s`, %s bytes): %s\n".format(Args[1], Args[0].stringof, Args[2], Args[3]) ~ getFormattedFields!(Args[4..$]);
+			return "* `%s` (`%s`, %s bytes): %s\n".format(Args[1], Args[0].stringof, Args[2], Args[3]) ~ getFormattedFields!(Args[4..$]);
 		else
 			return "";
 	}
@@ -106,7 +106,9 @@ void writeEncodings()
 		auto encodingName = encodingSeqName[prefix.length .. $];
 
 		file.writefln("## Encoding %s", encodingName);
-		file.write(getFormattedFields!field);
+		file.writeln(field[0]);
+		file.writeln();
+		file.write(getFormattedFields!(field[1..$]));
 		file.writeln();
 	}
 }

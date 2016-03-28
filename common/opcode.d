@@ -16,6 +16,7 @@ struct Opcode
 		enum OperandSizeBitCount = 2;
 
 		mixin(defineEncoding!("A",
+			"Used for three-register instructions.",
 			ubyte,			"opcode",		OpcodeBitCount,
 			"The opcode number.",
 			Encoding,		"encoding",		EncodingBitCount,
@@ -35,6 +36,7 @@ struct Opcode
 		));
 
 		mixin(defineEncoding!("B",
+			"Used for one-register, one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
 			Encoding,		"_encoding",	EncodingBitCount,
@@ -50,6 +52,8 @@ struct Opcode
 		));
 
 		mixin(defineEncoding!("B16",
+			"Used for one-register, one-16-bit-immediate instructions. " ~
+			"This is not a real encoding: it is the result of using Encoding B with an instruction that doesn't use operandSize.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
 			Encoding,		"_encoding",	EncodingBitCount,
@@ -63,6 +67,7 @@ struct Opcode
 		));
 
 		mixin(defineEncoding!("C",
+			"Used for one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
 			Encoding,		"_encoding",	EncodingBitCount,
@@ -76,6 +81,7 @@ struct Opcode
 		));
 
 		mixin(defineEncoding!("D",
+			"Used for two-register, one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
 			Encoding,		"_encoding",	EncodingBitCount,
@@ -134,18 +140,21 @@ string encodingDocsMake(Args...)()
 	}
 }
 
-string encodingDocs(string Name, Args...)()
+string encodingDocs(string Name, string Description, Args...)()
 {
+	import std.string : format;
+
 	auto ret = `alias EncodingSeq` ~ Name ~ ` = AliasSeq!(`;
+	ret ~= `"%s", `.format(Description);
 	ret ~= encodingDocsMake!(Args);
 	ret ~= ");\n";
 	return ret;
 }
 
-string defineEncoding(string Name, Args...)()
+string defineEncoding(string Name, string Description, Args...)()
 {
 	auto ret = bitfields!(encodingFilter!Args);
-	ret ~= encodingDocs!(Name, Args);
+	ret ~= encodingDocs!(Name, Description, Args);
 	return ret;
 }
 
