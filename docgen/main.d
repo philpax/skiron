@@ -89,17 +89,38 @@ void writeEncodings()
 {
 	auto file = File("encodings.md", "w");
 
+	string[string] fieldDescriptions;
 	string getFormattedFields(Args...)()
 	{
 		static if (Args.length)
-			return "* `%s` (`%s`, %s bytes): %s\n".format(Args[1], Args[0].stringof, Args[2], Args[3]) ~ getFormattedFields!(Args[4..$]);
+		{
+			auto fieldName = Args[1];
+			auto description = Args[3];
+
+			if (fieldName !in fieldDescriptions)
+				fieldDescriptions[fieldName] = description;
+			else if (description.empty)
+				description = fieldDescriptions[fieldName];
+
+			auto ret = "* `%s` (`%s`, %s bytes)".format(fieldName, Args[0].stringof, Args[2]);
+
+			if (description.length)
+				ret ~= ": %s".format(description);
+
+			ret ~= '\n';
+			ret ~= getFormattedFields!(Args[4..$]);
+			return ret;
+		}
 		else
+		{
 			return "";
+		}
 	}
 
 	
 	enum prefix = "EncodingSeq";
 	enum isEncodingSeq(string String) = String.startsWith(prefix);
+
 	foreach (encodingSeqName; Filter!(isEncodingSeq, __traits(allMembers, Opcode)))
 	{
 		alias field = AliasSeq!(__traits(getMember, Opcode, encodingSeqName));
