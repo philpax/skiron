@@ -101,6 +101,12 @@ void writeEncodings()
 		file.writeln(encodingDescription.description);
 		file.writeln();
 
+		file.writeln("### Field Layout");
+		file.writeln(encodingDescription.fields.map!(a => "%s bits".format(a.size)).join(" | "));
+		file.writeln(encodingDescription.fields.map!(a => "---").join(" | "));
+		file.writeln(encodingDescription.fields.map!(a => '`' ~ a.name ~ '`').join(" | "));
+		file.writeln();
+
 		foreach (field; encodingDescription.fields)
 		{
 			auto description = field.description;
