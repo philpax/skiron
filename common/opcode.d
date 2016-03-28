@@ -104,6 +104,21 @@ struct Opcode
 
 static assert(Opcode.sizeof == uint.sizeof);
 
+struct EncodingDescription
+{
+	struct Field
+	{
+		string type;
+		string name;
+		int size;
+		string description;
+	}
+
+	string name;
+	string description;
+	Field[] fields;
+}
+
 private:
 string removeUnderscored(string s)
 {
@@ -127,12 +142,12 @@ string encodingDocsMake(Args...)()
 
 	static if (Args.length)
 	{
-		auto field = Args[1];
+		auto name = Args[1];
 
-		if (field[0] == '_')
-			field = field[1..$];
+		if (name[0] == '_')
+			name = name[1..$];
 
-		return `AliasSeq!(%s, "%s", %s, "%s"),`.format(Args[0].stringof, field, Args[2], Args[3]) ~ encodingDocsMake!(Args[4..$]);
+		return `EncodingDescription.Field("%s", "%s", %s, "%s"), `.format(Args[0].stringof, name, Args[2], Args[3]) ~ encodingDocsMake!(Args[4..$]);
 	}
 	else
 	{
@@ -144,10 +159,10 @@ string encodingDocs(string Name, string Description, Args...)()
 {
 	import std.string : format;
 
-	auto ret = `alias EncodingSeq` ~ Name ~ ` = AliasSeq!(`;
-	ret ~= `"%s", `.format(Description);
+	auto ret = `enum EncodingSeq` ~ Name ~ ` = EncodingDescription(`;
+	ret ~= `"%s", "%s", [`.format(Name, Description);
 	ret ~= encodingDocsMake!(Args);
-	ret ~= ");\n";
+	ret ~= "]);\n";
 	return ret;
 }
 

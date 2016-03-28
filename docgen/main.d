@@ -89,47 +89,35 @@ void writeEncodings()
 {
 	auto file = File("encodings.md", "w");
 
-	string[string] fieldDescriptions;
-	string getFormattedFields(Args...)()
-	{
-		static if (Args.length)
-		{
-			auto fieldName = Args[1];
-			auto description = Args[3];
-
-			if (fieldName !in fieldDescriptions)
-				fieldDescriptions[fieldName] = description;
-			else if (description.empty)
-				description = fieldDescriptions[fieldName];
-
-			auto ret = "* `%s` (`%s`, %s bytes)".format(fieldName, Args[0].stringof, Args[2]);
-
-			if (description.length)
-				ret ~= ": %s".format(description);
-
-			ret ~= '\n';
-			ret ~= getFormattedFields!(Args[4..$]);
-			return ret;
-		}
-		else
-		{
-			return "";
-		}
-	}
-
-	
 	enum prefix = "EncodingSeq";
 	enum isEncodingSeq(string String) = String.startsWith(prefix);
 
+	string[string] fieldDescriptions;
 	foreach (encodingSeqName; Filter!(isEncodingSeq, __traits(allMembers, Opcode)))
 	{
-		alias field = AliasSeq!(__traits(getMember, Opcode, encodingSeqName));
-		auto encodingName = encodingSeqName[prefix.length .. $];
+		auto encodingDescription = __traits(getMember, Opcode, encodingSeqName);
 
-		file.writefln("## Encoding %s", encodingName);
-		file.writeln(field[0]);
+		file.writefln("## Encoding %s", encodingDescription.name);
+		file.writeln(encodingDescription.description);
 		file.writeln();
-		file.write(getFormattedFields!(field[1..$]));
+
+		foreach (field; encodingDescription.fields)
+		{
+			auto description = field.description;
+
+			if (field.name !in fieldDescriptions)
+				fieldDescriptions[field.name] = description;
+			else if (description.empty)
+				description = fieldDescriptions[field.name];
+
+			file.writef("* `%s` (`%s`, %s bytes)", field.name, field.type, field.size);
+
+			if (description.length)
+				file.writef(": %s", description);
+
+			file.writeln();
+		}
+
 		file.writeln();
 	}
 }
