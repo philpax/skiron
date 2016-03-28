@@ -234,7 +234,7 @@ int getImmediate(ref Core core, Opcode opcode)
 			if (member.encoding != Encoding.B)
 				continue;
 
-			if (!member.supportsOperandSize)
+			if (member.supportsOperandSize)
 				continue;
 
 			ret ~= "case Opcodes.%s.opcode: return true;\n".format(member.to!string());
