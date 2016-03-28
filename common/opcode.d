@@ -191,10 +191,10 @@ enum Variant
 
 enum Encoding
 {
-	A, // dst, src1, src2
-	B, // dst, imm16
-	C, // imm23
-	D, // dst, src, imm9
+	A,
+	B,
+	C,
+	D,
 }
 
 // Not the same as encoding; dictates how many operands there are
