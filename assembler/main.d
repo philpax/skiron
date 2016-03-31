@@ -489,13 +489,13 @@ struct Assembler
 			loadui.opcode = Opcodes.LoadUi.opcode;
 			loadui.encoding = Opcodes.LoadUi.encoding;
 			loadui.register1 = register;
-			loadui.immediateB16 = *cast(short*)&high;
+			loadui.immediateB16 = high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
 			loadli.encoding = Opcodes.LoadLi.encoding;
 			loadli.register1 = register;
-			loadli.immediateB16 = *cast(short*)&low;
+			loadli.immediateB16 = low;
 
 			foreach (_; 0..this.repCount)
 			{
@@ -510,40 +510,43 @@ struct Assembler
 			}
 		}
 
-		// If we're dealing with a value, and it can be packed into 10 bits
-		if (label.empty && (value & 0b0000_0011_1111_1111) == value)
+		// If we're dealing with a value, and it can be packed into 9 bits
+		auto absValue = abs(value);
+		if (label.empty && (absValue & 0b0000_0001_1111_1111) == absValue)
 		{
 			Opcode add;
 			add.opcode = Opcodes.AddD.opcode;
 			add.encoding = Opcodes.AddD.encoding;
+			add.operandSize = OperandSize.Qbyte;
 			add.register1 = register;
 			add.register2 = Register.Z;
 
-			// If the value can be packed into 8 bits, multiplied by 1
-			if ((value & 0b0000_0000_1111_1111) == value)
+			enum Mask0 = 0b0000_0000_0111_1111;
+			enum Mask1 = 0b0000_0000_1111_1110;
+			enum Mask2 = 0b0000_0001_1111_1100;
+			auto sign = value >= 0 ? 1 : -1;
+			// If the value can be packed into 7 bits, multiplied by 1
+			if ((absValue & Mask0) == absValue)
 			{
-				auto encodedValue = (value & 0b0000_0000_1111_1111) >> 0;
-				add.immediateD = *cast(byte*)&encodedValue;
+				add.immediateD = ((absValue & Mask0) >> 0) * sign;
 				add.variant = Variant.Identity;
 
 				foreach (_; 0..this.repCount)
 					this.output ~= add.value;
 			}
-			// If the value can be packed into 8 bits, multiplied by 2
-			else if ((value & 0b0000_0001_1111_1110) == value)
+			// If the value can be packed into 7 bits, multiplied by 2
+			else if ((absValue & Mask1) == absValue)
 			{
-				auto encodedValue = (value & 0b0000_0001_1111_1110) >> 1;
-				add.immediateD = *cast(byte*)&encodedValue;
+				add.immediateD = ((absValue & Mask1) >> 1) * sign;
 				add.variant = Variant.ShiftLeft1;
 
 				foreach (_; 0..this.repCount)
 					this.output ~= add.value;
 			}
-			// If the value can be packed into 8 bits, multiplied by 4
-			else if ((value & 0b0000_0011_1111_1100) == value)
+			// If the value can be packed into 7 bits, multiplied by 4
+			else if ((absValue & Mask2) == absValue)
 			{
-				auto encodedValue = (value & 0b0000_0011_1111_1100) >> 2;
-				add.immediateD = *cast(byte*)&encodedValue;
+				add.immediateD = ((absValue & Mask2) >> 2) * sign;
 				add.variant = Variant.ShiftLeft2;
 
 				foreach (_; 0..this.repCount)

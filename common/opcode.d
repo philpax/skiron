@@ -46,7 +46,7 @@ struct Opcode
 			Register,		"_register1",	RegisterBitCount,
 			"The destination/source register.",
 			int,			"immediateB",	14,
-			"The encoded immediate value.",
+			"The encoded signed immediate value.",
 			OperandSize,	"_operandSize",	OperandSizeBitCount,
 			"",
 		));
@@ -62,8 +62,8 @@ struct Opcode
 			"The variant/modifier to apply to immediateB.",
 			Register,		"_register1",	RegisterBitCount,
 			"The destination/source register.",
-			int,			"immediateB16",	16,
-			"The 16-bit encoded immediate value.",
+			uint,			"immediateB16",	16,
+			"The unsigned 16-bit encoded immediate value.",
 		));
 
 		mixin(defineEncoding!("C",
@@ -75,7 +75,7 @@ struct Opcode
 			Variant,		"_variant",		VariantBitCount,
 			"The variant/modifier to apply to immediateC.",
 			int,			"immediateC",	20,
-			"The encoded immediate value.",
+			"The encoded signed immediate value.",
 			OperandSize,	"_operandSize",	OperandSizeBitCount,
 			"",
 		));
@@ -93,7 +93,7 @@ struct Opcode
 			Register,		"_register2",	RegisterBitCount,
 			"The source register.",
 			int,			"immediateD",	8,
-			"The encoded immediate value.",
+			"The encoded signed immediate value.",
 			OperandSize,	"_operandSize",	OperandSizeBitCount,
 			"",
 		));

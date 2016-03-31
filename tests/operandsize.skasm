@@ -1,5 +1,13 @@
 loadi r0, 511
 loadi r1, 255
+loadi r2, 254
+loadi r3, 508
+loadi r4, 73
+loadi r5, -511
+loadi r6, -255
+loadi r7, -254
+loadi r8, -508
+loadi r9, -73
 move byte r1, r0
 cmp byte r0, r1
 loadi r2, 4000
