@@ -6,11 +6,12 @@ import std.conv;
 import std.algorithm;
 import std.range;
 import std.meta;
+import std.path;
 
 import common.opcode;
 import common.cpu;
 
-void writeOpcodes()
+string writeOpcodes()
 {
 	OpcodeDescriptor[] descriptors;
 
@@ -26,7 +27,8 @@ void writeOpcodes()
 				b.operandFormat != OperandFormat.Pseudo;
 	});
 
-	auto file = File("opcodes.md", "w");
+	const filename = "Instruction-Listing.md";
+	auto file = File(filename, "w");
 	file.writefln("Opcode | Instruction | Operands | Description");
 	file.writefln("-------|-------------|----------|------------");
 
@@ -83,11 +85,14 @@ void writeOpcodes()
 		file.write(descriptor.description);
 		file.writeln();
 	}
+
+	return filename;
 }
 
-void writeEncodings()
+string writeEncodings()
 {
-	auto file = File("encodings.md", "w");
+	const filename = "Opcode-Encoding.md";
+	auto file = File(filename, "w");
 
 	enum prefix = "EncodingSeq";
 	enum isEncodingSeq(string String) = String.startsWith(prefix);
@@ -126,10 +131,18 @@ void writeEncodings()
 
 		file.writeln();
 	}
+
+	return filename;
 }
 
 void main(string[] args)
 {
-	writeOpcodes();
-	writeEncodings();
+	auto files = [writeOpcodes(), writeEncodings()];
+
+	const wikiPath = "../skiron.wiki";
+	if (wikiPath.exists && wikiPath.isDir)
+	{
+		foreach (file; files)
+			std.file.copy(file, wikiPath.buildPath(file));
+	}
 }

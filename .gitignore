@@ -7,3 +7,4 @@ bin/
 /.vs/skiron/v14/*.suo
 /tests/*.bin
 /tests/sandbox*.skasm
+/skiron.wiki
