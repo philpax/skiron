@@ -1,0 +1,3 @@
+[submodule "vendor/gtkd"]
+	path = vendor/gtkd
+	url = https://github.com/gtkd-developers/GtkD.git

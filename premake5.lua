@@ -37,6 +37,20 @@ solution "skiron"
 		filter "configurations:unittest"
 			flags { "UnitTest" }
 
+	project "debugger"
+		kind "WindowedApp"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+		flags { "Symbols" }
+
+		includedirs { "vendor/gtkd/src" }
+		files { "debugger/**.d" }
+		links { "vendor/gtkd/gtkd.lib" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
+
 	project "docgen"
 		kind "ConsoleApp"
 		language "D"
