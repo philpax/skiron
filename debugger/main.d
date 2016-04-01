@@ -85,6 +85,8 @@ class Debugger : ApplicationWindow
 		this.connectWindow = new ConnectWindow(this);
 
 		this.showAll();
+
+		this.log("Debugger started");
 	}
 
 	void onConnectClick(MenuItem)
@@ -118,9 +120,14 @@ class Debugger : ApplicationWindow
 
 	void log(Args...)(string text, auto ref Args args)
 	{
-		import std.string;
+		import std.string, std.datetime;
 
-		this.logView.appendText((text ~ "\n").format(args));
+		auto str = (cast(DateTime)Clock.currTime).toSimpleString();
+		str ~= " | ";
+		str ~= text.format(args);
+		str ~= "\n";
+
+		this.logView.appendText(str);
 	}
 }
 
