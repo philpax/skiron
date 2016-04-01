@@ -2,6 +2,7 @@ module emulator.state;
 
 public import common.cpu;
 public import common.opcode;
+import common.socket;
 
 import emulator.memory;
 import emulator.arithmetic;
@@ -156,6 +157,8 @@ struct State
 nothrow:
 	ubyte[] memory;
 	Core[] cores;
+	NonBlockingSocket server;
+	NonBlockingSocket client;
 
 	@disable this();
 
@@ -164,6 +167,10 @@ nothrow:
 		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
 		this.cores = (cast(Core*)malloc(coreCount * Core.sizeof))[0..coreCount];
 		printf("Memory: %u kB | Core count: %u\n", memorySize/1024, coreCount);
+
+		this.server = NonBlockingSocket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
+		this.server.bind(1234);
+		this.server.listen(1);
 
 		uint index = 0;
 
@@ -182,10 +189,18 @@ nothrow:
 
 	void run()
 	{
-		import std.algorithm;
+		import std.algorithm : any;
 
 		while (this.cores.any!(a => a.running))
 		{
+			if (!this.client.isValid)
+			{
+				this.client = this.server.accept();
+
+				if (this.client.isValid)
+					printf("Connected to debugger, socket id: %d\n", this.client.handle);
+			}
+
 			foreach (ref core; this.cores)
 				core.step();
 		}

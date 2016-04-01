@@ -11,6 +11,8 @@ import gtk.Label, gtk.TextView;
 // Layout
 import gtk.VBox, gtk.HBox;
 
+import std.socket;
+
 class ConnectWindow : Window
 {
 	Entry ipAddressEntry;
@@ -48,6 +50,7 @@ class ConnectWindow : Window
 
 	void onConnectClick(Button)
 	{
+		this.debugger.start(this.ipAddressEntry.getText(), this.portEntry.getText());
 		this.setVisible(false);
 	}
 }
@@ -56,6 +59,7 @@ class Debugger : ApplicationWindow
 {
 	MenuBar menu;
 	ConnectWindow connectWindow;
+	Socket connection;
 	TextView logView;
 
 	this(Application application)
@@ -84,6 +88,16 @@ class Debugger : ApplicationWindow
 	void onConnectClick(MenuItem)
 	{
 		this.connectWindow.showAll();
+	}
+
+	void start(string ipAddress, string port)
+	{
+		this.log("Connecting to %s:%s", ipAddress, port);
+		auto addressInfo = getAddressInfo(ipAddress, port)[0];
+		this.connection = new Socket(addressInfo);
+		this.connection.connect(addressInfo.address);
+		this.log("Connection status: %s", this.connection.isAlive);
+		
 	}
 
 	void log(Args...)(string text, auto ref Args args)
