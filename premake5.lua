@@ -45,7 +45,7 @@ solution "skiron"
 		flags { "Symbols" }
 
 		includedirs { "vendor/gtkd/src" }
-		files { "debugger/**.d" }
+		files { "common/**.d", "debugger/**.d" }
 		links { "vendor/gtkd/gtkd.lib" }
 
 		filter "configurations:unittest"
