@@ -77,6 +77,7 @@ class Debugger : ApplicationWindow
 
 		this.logView = new TextView();
 		this.logView.setEditable(false);
+		this.logView.setCanFocus(false);
 		vbox.packEnd(this.logView, true, true, 5);
 
 		this.add(vbox);
