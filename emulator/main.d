@@ -4,21 +4,28 @@ import std.file;
 import std.path;
 import std.stdio;
 import std.process;
+import std.getopt;
 
 import common.util;
 
 import emulator.state;
 
-void runEmulator(ubyte[] program) @nogc nothrow
+void runEmulator(ubyte[] program, bool printOpcodes, bool printRegisters) @nogc nothrow
 {
 	printf("Skiron Emulator\n");
-	auto state = State(1024 * 1024, 1);
+	auto state = State(1024 * 1024, 1, printOpcodes, printRegisters);
 	state.memory[0 .. program.length] = program;
 	state.run();
 }
 
 void main(string[] args)
 {
+	bool printOpcodes = true;
+	bool printRegisters = true;
+	args.getopt(
+		"print-opcodes", &printOpcodes, 
+		"print-registers", &printRegisters);
+
 	if (args.length < 2)
 	{
 		writeln("emulator filename");
@@ -68,5 +75,5 @@ void main(string[] args)
 	GC.disable();
 
 	program = program[uint.sizeof .. $];
-	program.runEmulator();
+	program.runEmulator(printOpcodes, printRegisters);
 }

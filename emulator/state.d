@@ -69,13 +69,16 @@ nothrow:
 	bool running = true;
 	bool printOpcodes = true;
 	bool printRegisters = true;
+	bool printCurrent;
 	uint id;
 
 	@disable this();
-	this(ref State state, uint id)
+	this(ref State state, uint id, bool printOpcodes, bool printRegisters)
 	{
 		this.state = &state;
 		this.memory = state.memory;
+		this.printOpcodes = printOpcodes;
+		this.printRegisters = printRegisters;
 		this.id = id;
 	}
 
@@ -156,17 +159,16 @@ nothrow:
 
 	@disable this();
 
-	this(uint memorySize, uint coreCount)
+	this(uint memorySize, uint coreCount, bool printOpcodes, bool printRegisters)
 	{
 		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
 		this.cores = (cast(Core*)malloc(coreCount * Core.sizeof))[0..coreCount];
 		printf("Memory: %u kB | Core count: %u\n", memorySize/1024, coreCount);
 
 		uint index = 0;
+
 		foreach (ref core; this.cores)
-		{
-			core = Core(this, index++);
-		}
+			core = Core(this, index++, printOpcodes, printRegisters);
 	}
 
 	~this()
