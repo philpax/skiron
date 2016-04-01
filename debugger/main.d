@@ -72,6 +72,7 @@ class Debugger : ApplicationWindow
 
 		this.menu = new MenuBar();
 		this.menu.append(new MenuItem(&this.onConnectClick, "Connect"));
+		this.menu.append(new MenuItem(&this.onDisconnectClick, "Disconnect"));
 		vbox.packStart(this.menu, false, false, 0);
 
 		this.logView = new TextView();
@@ -90,6 +91,21 @@ class Debugger : ApplicationWindow
 		this.connectWindow.showAll();
 	}
 
+	void onDisconnectClick(MenuItem)
+	{
+		if (this.connection is null)
+		{
+			this.log("Attempted to disconnect non-existent connection");
+			return;
+		}
+
+		this.connection.shutdown(SocketShutdown.BOTH);
+		this.connection.close();
+		this.connection = null;
+
+		this.log("Disconnected from emulator");
+	}
+
 	void start(string ipAddress, string port)
 	{
 		this.log("Connecting to %s:%s", ipAddress, port);
@@ -97,7 +113,6 @@ class Debugger : ApplicationWindow
 		this.connection = new Socket(addressInfo);
 		this.connection.connect(addressInfo.address);
 		this.log("Connection status: %s", this.connection.isAlive);
-		
 	}
 
 	void log(Args...)(string text, auto ref Args args)
