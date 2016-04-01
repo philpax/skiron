@@ -11,7 +11,7 @@ import gtk.Label, gtk.TextView;
 // Layout
 import gtk.VBox, gtk.HBox;
 
-import std.socket;
+import std.socket, std.conv;
 
 class ConnectWindow : Window
 {
@@ -109,9 +109,9 @@ class Debugger : ApplicationWindow
 	void start(string ipAddress, string port)
 	{
 		this.log("Connecting to %s:%s", ipAddress, port);
-		auto addressInfo = getAddressInfo(ipAddress, port)[0];
-		this.connection = new Socket(addressInfo);
-		this.connection.connect(addressInfo.address);
+		auto address = getAddress(ipAddress, port.to!ushort)[0];
+		this.connection = new TcpSocket(AddressFamily.INET);
+		this.connection.connect(address);
 		this.log("Connection status: %s", this.connection.isAlive);
 	}
 
