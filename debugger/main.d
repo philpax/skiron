@@ -11,7 +11,7 @@ import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
 // Layout
 import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table;
 // Other
-import gtk.Widget, gdk.FrameClock;
+import gtk.Widget, gdk.FrameClock, gdk.Event;
 
 import std.conv, std.string;
 
@@ -109,6 +109,7 @@ class Debugger : ApplicationWindow
 		this.disconnectItem.setVisible(false);
 
 		this.addTickCallback(&this.onTick);
+		this.addOnDelete(&this.onDelete);
 
 		this.log("Debugger: Started");
 	}
@@ -145,6 +146,14 @@ class Debugger : ApplicationWindow
 		this.handleSocket();
 
 		return true;
+	}
+
+	bool onDelete(Event, Widget)
+	{
+		this.connection.shutdown(SocketShutdown.BOTH);
+		this.connection.close();
+
+		return false;
 	}
 
 	void start(string ipAddress, string port)
