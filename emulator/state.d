@@ -198,7 +198,7 @@ nothrow:
 				this.client = this.server.accept();
 
 				if (this.client.isValid)
-					printf("Connected to debugger, socket id: %d\n", this.client.handle);
+					printf("Debugger: Connected (socket id: %d)\n", this.client.handle);
 			}
 
 			if (this.client.isValid)
@@ -208,7 +208,7 @@ nothrow:
 
 				if (size == 0)
 				{
-					printf("Debugger disconnected\n");
+					printf("Debugger: Disconnected\n");
 					this.client = NonBlockingSocket();
 				}
 			}

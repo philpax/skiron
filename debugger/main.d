@@ -86,7 +86,7 @@ class Debugger : ApplicationWindow
 
 		this.showAll();
 
-		this.log("Debugger started");
+		this.log("Debugger: Started");
 	}
 
 	void onConnectClick(MenuItem)
@@ -98,7 +98,7 @@ class Debugger : ApplicationWindow
 	{
 		if (this.connection is null)
 		{
-			this.log("Attempted to disconnect non-existent connection");
+			this.log("Emulator: Disconnect failed, no connection");
 			return;
 		}
 
@@ -106,16 +106,18 @@ class Debugger : ApplicationWindow
 		this.connection.close();
 		this.connection = null;
 
-		this.log("Disconnected from emulator");
+		this.log("Emulator: Disconnected");
 	}
 
 	void start(string ipAddress, string port)
 	{
-		this.log("Connecting to %s:%s", ipAddress, port);
+		this.log("Emulator: Connecting to %s:%s", ipAddress, port);
 		auto address = getAddress(ipAddress, port.to!ushort)[0];
 		this.connection = new TcpSocket(AddressFamily.INET);
 		this.connection.connect(address);
-		this.log("Connection status: %s", this.connection.isAlive);
+		this.log(this.connection.isAlive ? 
+				"Emulator: Connection successful" : 
+				"Emulator: Connection failed");
 	}
 
 	void log(Args...)(string text, auto ref Args args)
