@@ -7,7 +7,7 @@ import gtk.MenuBar, gtk.MenuItem;
 // Input
 import gtk.Entry, gtk.Button;
 // Display
-import gtk.Label, gtk.TextView;
+import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
 // Layout
 import gtk.VBox, gtk.HBox;
 // Other
@@ -65,10 +65,12 @@ class Debugger : ApplicationWindow
 	MenuBar menu;
 	ConnectWindow connectWindow;
 	NonBlockingSocket connection;
-	TextView logView;
+	ListBox logView;
 
 	MenuItem connectItem;
 	MenuItem disconnectItem;
+
+	Notebook notebook;
 
 	this(Application application)
 	{
@@ -85,10 +87,9 @@ class Debugger : ApplicationWindow
 		this.menu.append(this.disconnectItem);
 		vbox.packStart(this.menu, false, false, 0);
 
-		this.logView = new TextView();
-		this.logView.setEditable(false);
-		this.logView.setCanFocus(false);
-		vbox.packEnd(this.logView, true, true, 0);
+
+		this.logView = new ListBox();
+		vbox.packEnd(this.logView, false, false, 0);
 
 		this.add(vbox);
 
@@ -195,9 +196,11 @@ class Debugger : ApplicationWindow
 		auto str = (cast(DateTime)Clock.currTime).toSimpleString();
 		str ~= " | ";
 		str ~= text.format(args);
-		str ~= "\n";
 
-		this.logView.appendText(str);
+		auto label = new Label(str);
+		label.setAlignment(0, 0.5f);
+		this.logView.insert(label, -1);
+		this.logView.showAll();
 	}
 }
 
