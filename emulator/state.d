@@ -3,6 +3,7 @@ module emulator.state;
 public import common.cpu;
 public import common.opcode;
 import common.socket;
+import common.debugging;
 
 import emulator.memory;
 import emulator.arithmetic;
@@ -187,31 +188,45 @@ nothrow:
 		free(this.memory.ptr);
 	}
 
+	void handleDebuggerConnection()
+	{
+		if (!this.client.isValid)
+		{
+			this.client = this.server.accept();
+
+			if (this.client.isValid)
+			{
+				printf("Debugger: Connected (socket id: %d)\n", this.client.handle);
+
+				Initialize initialize;
+				ubyte[initialize.Length] buffer;
+				initialize.coreCount = this.cores.length;
+				initialize.memorySize = this.memory.length;
+
+				this.client.send(initialize.serialize(buffer));
+			}
+		}
+
+		if (this.client.isValid)
+		{
+			ushort length;
+			auto size = this.client.receive(length);
+
+			if (size == 0)
+			{
+				printf("Debugger: Disconnected\n");
+				this.client = NonBlockingSocket();
+			}
+		}
+	}
+
 	void run()
 	{
 		import std.algorithm : any;
 
 		while (this.cores.any!(a => a.running))
 		{
-			if (!this.client.isValid)
-			{
-				this.client = this.server.accept();
-
-				if (this.client.isValid)
-					printf("Debugger: Connected (socket id: %d)\n", this.client.handle);
-			}
-
-			if (this.client.isValid)
-			{
-				ushort length;
-				auto size = this.client.receive((&length)[0..1]);
-
-				if (size == 0)
-				{
-					printf("Debugger: Disconnected\n");
-					this.client = NonBlockingSocket();
-				}
-			}
+			this.handleDebuggerConnection();
 
 			foreach (ref core; this.cores)
 				core.step();

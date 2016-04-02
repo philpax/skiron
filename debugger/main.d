@@ -10,8 +10,13 @@ import gtk.Entry, gtk.Button;
 import gtk.Label, gtk.TextView;
 // Layout
 import gtk.VBox, gtk.HBox;
+// Other
+import gtk.Widget, gdk.FrameClock;
 
-import std.socket, std.conv;
+import std.conv;
+
+import common.debugging;
+import common.socket;
 
 class ConnectWindow : Window
 {
@@ -59,7 +64,7 @@ class Debugger : ApplicationWindow
 {
 	MenuBar menu;
 	ConnectWindow connectWindow;
-	Socket connection;
+	NonBlockingSocket connection;
 	TextView logView;
 
 	MenuItem connectItem;
@@ -93,6 +98,8 @@ class Debugger : ApplicationWindow
 
 		this.disconnectItem.setVisible(false);
 
+		this.addTickCallback(&this.onTick);
+
 		this.log("Debugger: Started");
 	}
 
@@ -103,7 +110,7 @@ class Debugger : ApplicationWindow
 
 	void onDisconnectClick(MenuItem)
 	{
-		if (this.connection is null)
+		if (!this.connection.isValid)
 		{
 			this.log("Emulator: Disconnect failed, no connection");
 			return;
@@ -111,7 +118,6 @@ class Debugger : ApplicationWindow
 
 		this.connection.shutdown(SocketShutdown.BOTH);
 		this.connection.close();
-		this.connection = null;
 
 		this.log("Emulator: Disconnected");
 
@@ -119,24 +125,67 @@ class Debugger : ApplicationWindow
 		this.disconnectItem.setVisible(false);
 	}
 
+	bool onTick(Widget, FrameClock)
+	{
+		this.handleSocket();
+
+		return true;
+	}
+
 	void start(string ipAddress, string port)
 	{
+		import std.socket : getAddress;
+
 		this.log("Emulator: Connecting to %s:%s", ipAddress, port);
 		auto address = getAddress(ipAddress, port.to!ushort)[0];
-		this.connection = new TcpSocket(AddressFamily.INET);
-		try 
-		{
-			this.connection.connect(address);
-		}
-		catch (Exception e)
-		{
-			this.log("Emulator: Connection failed (%s)", e.msg);
-			return;
-		}
+		this.connection = NonBlockingSocket(
+			AddressFamily.INET, std.socket.SocketType.STREAM, ProtocolType.TCP);
+
+		auto connectionAttempt = this.connection.connect(address);
 
 		this.log("Emulator: Connection successful");
 		this.connectItem.setVisible(false);
 		this.disconnectItem.setVisible(true);
+	}
+
+	void handleSocket()
+	{
+		if (!this.connection.isValid)
+			return;
+
+		ushort length;
+		auto size = this.connection.receive(length);
+
+		ubyte[4096] buffer;
+
+		if (size == 0)
+		{
+			this.log("Debugger: Disconnected");
+			this.connection = NonBlockingSocket();
+		}
+		else if (size > 0)
+		{
+			auto readLeft = length;
+
+			while (readLeft)
+				readLeft -= this.connection.receive(buffer[(length - readLeft)..length]);
+
+			this.handleMessage(buffer[0..length]);
+		}
+	}
+
+	void handleMessage(ubyte[] buffer)
+	{
+		auto messageId = cast(MessageId)buffer[0];
+
+		final switch (messageId)
+		{
+		case MessageId.Initialize:
+			auto initialize = Initialize();
+			initialize.deserialize(buffer);
+			this.log("%s", initialize);
+			break;
+		}
 	}
 
 	void log(Args...)(string text, auto ref Args args)
