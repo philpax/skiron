@@ -62,6 +62,9 @@ class Debugger : ApplicationWindow
 	Socket connection;
 	TextView logView;
 
+	MenuItem connectItem;
+	MenuItem disconnectItem;
+
 	this(Application application)
 	{
 		super(application);
@@ -71,8 +74,10 @@ class Debugger : ApplicationWindow
 		auto vbox = new VBox(false, 0);
 
 		this.menu = new MenuBar();
-		this.menu.append(new MenuItem(&this.onConnectClick, "Connect"));
-		this.menu.append(new MenuItem(&this.onDisconnectClick, "Disconnect"));
+		this.connectItem = new MenuItem(&this.onConnectClick, "Connect");
+		this.menu.append(connectItem);
+		this.disconnectItem = new MenuItem(&this.onDisconnectClick, "Disconnect");
+		this.menu.append(this.disconnectItem);
 		vbox.packStart(this.menu, false, false, 0);
 
 		this.logView = new TextView();
@@ -85,6 +90,8 @@ class Debugger : ApplicationWindow
 		this.connectWindow = new ConnectWindow(this);
 
 		this.showAll();
+
+		this.disconnectItem.setVisible(false);
 
 		this.log("Debugger: Started");
 	}
@@ -107,6 +114,9 @@ class Debugger : ApplicationWindow
 		this.connection = null;
 
 		this.log("Emulator: Disconnected");
+
+		this.connectItem.setVisible(true);
+		this.disconnectItem.setVisible(false);
 	}
 
 	void start(string ipAddress, string port)
@@ -115,9 +125,17 @@ class Debugger : ApplicationWindow
 		auto address = getAddress(ipAddress, port.to!ushort)[0];
 		this.connection = new TcpSocket(AddressFamily.INET);
 		this.connection.connect(address);
-		this.log(this.connection.isAlive ? 
-				"Emulator: Connection successful" : 
-				"Emulator: Connection failed");
+
+		if (this.connection.isAlive)
+		{
+			this.log("Emulator: Connection successful");
+			this.connectItem.setVisible(false);
+			this.disconnectItem.setVisible(true);
+		}
+		else
+		{
+			this.log("Emulator: Connection failed");
+		}
 	}
 
 	void log(Args...)(string text, auto ref Args args)
