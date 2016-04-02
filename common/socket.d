@@ -3,7 +3,9 @@ module common.socket;
 import core.stdc.stdlib, core.stdc.stdio;
 import std.internal.cstring;
 
-public import std.socket : AddressFamily, SocketType, ProtocolType, SocketFlags, wouldHaveBlocked;
+public import std.socket : 
+	AddressFamily, SocketType, ProtocolType, SocketFlags, 
+	SocketShutdown, Address, wouldHaveBlocked;
 
 @nogc:
 nothrow:
@@ -96,7 +98,7 @@ struct NonBlockingSocket
 		}
 	}
 
-	this(socket_t handle)
+	this(socket_t handle) @trusted
 	{
 		this.handle = handle;
 	}
@@ -108,15 +110,20 @@ struct NonBlockingSocket
 
 	~this()
 	{
-		close(this.handle);
+		this.close();
 	}
 
-	NonBlockingSocket accept()
+	NonBlockingSocket accept() @trusted
 	{
 		return NonBlockingSocket(cast(socket_t).accept(this.handle, null, null));
 	}
 
-	bool bind(ushort port)
+	int connect(Address to) @trusted
+	{
+		return .connect(this.handle, to.name, to.nameLen);
+	}
+
+	bool bind(ushort port) @trusted
 	{
 		sockaddr_in sa;
 		sa.sin_family = AF_INET;
@@ -126,7 +133,7 @@ struct NonBlockingSocket
 		return .bind(this.handle, cast(sockaddr*)&sa, sa.sizeof) != -1;
 	}
 
-	bool listen(int backlog)
+	bool listen(int backlog) @trusted
 	{
 		return .listen(this.handle, backlog) == _SOCKET_ERROR;
 	}
@@ -139,5 +146,40 @@ struct NonBlockingSocket
 			auto length = buf.length;
 
 		return length ? .recv(this.handle, buf.ptr, length, cast(int)flags) : 0;
+	}
+
+	ptrdiff_t send(const(void)[] buf, SocketFlags flags = SocketFlags.NONE) @trusted
+	{
+		version (Windows)
+			auto length = cast(int)buf.length;
+		else
+			auto length = buf.length;
+
+		return length ? .send(this.handle, buf.ptr, length, cast(int)flags) : 0;
+	}
+
+	ptrdiff_t receive(T)(ref T value, SocketFlags flags = SocketFlags.NONE) @trusted
+	{
+		return this.receive((&value)[0..1], flags);
+	}
+
+	ptrdiff_t send(T)(const(T) value, SocketFlags flags = SocketFlags.NONE) @trusted
+	{
+		return this.send((&value)[0..1], flags);
+	}
+
+	void shutdown(SocketShutdown how) @trusted
+	{
+		.shutdown(this.handle, cast(int)how);
+	}
+
+	void close() @trusted
+	{
+		version(Windows)
+			.closesocket(this.handle);
+		else version(Posix)
+			.close(this.handle);
+
+		this.handle = cast(socket_t)-1;
 	}
 }
