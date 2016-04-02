@@ -124,18 +124,19 @@ class Debugger : ApplicationWindow
 		this.log("Emulator: Connecting to %s:%s", ipAddress, port);
 		auto address = getAddress(ipAddress, port.to!ushort)[0];
 		this.connection = new TcpSocket(AddressFamily.INET);
-		this.connection.connect(address);
+		try 
+		{
+			this.connection.connect(address);
+		}
+		catch (Exception e)
+		{
+			this.log("Emulator: Connection failed (%s)", e.msg);
+			return;
+		}
 
-		if (this.connection.isAlive)
-		{
-			this.log("Emulator: Connection successful");
-			this.connectItem.setVisible(false);
-			this.disconnectItem.setVisible(true);
-		}
-		else
-		{
-			this.log("Emulator: Connection failed");
-		}
+		this.log("Emulator: Connection successful");
+		this.connectItem.setVisible(false);
+		this.disconnectItem.setVisible(true);
 	}
 
 	void log(Args...)(string text, auto ref Args args)
