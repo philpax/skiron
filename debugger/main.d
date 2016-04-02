@@ -9,11 +9,11 @@ import gtk.Entry, gtk.Button;
 // Display
 import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
 // Layout
-import gtk.VBox, gtk.HBox;
+import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table;
 // Other
 import gtk.Widget, gdk.FrameClock;
 
-import std.conv;
+import std.conv, std.string;
 
 import common.debugging;
 import common.socket;
@@ -72,6 +72,8 @@ class Debugger : ApplicationWindow
 
 	Notebook notebook;
 
+	Widget[] coreWidgets;
+
 	this(Application application)
 	{
 		super(application);
@@ -87,9 +89,16 @@ class Debugger : ApplicationWindow
 		this.menu.append(this.disconnectItem);
 		vbox.packStart(this.menu, false, false, 0);
 
+		auto table = new Table(3, 1, false);
+
+		this.notebook = new Notebook();
+		this.notebook.setTabPos(GtkPositionType.TOP);
+		table.attachDefaults(this.notebook, 0, 1, 0, 2);
 
 		this.logView = new ListBox();
-		vbox.packEnd(this.logView, false, false, 0);
+		table.attach(this.logView, 0, 1, 2, 3, GtkAttachOptions.FILL, GtkAttachOptions.FILL, 0, 0);
+
+		vbox.packEnd(table, true, true, 0);
 
 		this.add(vbox);
 
@@ -124,6 +133,11 @@ class Debugger : ApplicationWindow
 
 		this.connectItem.setVisible(true);
 		this.disconnectItem.setVisible(false);
+
+		foreach (widget; this.coreWidgets)
+			this.notebook.detachTab(widget);
+
+		this.coreWidgets = [];
 	}
 
 	bool onTick(Widget, FrameClock)
@@ -185,6 +199,17 @@ class Debugger : ApplicationWindow
 			auto initialize = Initialize();
 			initialize.deserialize(buffer);
 			this.log("%s", initialize);
+
+			foreach (core; 0 .. initialize.coreCount)
+			{
+				auto title = "Core %s".format(core);
+
+				auto label = new Label("Testing 123");
+				label.show();
+
+				this.coreWidgets ~= label;
+				this.notebook.appendPage(label, title);
+			}
 			break;
 		}
 	}
