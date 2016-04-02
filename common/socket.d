@@ -3,7 +3,7 @@ module common.socket;
 import core.stdc.stdlib, core.stdc.stdio;
 import std.internal.cstring;
 
-public import std.socket : AddressFamily, SocketType, ProtocolType;
+public import std.socket : AddressFamily, SocketType, ProtocolType, SocketFlags, wouldHaveBlocked;
 
 @nogc:
 nothrow:
@@ -129,5 +129,15 @@ struct NonBlockingSocket
 	bool listen(int backlog)
 	{
 		return .listen(this.handle, backlog) == _SOCKET_ERROR;
+	}
+
+	ptrdiff_t receive(void[] buf, SocketFlags flags = SocketFlags.NONE) @trusted
+	{
+		version (Windows)
+			auto length = cast(int)buf.length;
+		else
+			auto length = buf.length;
+
+		return length ? .recv(this.handle, buf.ptr, length, cast(int)flags) : 0;
 	}
 }

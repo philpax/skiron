@@ -201,6 +201,18 @@ nothrow:
 					printf("Connected to debugger, socket id: %d\n", this.client.handle);
 			}
 
+			if (this.client.isValid)
+			{
+				ushort length;
+				auto size = this.client.receive((&length)[0..1]);
+
+				if (size == 0)
+				{
+					printf("Debugger disconnected\n");
+					this.client = NonBlockingSocket();
+				}
+			}
+
 			foreach (ref core; this.cores)
 				core.step();
 		}
