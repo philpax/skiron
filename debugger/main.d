@@ -9,7 +9,7 @@ import gtk.Entry, gtk.Button;
 // Display
 import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
 // Layout
-import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table;
+import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow;
 // Other
 import gtk.Widget, gdk.FrameClock, gdk.Event;
 
@@ -89,16 +89,12 @@ class Debugger : ApplicationWindow
 		this.menu.append(this.disconnectItem);
 		vbox.packStart(this.menu, false, false, 0);
 
-		auto table = new Table(3, 1, false);
-
 		this.notebook = new Notebook();
 		this.notebook.setTabPos(GtkPositionType.TOP);
-		table.attachDefaults(this.notebook, 0, 1, 0, 2);
 
 		this.logView = new ListBox();
-		table.attach(this.logView, 0, 1, 2, 3, GtkAttachOptions.FILL, GtkAttachOptions.FILL, 0, 0);
-
-		vbox.packEnd(table, true, true, 0);
+		this.notebook.appendPage(this.logView, "Log");
+		vbox.packEnd(this.notebook, true, true, 0);
 
 		this.add(vbox);
 
