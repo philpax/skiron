@@ -175,6 +175,7 @@ class Debugger : ApplicationWindow
 
 		ushort length;
 		auto size = this.connection.receive(length);
+		length = length.ntohs();
 
 		ubyte[4096] buffer;
 
