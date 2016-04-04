@@ -20,6 +20,11 @@ enum Register
 	Flags = RegisterCount
 }
 
+// We may have "pseudo-registers" like Flags after the official register count.
+// This includes them.
+enum RegisterExtendedCount = Register.max + 1;
+alias RegisterType = uint;
+
 enum Flags
 {
 	None,

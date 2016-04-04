@@ -111,6 +111,7 @@ struct CoreState
 {
 	@Serialize uint core;
 	@Serialize bool running;
+	@Serialize RegisterType[RegisterExtendedCount] registers;
 
 	mixin Serializable!(MessageId.CoreState);
 }

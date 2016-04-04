@@ -67,7 +67,7 @@ struct Core
 nothrow:
 	State* state;
 	ubyte[] memory;
-	uint[RegisterCount+1] registers;
+	RegisterType[RegisterExtendedCount] registers;
 	bool running = true;
 	// Changed by debugger
 	bool paused = false;
@@ -254,6 +254,7 @@ nothrow:
 			auto coreState = CoreState();
 			coreState.core = coreGetState.core;
 			coreState.running = !core.paused;
+			coreState.registers = core.registers;
 
 			this.sendMessage(coreState);
 			break;
