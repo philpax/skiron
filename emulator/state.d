@@ -217,7 +217,21 @@ nothrow:
 				printf("Debugger: Disconnected\n");
 				this.client = NonBlockingSocket();
 			}
+			else if (size > 0)
+			{
+				ubyte[4096] buffer;
+				auto readLeft = length;
+
+				while (readLeft)
+					readLeft -= this.client.receive(buffer[(length - readLeft)..length]);
+
+				this.handleMessage(buffer[0..length]);
+			}
 		}
+	}
+
+	void handleMessage(ubyte[] buffer)
+	{
 	}
 
 	void run()
