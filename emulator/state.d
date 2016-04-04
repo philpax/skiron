@@ -69,6 +69,8 @@ nothrow:
 	ubyte[] memory;
 	uint[RegisterCount+1] registers;
 	bool running = true;
+	// Changed by debugger
+	bool paused = false;
 	bool printOpcodes = true;
 	bool printRegisters = true;
 	bool printCurrent;
@@ -113,6 +115,9 @@ nothrow:
 
 	void step()
 	{
+		if (this.paused)
+			return;
+
 		auto oldRegisters = this.registers;
 		auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
 
@@ -236,6 +241,25 @@ nothrow:
 
 	void handleMessage(ubyte[] buffer)
 	{
+		auto messageId = cast(MessageId)buffer[0];
+
+		switch (messageId)
+		{
+		case MessageId.CoreGetState:
+			auto coreGetState = CoreGetState();
+			coreGetState.deserialize(buffer);
+
+			auto core = &this.cores[coreGetState.core];
+
+			auto coreState = CoreState();
+			coreState.core = coreGetState.core;
+			coreState.running = !core.paused;
+
+			this.sendMessage(coreState);
+			break;
+		default:
+			assert(0);
+		}
 	}
 
 	void run()

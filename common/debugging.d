@@ -7,7 +7,9 @@ import std.traits;
 
 enum MessageId : ubyte
 {
-	Initialize
+	Initialize,
+	CoreGetState,
+	CoreState
 }
 
 enum Serialize;
@@ -27,6 +29,9 @@ private string generateSerializationLength(T)()
 
 	return "enum Length = %s;\n".format(length);
 }
+
+@nogc:
+nothrow:
 
 private void serialize(T)(ref ubyte* ptr, T value)
 {
@@ -59,6 +64,8 @@ private T deserialize(T)(ref ubyte* ptr)
 
 mixin template Serializable(MessageId messageId)
 {
+@nogc:
+nothrow:
 	mixin(generateSerializationLength!(typeof(this)));
 
 	ubyte[] serialize(ubyte[] targetBuffer)
@@ -87,10 +94,23 @@ mixin template Serializable(MessageId messageId)
 
 struct Initialize
 {
-@nogc:
-nothrow:
 	@Serialize uint memorySize;
 	@Serialize uint coreCount;
 
 	mixin Serializable!(MessageId.Initialize);
+}
+
+struct CoreGetState
+{
+	@Serialize uint core;
+
+	mixin Serializable!(MessageId.CoreGetState);
+}
+
+struct CoreState
+{
+	@Serialize uint core;
+	@Serialize bool running;
+
+	mixin Serializable!(MessageId.CoreState);
 }

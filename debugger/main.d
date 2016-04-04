@@ -183,15 +183,14 @@ class Debugger : ApplicationWindow
 		auto size = this.connection.receive(length);
 		length = length.ntohs();
 
-		ubyte[4096] buffer;
-
 		if (size == 0)
 		{
-			this.log("Debugger: Disconnected");
+			this.log("Emulator: Disconnected");
 			this.connection = NonBlockingSocket();
 		}
 		else if (size > 0)
 		{
+			ubyte[4096] buffer;
 			auto readLeft = length;
 
 			while (readLeft)
@@ -205,7 +204,7 @@ class Debugger : ApplicationWindow
 	{
 		auto messageId = cast(MessageId)buffer[0];
 
-		final switch (messageId)
+		switch (messageId)
 		{
 		case MessageId.Initialize:
 			auto initialize = Initialize();
@@ -219,10 +218,22 @@ class Debugger : ApplicationWindow
 				auto label = new Label("Testing 123");
 				label.show();
 
+				auto coreGetState = CoreGetState();
+				coreGetState.core = core;
+
+				this.sendMessage(coreGetState);
+
 				this.coreWidgets ~= label;
 				this.notebook.appendPage(label, title);
 			}
 			break;
+		case MessageId.CoreState:
+			auto coreState = CoreState();
+			coreState.deserialize(buffer);
+			this.log("%s", coreState);
+			break;
+		default:
+			assert(0);
 		}
 	}
 
