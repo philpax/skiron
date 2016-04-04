@@ -168,6 +168,12 @@ class Debugger : ApplicationWindow
 		this.disconnectItem.setVisible(true);
 	}
 
+	void sendMessage(T)(T message)
+	{
+		ubyte[T.Length] buffer;
+		this.connection.send(message.serialize(buffer));
+	}
+
 	void handleSocket()
 	{
 		if (!this.connection.isValid)

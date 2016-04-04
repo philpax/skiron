@@ -188,6 +188,12 @@ nothrow:
 		free(this.memory.ptr);
 	}
 
+	void sendMessage(T)(T message)
+	{
+		ubyte[T.Length] buffer;
+		this.client.send(message.serialize(buffer));
+	}
+
 	void handleDebuggerConnection()
 	{
 		if (!this.client.isValid)
@@ -199,11 +205,9 @@ nothrow:
 				printf("Debugger: Connected (socket id: %d)\n", this.client.handle);
 
 				Initialize initialize;
-				ubyte[initialize.Length] buffer;
 				initialize.coreCount = this.cores.length;
 				initialize.memorySize = this.memory.length;
-
-				this.client.send(initialize.serialize(buffer));
+				this.sendMessage(initialize);
 			}
 		}
 
