@@ -149,7 +149,7 @@ string writeRegisters()
 		"reserved for use with specific instructions and/or CPU operation; while they " ~
 		"can be accessed, they are not guaranteed to operate the same way as regular " ~
 		"registers.",
-		RegisterCount, RegisterExtendedCount - RegisterCount, Register.min);
+		RegisterCount, RegisterExtendedCount - RegisterCount, RegisterCount - Register.min);
 
 	file.writeln();
 
