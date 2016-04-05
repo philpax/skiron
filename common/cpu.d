@@ -49,9 +49,13 @@ mixin(registers!(
 	"BP", RegisterCount - 3,
 		"The stack base pointer (address of the start of this function's stack).",
 	"SP", RegisterCount - 2,
-		"The stack pointer (address of the element on the top of the stack).", 
+		"The stack pointer (address of the element on the top of the stack). " ~
+		"This is typically modified by pseudo-instructions like `push`, `pop`, and `callsv`.", 
 	"IP", RegisterCount - 1,
-		"The instruction pointer (address of the instruction being executed).",
+		"The instruction pointer (address of the instruction being executed). " ~
+		"This is modified by normal CPU operation, as well as jump/call instructions. " ~
+		"This register can be the target of move instructions; the `jr` pseudoinstruction is " ~
+		"a move instruction.",
 	"Flags", RegisterCount - 0,
 		"A bitmask of flags set by the CPU during operation. Typically used for " ~
 		"conditional branching instructions."
