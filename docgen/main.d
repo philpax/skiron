@@ -7,6 +7,7 @@ import std.algorithm;
 import std.range;
 import std.meta;
 import std.path;
+import std.math;
 
 import common.opcode;
 import common.cpu;
@@ -156,7 +157,20 @@ string writeRegisters()
 		file.writefln("* **%s**", key.to!string.toLower());
 		file.writefln("    * *Index*: %s", cast(uint)key);
 		file.writefln("    * *Description*: %s", value);
-	}
+
+		if (key == Register.Flags)
+		{
+			file.writeln("    * *Values:*");
+			foreach (member; EnumMembers!Flags)
+			{
+				auto number = member.to!uint();
+				if (number == 0)
+					file.writefln("        * %s: %s", member, number);
+				else
+					file.writefln("        * %s: 1 << %s", member, number.log2());
+			}
+		}
+	}	
 
 	return filename;
 }
