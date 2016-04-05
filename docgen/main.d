@@ -141,7 +141,25 @@ string writeRegisters()
 	const filename = "Registers.md";
 	auto file = File(filename, "w");
 
+	file.writeln("# Registers");
+	file.writefln(
+		"As Skiron is a RISC-inspired architecture, a high register count is one " ~
+		"of its design goals. To wit, it has %s general registers, with %s extended " ~
+		"(not directly accessible) register(s). However, the upper %s registers are " ~
+		"reserved for use with specific instructions and/or CPU operation; while they " ~
+		"can be accessed, they are not guaranteed to operate the same way as regular " ~
+		"registers.",
+		RegisterCount, RegisterExtendedCount - RegisterCount, Register.min);
+
+	file.writeln();
+
+	// Standard Registers
 	file.writeln("## Standard Registers");
+	file.writeln(
+		"The standard registers have specific behaviours associated with them. " ~
+		"These behaviours can be found in the description for each register. ");
+	file.writeln();
+
 	foreach (key, value; RegisterDocs.filter!(a => a[0] < RegisterCount))
 	{
 		file.writefln("* **%s**", key.to!string.toLower());
@@ -151,7 +169,14 @@ string writeRegisters()
 
 	file.writeln();
 
+	// Extended Registers
 	file.writeln("## Extended Registers");
+	file.writeln(
+		"The extended registers are not directly accessible through normal means. " ~
+		"They are typically used for information exclusive to the CPU, such as " ~
+		"the value of the last conditional comparison (`cmp`) undertaken.");
+	file.writeln();
+
 	foreach (key, value; RegisterDocs.filter!(a => a[0] >= RegisterCount))
 	{
 		file.writefln("* **%s**", key.to!string.toLower());
