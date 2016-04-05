@@ -135,9 +135,35 @@ string writeEncodings()
 	return filename;
 }
 
+string writeRegisters()
+{
+	const filename = "Registers.md";
+	auto file = File(filename, "w");
+
+	file.writeln("## Standard Registers");
+	foreach (key, value; RegisterDocs.filter!(a => a[0] < RegisterCount))
+	{
+		file.writefln("* **%s**", key.to!string.toLower());
+		file.writefln("    * *Index*: %s", cast(uint)key);
+		file.writefln("    * *Description*: %s", value);
+	}
+
+	file.writeln();
+
+	file.writeln("## Extended Registers");
+	foreach (key, value; RegisterDocs.filter!(a => a[0] >= RegisterCount))
+	{
+		file.writefln("* **%s**", key.to!string.toLower());
+		file.writefln("    * *Index*: %s", cast(uint)key);
+		file.writefln("    * *Description*: %s", value);
+	}
+
+	return filename;
+}
+
 void main(string[] args)
 {
-	auto files = [writeOpcodes(), writeEncodings()];
+	auto files = [writeOpcodes(), writeEncodings(), writeRegisters()];
 
 	const wikiPath = "../skiron.wiki";
 	if (wikiPath.exists && wikiPath.isDir)
