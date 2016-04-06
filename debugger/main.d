@@ -9,7 +9,7 @@ import gtk.Entry, gtk.Button;
 // Display
 import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
 // Layout
-import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow;
+import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow, gtk.Frame;
 // Other
 import gtk.Widget, gdk.FrameClock, gdk.Event;
 
@@ -18,6 +18,17 @@ import std.conv, std.string;
 import common.debugging;
 import common.socket;
 import common.util;
+import common.cpu;
+
+struct Core
+{
+	uint index;
+	Widget widget;
+
+	// State
+	bool running;
+	RegisterType[RegisterExtendedCount] registers;
+}
 
 class ConnectWindow : Window
 {
@@ -74,6 +85,7 @@ class Debugger : ApplicationWindow
 	Notebook notebook;
 
 	Widget[] coreWidgets;
+	Core[] cores;
 
 	this(Application application)
 	{
@@ -132,10 +144,10 @@ class Debugger : ApplicationWindow
 		this.connectItem.setVisible(true);
 		this.disconnectItem.setVisible(false);
 
-		foreach (widget; this.coreWidgets)
-			this.notebook.detachTab(widget);
+		foreach (ref core; this.cores)
+			this.notebook.detachTab(core.widget);
 
-		this.coreWidgets = [];
+		this.cores = [];
 	}
 
 	bool onTick(Widget, FrameClock)
@@ -210,28 +222,31 @@ class Debugger : ApplicationWindow
 		case MessageId.Initialize:
 			auto initialize = Initialize();
 			initialize.deserialize(buffer);
-			this.log("%s", initialize);
 
-			foreach (core; 0 .. initialize.coreCount)
+			foreach (coreIndex; 0 .. initialize.coreCount)
 			{
-				auto title = "Core %s".format(core);
+				auto title = "Core %s".format(coreIndex);
 
-				auto label = new Label("Testing 123");
-				label.show();
+				auto frame = new Frame(title);
+				frame.show();
 
 				auto coreGetState = CoreGetState();
-				coreGetState.core = core;
+				coreGetState.core = coreIndex;
 
 				this.sendMessage(coreGetState);
 
-				this.coreWidgets ~= label;
-				this.notebook.appendPage(label, title);
+				auto core = Core(coreIndex, frame);
+				this.notebook.appendPage(core.widget, title);
+				this.cores ~= core;
 			}
 			break;
 		case MessageId.CoreState:
 			auto coreState = CoreState();
 			coreState.deserialize(buffer);
-			this.log("%s", coreState);
+
+			auto core = &this.cores[coreState.core];
+			core.running = coreState.running;
+			core.registers = coreState.registers;
 			break;
 		default:
 			assert(0);
