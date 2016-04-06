@@ -106,7 +106,14 @@ class Debugger : ApplicationWindow
 		this.notebook.setTabPos(GtkPositionType.TOP);
 
 		this.logView = new ListBox();
-		this.notebook.appendPage(this.logView, "Log");
+		auto logScroll = new ScrolledWindow();
+		logScroll.addWithViewport(this.logView);
+		this.logView.addOnSizeAllocate((Allocation, Widget) {
+			auto adj = logScroll.getVadjustment();
+			adj.setValue(adj.getUpper() - adj.getPageSize());
+		});
+		this.notebook.appendPage(logScroll, "Log");
+
 		vbox.packEnd(this.notebook, true, true, 0);
 
 		this.add(vbox);
