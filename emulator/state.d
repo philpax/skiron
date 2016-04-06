@@ -4,6 +4,7 @@ public import common.cpu;
 public import common.opcode;
 import common.socket;
 import common.debugging;
+import common.util;
 
 import emulator.memory;
 import emulator.arithmetic;
@@ -228,7 +229,7 @@ nothrow:
 			}
 			else if (size > 0)
 			{
-				ubyte[4096] buffer;
+				auto buffer = StackBuffer!1024(length);
 				auto readLeft = length;
 
 				while (readLeft)

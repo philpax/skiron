@@ -17,6 +17,7 @@ import std.conv, std.string;
 
 import common.debugging;
 import common.socket;
+import common.util;
 
 class ConnectWindow : Window
 {
@@ -190,7 +191,7 @@ class Debugger : ApplicationWindow
 		}
 		else if (size > 0)
 		{
-			ubyte[4096] buffer;
+			auto buffer = StackBuffer!1024(length);
 			auto readLeft = length;
 
 			while (readLeft)
