@@ -132,3 +132,42 @@ unittest
 	buf.allocate(32);
 	assert(buf.data.ptr == buf.bufferPtr);
 }
+
+private template SelectTwo(uint Index1, uint Index2, Args...)
+{	
+	import std.typecons : tuple;
+	import std.meta : AliasSeq;
+
+	static if (Args.length == 3)
+	{
+		enum SelectTwo = tuple(Args[Index1], Args[Index2]);
+	}
+	else
+	{
+		enum SelectTwo = AliasSeq!(
+			SelectTwo!(Index1, Index2, Args[0..3]), 
+			SelectTwo!(Index1, Index2, Args[3..$]));
+	}
+}
+
+string enumDocumentedImpl(string Name, Args...)()
+{
+	import std.string : format;
+
+	string ret = "enum " ~ Name ~ " { ";
+	foreach (value; SelectTwo!(0, 1, Args))
+		ret ~= `%s = %s, `.format(value.expand);
+	ret ~= "}\n";
+	ret ~= "enum " ~ Name ~ "Docs = [";
+	foreach (value; SelectTwo!(0, 2, Args))
+		ret ~= `tuple(%s.%s, "%s"), `.format(Name, value.expand);
+	ret ~= "];\n";
+
+	return ret;
+}
+
+mixin template enumDocumented(string Name, Args...)
+{
+	import std.typecons : tuple;
+	mixin(enumDocumentedImpl!(Name, Args));
+}

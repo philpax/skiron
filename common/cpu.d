@@ -2,43 +2,10 @@ module common.cpu;
 
 import common.util;
 
-import std.typecons : tuple;
-import std.meta : AliasSeq;
-
 enum RegisterBitCount = 6;
 enum RegisterCount = (1 << RegisterBitCount);
 
-private template SelectTwo(uint Index1, uint Index2, Args...)
-{
-	static if (Args.length == 3)
-	{
-		enum SelectTwo = tuple(Args[Index1], Args[Index2]);
-	}
-	else
-	{
-		enum SelectTwo = AliasSeq!(
-			SelectTwo!(Index1, Index2, Args[0..3]), 
-			SelectTwo!(Index1, Index2, Args[3..$]));
-	}
-}
-
-private string registers(Args...)()
-{
-	import std.string : format;
-
-	string ret = "enum Register { ";
-	foreach (value; SelectTwo!(0, 1, Args))
-		ret ~= `%s = %s, `.format(value.expand);
-	ret ~= "}\n";
-	ret ~= "enum RegisterDocs = [";
-	foreach (value; SelectTwo!(0, 2, Args))
-		ret ~= `tuple(Register.%s, "%s"), `.format(value.expand);
-	ret ~= "];\n";
-
-	return ret;
-}
-
-mixin(registers!(
+mixin enumDocumented!("Register",
 	"Z", RegisterCount - 5, 
 		"Zero register (always 0). Any writes to this register will be discarded; " ~
 		"any reads will always return 0.",
@@ -59,7 +26,7 @@ mixin(registers!(
 	"Flags", RegisterCount - 0,
 		"A bitmask of flags set by the CPU during operation. Typically used for " ~
 		"conditional branching instructions."
-));
+);
 
 // We may have "pseudo-registers" like Flags after the official register count.
 // This includes them.
