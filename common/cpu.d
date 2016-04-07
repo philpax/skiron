@@ -65,3 +65,9 @@ char[] registerName(Register index, char[] buffer) @nogc nothrow
 	
 	mixin(generateRegisterIf());		
 }
+
+string registerName(Register index)
+{
+	char[16] buffer;
+	return index.registerName(buffer).idup;
+}
