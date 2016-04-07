@@ -20,8 +20,8 @@ void runEmulator(ubyte[] program, bool printOpcodes, bool printRegisters) @nogc 
 
 void main(string[] args)
 {
-	bool printOpcodes = true;
-	bool printRegisters = true;
+	bool printOpcodes = false;
+	bool printRegisters = false;
 	args.getopt(
 		"print-opcodes", &printOpcodes, 
 		"print-registers", &printRegisters);
