@@ -222,7 +222,7 @@ class Debugger : ApplicationWindow
 		}
 	}
 
-	Widget createCorePage(uint index)
+	void createCore(uint index)
 	{
 		auto vbox = new VBox(false, 0);
 		vbox.show();
@@ -246,7 +246,13 @@ class Debugger : ApplicationWindow
 		vbox.packStart(treeScroll, true, true, 0);
 		vbox.showAll();
 
-		return vbox;
+		auto core = Core(index, vbox);
+		this.notebook.appendPage(core.widget, "Core %s".format(index));
+		this.cores ~= core;
+
+		auto coreGetState = CoreGetState();
+		coreGetState.core = index;
+		this.sendMessage(coreGetState);
 	}
 
 	void handleMessage(ubyte[] buffer)
@@ -260,19 +266,7 @@ class Debugger : ApplicationWindow
 			initialize.deserialize(buffer);
 
 			foreach (coreIndex; 0 .. initialize.coreCount)
-			{
-				auto title = "Core %s".format(coreIndex);
-
-				auto widget = this.createCorePage(coreIndex);
-
-				auto core = Core(coreIndex, widget);
-				this.notebook.appendPage(core.widget, title);
-				this.cores ~= core;
-
-				auto coreGetState = CoreGetState();
-				coreGetState.core = coreIndex;
-				this.sendMessage(coreGetState);
-			}
+				this.createCore(coreIndex);
 			break;
 		case MessageId.CoreState:
 			auto coreState = CoreState();
