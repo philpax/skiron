@@ -13,7 +13,7 @@ import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow, gtk.Fram
 // Other
 import gtk.Widget, gdk.FrameClock, gdk.Event;
 // TreeView
-import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText;
+import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText, gtk.TreeIter;
 
 import std.conv, std.string, std.range;
 
@@ -26,10 +26,18 @@ struct Core
 {
 	uint index;
 	Widget widget;
+	ListStore listStore;
+	TreeIter iter;
 
 	// State
 	bool running;
 	RegisterType[RegisterExtendedCount] registers;
+
+	void updateUI()
+	{
+		foreach (index, value; this.registers)
+			this.listStore.setValue(iter, index, value);
+	}
 }
 
 class ConnectWindow : Window
@@ -246,7 +254,7 @@ class Debugger : ApplicationWindow
 		vbox.packStart(treeScroll, true, true, 0);
 		vbox.showAll();
 
-		auto core = Core(index, vbox);
+		auto core = Core(index, vbox, listStore, iter);
 		this.notebook.appendPage(core.widget, "Core %s".format(index));
 		this.cores ~= core;
 
@@ -275,6 +283,7 @@ class Debugger : ApplicationWindow
 			auto core = &this.cores[coreState.core];
 			core.running = coreState.running;
 			core.registers = coreState.registers;
+			core.updateUI();
 			break;
 		default:
 			assert(0);
