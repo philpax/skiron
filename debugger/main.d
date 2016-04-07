@@ -44,6 +44,7 @@ class ConnectWindow : Window
 {
 	Entry ipAddressEntry;
 	Entry portEntry;
+	Button button;
 
 	Debugger debugger;
 
@@ -69,7 +70,8 @@ class ConnectWindow : Window
 		portBox.packEnd(this.portEntry, false, false, 5);
 		vbox.packStart(portBox, false, false, 5);
 
-		vbox.packEnd(new Button("Connect", &this.onConnectClick), true, true, 5);
+		this.button = new Button("Connect", &this.onConnectClick);
+		vbox.packEnd(this.button, true, true, 5);
 		this.add(vbox);
 
 		this.setVisible(false);
@@ -79,6 +81,12 @@ class ConnectWindow : Window
 	{
 		this.debugger.start(this.ipAddressEntry.getText(), this.portEntry.getText());
 		this.setVisible(false);
+	}
+
+	void makeVisible()
+	{
+		Window.showAll();
+		this.grabFocus();
 	}
 }
 
@@ -142,7 +150,7 @@ class Debugger : ApplicationWindow
 
 	void onConnectClick(MenuItem)
 	{
-		this.connectWindow.showAll();
+		this.connectWindow.makeVisible();
 	}
 
 	void onDisconnectClick(MenuItem)
