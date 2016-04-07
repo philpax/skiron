@@ -12,8 +12,10 @@ import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
 import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow, gtk.Frame;
 // Other
 import gtk.Widget, gdk.FrameClock, gdk.Event;
+// TreeView
+import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText;
 
-import std.conv, std.string;
+import std.conv, std.string, std.range;
 
 import common.debugging;
 import common.socket;
@@ -220,6 +222,33 @@ class Debugger : ApplicationWindow
 		}
 	}
 
+	Widget createCorePage(uint index)
+	{
+		auto vbox = new VBox(false, 0);
+		vbox.show();
+
+		auto listStore = new ListStore(GType.INT.repeat(RegisterExtendedCount).array());
+		auto iter = listStore.createIter();
+		foreach (i; 0..RegisterExtendedCount)
+			listStore.setValue(iter, i, 0);
+
+		auto treeView = new TreeView();
+		foreach (i; 0..RegisterExtendedCount)
+		{
+			string name = registerName(cast(Register)i);
+			treeView.appendColumn(new TreeViewColumn(name, new CellRendererText(), "text", i));
+		}
+
+		treeView.setModel(listStore);
+
+		auto treeScroll = new ScrolledWindow();
+		treeScroll.add(treeView);
+		vbox.packStart(treeScroll, true, true, 0);
+		vbox.showAll();
+
+		return vbox;
+	}
+
 	void handleMessage(ubyte[] buffer)
 	{
 		auto messageId = cast(MessageId)buffer[0];
@@ -234,17 +263,15 @@ class Debugger : ApplicationWindow
 			{
 				auto title = "Core %s".format(coreIndex);
 
-				auto frame = new Frame(title);
-				frame.show();
+				auto widget = this.createCorePage(coreIndex);
+
+				auto core = Core(coreIndex, widget);
+				this.notebook.appendPage(core.widget, title);
+				this.cores ~= core;
 
 				auto coreGetState = CoreGetState();
 				coreGetState.core = coreIndex;
-
 				this.sendMessage(coreGetState);
-
-				auto core = Core(coreIndex, frame);
-				this.notebook.appendPage(core.widget, title);
-				this.cores ~= core;
 			}
 			break;
 		case MessageId.CoreState:
