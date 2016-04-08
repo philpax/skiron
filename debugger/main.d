@@ -280,6 +280,7 @@ class Debugger : ApplicationWindow
 		case MessageId.Initialize:
 			auto initialize = Initialize();
 			initialize.deserialize(buffer);
+			this.log("Text section: 0x%X -> 0x%X", initialize.textBegin, initialize.textEnd);
 
 			foreach (coreIndex; 0 .. initialize.coreCount)
 				this.createCore(coreIndex);

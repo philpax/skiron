@@ -96,6 +96,8 @@ struct Initialize
 {
 	@Serialize uint memorySize;
 	@Serialize uint coreCount;
+	@Serialize uint textBegin;
+	@Serialize uint textEnd;
 
 	mixin Serializable!(MessageId.Initialize);
 }

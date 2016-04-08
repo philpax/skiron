@@ -14,7 +14,7 @@ void runEmulator(ubyte[] program, bool printOpcodes, bool printRegisters) @nogc 
 {
 	printf("Skiron Emulator\n");
 	auto state = State(1024 * 1024, 1, printOpcodes, printRegisters);
-	state.memory[0 .. program.length] = program;
+	state.load(program);
 	state.run();
 }
 

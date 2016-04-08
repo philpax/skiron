@@ -164,6 +164,7 @@ struct State
 nothrow:
 	ubyte[] memory;
 	Core[] cores;
+	uint textEnd = 0;
 	NonBlockingSocket server;
 	NonBlockingSocket client;
 
@@ -200,6 +201,12 @@ nothrow:
 		this.client.send(message.serialize(buffer));
 	}
 
+	void load(ubyte[] program)
+	{
+		this.memory[0 .. program.length] = program;
+		this.textEnd = program.length;
+	}
+
 	void handleDebuggerConnection()
 	{
 		if (!this.client.isValid)
@@ -213,6 +220,8 @@ nothrow:
 				Initialize initialize;
 				initialize.coreCount = this.cores.length;
 				initialize.memorySize = this.memory.length;
+				initialize.textBegin = 0;
+				initialize.textEnd = this.textEnd;
 				this.sendMessage(initialize);
 			}
 		}
