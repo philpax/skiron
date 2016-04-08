@@ -34,6 +34,7 @@ private string generateSerializationLength(T)()
 nothrow:
 
 private void serialize(T)(ref ubyte* ptr, T value)
+	if (isScalarType!T || isStaticArray!T)
 {
 	import core.stdc.string : memcpy;
 
@@ -47,6 +48,7 @@ private void serialize(T)(ref ubyte* ptr, T value)
 }
 
 private T deserialize(T)(ref ubyte* ptr)
+	if (isScalarType!T || isStaticArray!T)
 {
 	import core.stdc.string : memcpy;
 
