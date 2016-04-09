@@ -264,15 +264,13 @@ nothrow:
 		switch (messageId)
 		{
 		case MessageId.CoreGetState:
-			auto coreGetState = CoreGetState();
-			coreGetState.deserialize(buffer);
+			auto coreGetState = buffer.deserializeMessage!CoreGetState();
 
 			auto core = &this.cores[coreGetState.core];
 			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
 			break;
 		case MessageId.SystemGetMemory:
-			auto systemGetMemory = SystemGetMemory();
-			systemGetMemory.deserialize(buffer);
+			auto systemGetMemory = buffer.deserializeMessage!SystemGetMemory();
 
 			auto begin = systemGetMemory.begin;
 			auto end = systemGetMemory.end;

@@ -184,4 +184,11 @@ struct SystemMemory
 	mixin Serializable;
 }
 
+T deserializeMessage(T)(ubyte[] buffer)
+{
+	T ret;
+	ret.deserialize(buffer);
+	return ret;
+}
+
 enum isSerializableMessage(T) = __traits(compiles, T.Serializable);
