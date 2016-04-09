@@ -17,8 +17,6 @@ enum MessageId : ubyte
 	SystemMemory
 }
 
-enum Serialize;
-
 @nogc:
 nothrow:
 
@@ -96,7 +94,7 @@ nothrow:
 	~this()
 	{
 		// Free the memory of arrays that have been deserialised
-		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))
+		foreach (field; this.tupleof)
 		{
 			static if (isDynamicArray!(typeof(field)))
 				if (field.ptr !is null)
@@ -108,7 +106,7 @@ nothrow:
 	{
 		ushort ret = ushort.sizeof + MessageId.sizeof;
 
-		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))
+		foreach (field; this.tupleof)
 			ret += field.serializationLength();
 
 		return ret;
@@ -121,7 +119,7 @@ nothrow:
 		ptr.serialize(cast(ushort)(this.length - ushort.sizeof));
 		ptr.serialize(Id);
 
-		foreach (ref field; getSymbolsByUDA!(typeof(this), Serialize))
+		foreach (ref field; this.tupleof)
 		{
 			ptr.serialize(field);
 
@@ -138,48 +136,48 @@ nothrow:
 
 		ptr.deserialize!MessageId();
 
-		foreach (ref field; getSymbolsByUDA!(typeof(this), Serialize))
+		foreach (ref field; this.tupleof)
 			field = ptr.deserialize!(typeof(field));
 	}
 }
 
 struct Initialize
 {
-	@Serialize uint memorySize;
-	@Serialize uint coreCount;
-	@Serialize uint textBegin;
-	@Serialize uint textEnd;
+	uint memorySize;
+	uint coreCount;
+	uint textBegin;
+	uint textEnd;
 
 	mixin Serializable;
 }
 
 struct CoreGetState
 {
-	@Serialize uint core;
+	uint core;
 
 	mixin Serializable;
 }
 
 struct CoreState
 {
-	@Serialize uint core;
-	@Serialize bool running;
-	@Serialize RegisterType[RegisterExtendedCount] registers;
+	uint core;
+	bool running;
+	RegisterType[RegisterExtendedCount] registers;
 
 	mixin Serializable;
 }
 
 struct SystemGetMemory
 {
-	@Serialize uint begin;
-	@Serialize uint end;
+	uint begin;
+	uint end;
 
 	mixin Serializable;
 }
 
 struct SystemMemory
 {
-	@Serialize ubyte[] memory;
+	ubyte[] memory;
 
 	mixin Serializable;
 }
