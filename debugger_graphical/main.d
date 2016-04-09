@@ -23,8 +23,13 @@ struct CoreTab
 {
 	Core* core;
 	Widget widget;
-	ListStore listStore;
-	TreeIter iter;
+
+	ListStore generalStore;
+	TreeIter generalIter;
+
+	ListStore standardStore;
+	TreeIter standardIter;
+
 	MenuBar menu;
 
 	ListBox instructionList;
@@ -45,23 +50,6 @@ struct CoreTab
 		auto instructionScroll = new ScrolledWindow();
 		instructionScroll.addWithViewport(instructionList);
 
-		this.listStore = new ListStore(GType.INT.repeat(RegisterExtendedCount).array());
-		this.iter = listStore.createIter();
-		foreach (i; 0..RegisterExtendedCount)
-			this.listStore.setValue(this.iter, i, 0);
-
-		auto treeView = new TreeView();
-		foreach (i; 0..RegisterExtendedCount)
-		{
-			string name = registerName(cast(Register)i);
-			treeView.appendColumn(new TreeViewColumn(name, new CellRendererText(), "text", i));
-		}
-
-		treeView.setModel(this.listStore);
-
-		auto treeScroll = new ScrolledWindow();
-		treeScroll.add(treeView);
-
 		this.menu = new MenuBar();
 		this.menu.append(new MenuItem(&this.onPauseResumeClick, "Pause/Resume"));
 
@@ -72,16 +60,79 @@ struct CoreTab
 		vbox.packStart(this.menu, false, false, 0);
 		vbox.packStart(instructionScroll, true, true, 0);
 		vbox.packEnd(this.runningLabel, false, false, 0);
-		vbox.packEnd(treeScroll, true, true, 0);
+		vbox.packEnd(this.buildGeneralRegisters(), true, true, 0);
+		vbox.packEnd(this.buildStandardRegisters(), true, true, 0);
 		vbox.showAll();
 
 		this.widget = vbox;
 	}
 
+	enum GeneralMax = cast(uint)Register.min;
+	enum StandardMin = GeneralMax;
+	enum StandardMax = RegisterExtendedCount;
+	enum StandardCount = StandardMax - StandardMin;
+
+	ScrolledWindow buildGeneralRegisters()
+	{
+		this.generalStore = 
+			new ListStore(GType.INT.repeat(GeneralMax).array());
+
+		this.generalIter = this.generalStore.createIter();
+
+		foreach (i; 0..GeneralMax)
+			this.generalStore.setValue(this.generalIter, i, 0);
+
+		auto treeView = new TreeView();
+		foreach (i; 0..GeneralMax)
+		{
+			string name = registerName(cast(Register)i);
+			treeView.appendColumn(
+				new TreeViewColumn(name, new CellRendererText(), "text", i));
+		}
+
+		treeView.setModel(this.generalStore);
+
+		auto treeScroll = new ScrolledWindow();
+		treeScroll.add(treeView);
+
+		return treeScroll;
+	}
+
+	ScrolledWindow buildStandardRegisters()
+	{
+		this.standardStore = 
+			new ListStore(GType.INT.repeat(StandardCount).array());
+
+		this.standardIter = this.standardStore.createIter();
+
+		foreach (i; 0..StandardCount)
+			this.standardStore.setValue(this.standardIter, i, 0);
+
+		auto treeView = new TreeView();
+		foreach (i; StandardMin..StandardMax)
+		{
+			string name = registerName(cast(Register)i);
+			treeView.appendColumn(
+				new TreeViewColumn(name, new CellRendererText(), "text", i - StandardMin));
+		}
+
+		treeView.setModel(this.standardStore);
+
+		auto treeScroll = new ScrolledWindow();
+		treeScroll.add(treeView);
+
+		return treeScroll;
+	}
+
 	void update()
 	{
 		foreach (index, value; this.core.registers)
-			this.listStore.setValue(iter, index, value);
+		{
+			if (index < GeneralMax)
+				this.generalStore.setValue(this.generalIter, index, value);
+			else
+				this.standardStore.setValue(this.standardIter, index - StandardMin, value);
+		}
 
 		this.runningLabel.setText(this.core.running ? "Running" : "Paused");
 	}
