@@ -230,6 +230,7 @@ nothrow:
 		{
 			ushort length;
 			auto size = this.client.receive(length);
+			length = length.ntohs();
 
 			if (size == 0)
 			{
