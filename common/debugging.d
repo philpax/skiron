@@ -4,6 +4,9 @@ import common.cpu;
 import common.socket;
 
 import std.traits;
+import std.range : ElementType;
+
+import core.stdc.stdlib : malloc, free;
 
 enum MessageId : ubyte
 {
@@ -48,16 +51,60 @@ private T deserialize(T)(ref ubyte* ptr)
 	return value;
 }
 
+private void serialize(T)(ref ubyte* ptr, T value)
+	if (isDynamicArray!T)
+{
+	ptr.serialize!uint(value.length);
+
+	foreach (ref v; value)
+		ptr.serialize(v);
+
+	value = null;
+}
+
+private T deserialize(T)(ref ubyte* ptr)
+	if (isDynamicArray!T)
+{
+	alias Element = ElementType!T;
+	auto length = ptr.deserialize!uint();
+	auto buffer = cast(Element*)malloc(length * Element.sizeof);
+	auto ret = buffer[0..length];
+
+	foreach (ref v; ret)
+		v = ptr.deserialize!(ElementType!T);
+
+	return ret;
+}
+
+private uint serializationLength(T)(T value)
+{
+	static if (isDynamicArray!T)
+		return uint.sizeof + value.length;
+	else
+		return T.sizeof;
+}
+
 mixin template Serializable(MessageId messageId)
 {
 @nogc:
 nothrow:
+	~this()
+	{
+		// Free the memory of arrays that have been deserialised
+		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))
+		{
+			static if (isDynamicArray!(typeof(field)))
+				if (field.ptr !is null)
+					field.ptr.free();
+		}
+	}
+
 	ushort length() @property
 	{
 		ushort ret = ushort.sizeof + MessageId.sizeof;
 
 		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))
-			ret += typeof(field).sizeof;
+			ret += field.serializationLength();
 
 		return ret;
 	}
@@ -66,11 +113,16 @@ nothrow:
 	{
 		auto ptr = targetBuffer.ptr;
 
-		ptr.serialize!ushort(this.length);
+		ptr.serialize(cast(ushort)(this.length - ushort.sizeof));
 		ptr.serialize(messageId);
 
-		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))
+		foreach (ref field; getSymbolsByUDA!(typeof(this), Serialize))
+		{
 			ptr.serialize(field);
+
+			static if (isDynamicArray!(typeof(field)))
+				field = [];
+		}
 
 		return targetBuffer;
 	}
