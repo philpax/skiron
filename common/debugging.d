@@ -86,11 +86,12 @@ private uint serializationLength(T)(T value)
 		return T.sizeof;
 }
 
-mixin template Serializable(MessageId messageId)
+mixin template Serializable()
 {
 @nogc:
 nothrow:
 	enum Serializable = true;
+	enum Id = __traits(getMember, MessageId, typeof(this).stringof);
 
 	~this()
 	{
@@ -118,7 +119,7 @@ nothrow:
 		auto ptr = targetBuffer.ptr;
 
 		ptr.serialize(cast(ushort)(this.length - ushort.sizeof));
-		ptr.serialize(messageId);
+		ptr.serialize(Id);
 
 		foreach (ref field; getSymbolsByUDA!(typeof(this), Serialize))
 		{
@@ -149,14 +150,14 @@ struct Initialize
 	@Serialize uint textBegin;
 	@Serialize uint textEnd;
 
-	mixin Serializable!(MessageId.Initialize);
+	mixin Serializable;
 }
 
 struct CoreGetState
 {
 	@Serialize uint core;
 
-	mixin Serializable!(MessageId.CoreGetState);
+	mixin Serializable;
 }
 
 struct CoreState
@@ -165,7 +166,7 @@ struct CoreState
 	@Serialize bool running;
 	@Serialize RegisterType[RegisterExtendedCount] registers;
 
-	mixin Serializable!(MessageId.CoreState);
+	mixin Serializable;
 }
 
 struct SystemGetMemory
@@ -173,14 +174,14 @@ struct SystemGetMemory
 	@Serialize uint begin;
 	@Serialize uint end;
 
-	mixin Serializable!(MessageId.SystemGetMemory);
+	mixin Serializable;
 }
 
 struct SystemMemory
 {
 	@Serialize ubyte[] memory;
 
-	mixin Serializable!(MessageId.SystemMemory);
+	mixin Serializable;
 }
 
 enum isSerializableMessage(T) = __traits(compiles, T.Serializable);
