@@ -31,6 +31,7 @@ struct Core
 	TreeIter iter;
 
 	ListBox instructionList;
+	Label runningLabel;
 
 	// State
 	bool running;
@@ -40,6 +41,8 @@ struct Core
 	{
 		foreach (index, value; this.registers)
 			this.listStore.setValue(iter, index, value);
+
+		this.runningLabel.setText(this.running ? "Running" : "Paused");
 	}
 }
 
@@ -276,11 +279,17 @@ class Debugger : ApplicationWindow
 
 		auto treeScroll = new ScrolledWindow();
 		treeScroll.add(treeView);
+
+		auto runningLabel = new Label("");
+		runningLabel.setAlignment(0, 0.5f);
+		runningLabel.setPadding(4, 4);
+
 		vbox.packStart(instructionScroll, true, true, 0);
+		vbox.packEnd(runningLabel, false, false, 0);
 		vbox.packEnd(treeScroll, true, true, 0);
 		vbox.showAll();
 
-		auto core = Core(index, vbox, listStore, iter, instructionView);
+		auto core = Core(index, vbox, listStore, iter, instructionView, runningLabel);
 		this.notebook.appendPage(core.widget, "Core %s".format(index));
 		this.cores ~= core;
 
