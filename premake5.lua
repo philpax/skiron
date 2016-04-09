@@ -37,16 +37,28 @@ solution "skiron"
 		filter "configurations:unittest"
 			flags { "UnitTest" }
 
-	project "debugger"
+	project "debugger_backend"
+		kind "StaticLib"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+		flags { "SymbolsLikeC" }
+
+		files { "common/**.d", "debugger_backend/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
+
+	project "debugger_graphical"
 		kind "WindowedApp"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		includedirs { "vendor/gtkd/src" }
-		files { "common/**.d", "debugger/**.d" }
-		links { "vendor/gtkd/gtkd.lib" }
+		includedirs { "vendor/gtkd/src", "debugger_backend/" }
+		files { "common/**.d", "debugger_graphical/**.d" }
+		links { "vendor/gtkd/gtkd.lib", "debugger_backend" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }

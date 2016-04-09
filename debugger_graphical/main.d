@@ -15,17 +15,13 @@ import gtk.Widget, gdk.FrameClock, gdk.Event;
 // TreeView
 import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText, gtk.TreeIter;
 
-import std.conv, std.string, std.range, std.algorithm;
+import std.string, std.range, std.algorithm;
 
-import common.debugging;
-import common.socket;
-import common.util;
-import common.cpu;
-import common.opcode;
+import debugger_backend.backend;
 
-struct Core
+struct CoreTab
 {
-	uint index;
+	Core* core;
 	Widget widget;
 	ListStore listStore;
 	TreeIter iter;
@@ -33,16 +29,12 @@ struct Core
 	ListBox instructionList;
 	Label runningLabel;
 
-	// State
-	bool running;
-	RegisterType[RegisterExtendedCount] registers;
-
-	void updateUI()
+	void update()
 	{
-		foreach (index, value; this.registers)
+		foreach (index, value; this.core.registers)
 			this.listStore.setValue(iter, index, value);
 
-		this.runningLabel.setText(this.running ? "Running" : "Paused");
+		this.runningLabel.setText(this.core.running ? "Running" : "Paused");
 	}
 }
 
@@ -52,9 +44,9 @@ class ConnectWindow : Window
 	Entry portEntry;
 	Button button;
 
-	Debugger debugger;
+	DebuggerWindow debugger;
 
-	this(Debugger debugger)
+	this(DebuggerWindow debugger)
 	{
 		super("Connect to Simulator");
 		
@@ -96,11 +88,12 @@ class ConnectWindow : Window
 	}
 }
 
-class Debugger : ApplicationWindow
+class DebuggerWindow : ApplicationWindow
 {
+	Debugger debugger;
+
 	MenuBar menu;
 	ConnectWindow connectWindow;
-	NonBlockingSocket connection;
 	ListBox logView;
 
 	MenuItem connectItem;
@@ -108,17 +101,15 @@ class Debugger : ApplicationWindow
 
 	Notebook notebook;
 
-	Widget[] coreWidgets;
-	Core[] cores;
-
-	uint textBegin;
-	uint textEnd;
+	CoreTab[] coreTabs;
 
 	this(Application application)
 	{
 		super(application);
 		this.setTitle("Skiron Debugger");
 		this.setDefaultSize(640, 480);
+
+		this.debugger = new Debugger();
 
 		auto vbox = new VBox(false, 0);
 
@@ -154,6 +145,12 @@ class Debugger : ApplicationWindow
 		this.addTickCallback(&this.onTick);
 		this.addOnDelete(&this.onDelete);
 
+		this.debugger.onInitialize = &this.onInitialize;
+		this.debugger.onDisconnect = &this.onDisconnect;
+		this.debugger.onCoreState = &this.onCoreState;
+		this.debugger.onSystemOpcodes = &this.onSystemOpcodes;
+		this.debugger.onSystemMemory = (address, bytes) {};
+
 		this.log("Debugger: Started");
 	}
 
@@ -164,98 +161,78 @@ class Debugger : ApplicationWindow
 
 	void onDisconnectClick(MenuItem)
 	{
-		if (!this.connection.isValid)
-		{
-			this.log("Emulator: Disconnect failed, no connection");
-			return;
-		}
+		this.debugger.disconnect();
+	}
 
-		this.connection.shutdown(SocketShutdown.BOTH);
-		this.connection.close();
+	void onInitialize()
+	{
+		foreach (ref core; this.debugger.cores)
+			this.createCoreTab(core);
 
+		this.connectItem.setVisible(false);
+		this.disconnectItem.setVisible(true);
+	}
+
+	void onDisconnect()
+	{
 		this.log("Emulator: Disconnected");
 
 		this.connectItem.setVisible(true);
 		this.disconnectItem.setVisible(false);
 
-		foreach (ref core; this.cores)
+		foreach (ref core; this.coreTabs)
 			this.notebook.detachTab(core.widget);
 
-		this.cores = [];
+		this.coreTabs = [];
+	}
+
+	void onCoreState(Core* core)
+	{
+		this.coreTabs[core.index].update();
+	}
+
+	void onSystemOpcodes()
+	{	
+		foreach (ref coreTab; this.coreTabs)
+		{
+			foreach (index, opcode; this.debugger.opcodes.enumerate)
+			{
+				auto str = "0x%08X: %s".format(
+					this.debugger.textBegin + (index * Opcode.sizeof),
+					opcode.disassemble());
+
+				auto label = new Label(str);
+				label.setAlignment(0, 0.5f);
+				coreTab.instructionList.insert(label, -1);
+				label.show();
+			}
+		}
 	}
 
 	bool onTick(Widget, FrameClock)
 	{
-		this.handleSocket();
+		this.debugger.handleSocket();
 
 		return true;
 	}
 
 	bool onDelete(Event, Widget)
 	{
-		this.connection.shutdown(SocketShutdown.BOTH);
-		this.connection.close();
+		this.debugger.disconnect();
 
 		return false;
 	}
 
 	void start(string ipAddress, string port)
 	{
-		import std.socket : getAddress;
-
 		this.log("Emulator: Connecting to %s:%s", ipAddress, port);
-		auto address = getAddress(ipAddress, port.to!ushort)[0];
-		this.connection = NonBlockingSocket(
-			AddressFamily.INET, std.socket.SocketType.STREAM, ProtocolType.TCP);
-
-		auto connectionAttempt = this.connection.connect(address);
-
-		this.log("Emulator: Connection successful");
-		this.connectItem.setVisible(false);
-		this.disconnectItem.setVisible(true);
+		this.debugger.connect(ipAddress, port);
 	}
 
-	void sendMessage(T)(ref T message)
-		if (isSerializableMessage!T)
+	void createCoreTab(ref Core core)
 	{
-		auto buffer = StackBuffer!(T.sizeof)(message.length);
-		this.connection.send(message.serialize(buffer));
-	}
+		auto index = core.index;
 
-	void sendMessage(T, Args...)(auto ref Args args)
-	{
-		auto message = T(args);
-		this.sendMessage(message);
-	}
-
-	void handleSocket()
-	{
-		if (!this.connection.isValid)
-			return;
-
-		ushort length;
-		auto size = this.connection.receive(length);
-		length = length.ntohs();
-
-		if (size == 0)
-		{
-			this.log("Emulator: Disconnected");
-			this.connection = NonBlockingSocket();
-		}
-		else if (size > 0)
-		{
-			auto buffer = StackBuffer!1024(length);
-			auto readLeft = length;
-
-			while (readLeft)
-				readLeft -= this.connection.receive(buffer[(length - readLeft)..length]);
-
-			this.handleMessage(buffer[0..length]);
-		}
-	}
-
-	void createCore(uint index)
-	{
 		auto vbox = new VBox(false, 0);
 		vbox.show();
 
@@ -282,7 +259,8 @@ class Debugger : ApplicationWindow
 
 		auto menu = new MenuBar();
 		menu.append(new MenuItem((item) {
-			this.sendMessage!CoreSetRunning(index, !this.cores[index].running);
+			auto debuggerCore = this.coreTabs[index].core;
+			debuggerCore.setRunning(!debuggerCore.running);
 		}, "Pause/Resume"));
 
 		auto runningLabel = new Label("");
@@ -295,65 +273,9 @@ class Debugger : ApplicationWindow
 		vbox.packEnd(treeScroll, true, true, 0);
 		vbox.showAll();
 
-		auto core = Core(index, vbox, listStore, iter, instructionView, runningLabel);
-		this.notebook.appendPage(core.widget, "Core %s".format(index));
-		this.cores ~= core;
-
-		this.sendMessage!CoreGetState(index);
-	}
-
-	void handleMessage(ubyte[] buffer)
-	{
-		auto messageId = cast(DebugMessageId)buffer[0];
-
-		switch (messageId)
-		{
-		case DebugMessageId.Initialize:
-			auto initialize = buffer.deserializeMessage!Initialize();
-			this.textBegin = initialize.textBegin;
-			this.textEnd = initialize.textEnd;
-
-			foreach (coreIndex; 0 .. initialize.coreCount)
-				this.createCore(coreIndex);
-
-			this.sendMessage!SystemGetMemory(this.textBegin, this.textEnd);
-			break;
-		case DebugMessageId.CoreState:
-			auto coreState = buffer.deserializeMessage!CoreState();
-
-			auto core = &this.cores[coreState.core];
-			core.running = coreState.running;
-			core.registers = coreState.registers;
-			core.updateUI();
-			break;
-		case DebugMessageId.SystemMemory:
-			auto systemMemory = buffer.deserializeMessage!SystemMemory();
-
-			auto memoryBegin = systemMemory.address;
-			auto memoryEnd = memoryBegin + systemMemory.memory.length;
-
-			if (memoryBegin == this.textBegin && memoryEnd == this.textEnd)
-			{
-				auto opcodes = cast(Opcode[])systemMemory.memory;
-				foreach (ref core; this.cores)
-				{
-					foreach (index, opcode; opcodes.enumerate)
-					{
-						auto str = "0x%08X: %s".format(
-							this.textBegin + (index * Opcode.sizeof),
-							opcode.disassemble());
-
-						auto label = new Label(str);
-						label.setAlignment(0, 0.5f);
-						core.instructionList.insert(label, -1);
-						label.show();
-					}
-				}
-			}
-			break;
-		default:
-			assert(0);
-		}
+		auto coreTab = CoreTab(&core, vbox, listStore, iter, instructionView, runningLabel);
+		this.notebook.appendPage(coreTab.widget, "Core %s".format(index));
+		this.coreTabs ~= coreTab;
 	}
 
 	void log(Args...)(string text, auto ref Args args)
@@ -374,6 +296,6 @@ class Debugger : ApplicationWindow
 int main(string[] args)
 {
 	auto application = new Application(null, GApplicationFlags.NON_UNIQUE);
-	application.addOnActivate((a) { new Debugger(application); });
+	application.addOnActivate((a) { new DebuggerWindow(application); });
 	return application.run(args);
 }
