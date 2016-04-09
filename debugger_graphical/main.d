@@ -25,9 +25,58 @@ struct CoreTab
 	Widget widget;
 	ListStore listStore;
 	TreeIter iter;
+	MenuBar menu;
 
 	ListBox instructionList;
 	Label runningLabel;
+
+	this(Core* core)
+	{
+		this.core = core;
+	}
+
+	// Separate from the constructor as we need access to the final this pointer
+	void buildLayout()
+	{
+		auto vbox = new VBox(false, 0);
+		vbox.show();
+
+		this.instructionList = new ListBox();
+		auto instructionScroll = new ScrolledWindow();
+		instructionScroll.addWithViewport(instructionList);
+
+		this.listStore = new ListStore(GType.INT.repeat(RegisterExtendedCount).array());
+		this.iter = listStore.createIter();
+		foreach (i; 0..RegisterExtendedCount)
+			this.listStore.setValue(this.iter, i, 0);
+
+		auto treeView = new TreeView();
+		foreach (i; 0..RegisterExtendedCount)
+		{
+			string name = registerName(cast(Register)i);
+			treeView.appendColumn(new TreeViewColumn(name, new CellRendererText(), "text", i));
+		}
+
+		treeView.setModel(this.listStore);
+
+		auto treeScroll = new ScrolledWindow();
+		treeScroll.add(treeView);
+
+		this.menu = new MenuBar();
+		this.menu.append(new MenuItem(&this.onPauseResumeClick, "Pause/Resume"));
+
+		this.runningLabel = new Label("");
+		this.runningLabel.setAlignment(0, 0.5f);
+		this.runningLabel.setPadding(4, 4);
+
+		vbox.packStart(this.menu, false, false, 0);
+		vbox.packStart(instructionScroll, true, true, 0);
+		vbox.packEnd(this.runningLabel, false, false, 0);
+		vbox.packEnd(treeScroll, true, true, 0);
+		vbox.showAll();
+
+		this.widget = vbox;
+	}
 
 	void update()
 	{
@@ -35,6 +84,11 @@ struct CoreTab
 			this.listStore.setValue(iter, index, value);
 
 		this.runningLabel.setText(this.core.running ? "Running" : "Paused");
+	}
+
+	void onPauseResumeClick(MenuItem item)
+	{
+		this.core.setRunning(!this.core.running);
 	}
 }
 
@@ -167,7 +221,12 @@ class DebuggerWindow : ApplicationWindow
 	void onInitialize()
 	{
 		foreach (ref core; this.debugger.cores)
-			this.createCoreTab(core);
+		{	
+			this.coreTabs ~= CoreTab(&core);
+			auto coreTab = &this.coreTabs[$-1];
+			coreTab.buildLayout();
+			this.notebook.appendPage(coreTab.widget, "Core %s".format(core.index));
+		}
 
 		this.connectItem.setVisible(false);
 		this.disconnectItem.setVisible(true);
@@ -180,8 +239,8 @@ class DebuggerWindow : ApplicationWindow
 		this.connectItem.setVisible(true);
 		this.disconnectItem.setVisible(false);
 
-		foreach (ref core; this.coreTabs)
-			this.notebook.detachTab(core.widget);
+		foreach (ref coreTab; this.coreTabs)
+			this.notebook.detachTab(coreTab.widget);
 
 		this.coreTabs = [];
 	}
@@ -227,55 +286,6 @@ class DebuggerWindow : ApplicationWindow
 	{
 		this.log("Emulator: Connecting to %s:%s", ipAddress, port);
 		this.debugger.connect(ipAddress, port);
-	}
-
-	void createCoreTab(ref Core core)
-	{
-		auto index = core.index;
-
-		auto vbox = new VBox(false, 0);
-		vbox.show();
-
-		auto instructionView = new ListBox();
-		auto instructionScroll = new ScrolledWindow();
-		instructionScroll.addWithViewport(instructionView);
-
-		auto listStore = new ListStore(GType.INT.repeat(RegisterExtendedCount).array());
-		auto iter = listStore.createIter();
-		foreach (i; 0..RegisterExtendedCount)
-			listStore.setValue(iter, i, 0);
-
-		auto treeView = new TreeView();
-		foreach (i; 0..RegisterExtendedCount)
-		{
-			string name = registerName(cast(Register)i);
-			treeView.appendColumn(new TreeViewColumn(name, new CellRendererText(), "text", i));
-		}
-
-		treeView.setModel(listStore);
-
-		auto treeScroll = new ScrolledWindow();
-		treeScroll.add(treeView);
-
-		auto menu = new MenuBar();
-		menu.append(new MenuItem((item) {
-			auto debuggerCore = this.coreTabs[index].core;
-			debuggerCore.setRunning(!debuggerCore.running);
-		}, "Pause/Resume"));
-
-		auto runningLabel = new Label("");
-		runningLabel.setAlignment(0, 0.5f);
-		runningLabel.setPadding(4, 4);
-
-		vbox.packStart(menu, false, false, 0);
-		vbox.packStart(instructionScroll, true, true, 0);
-		vbox.packEnd(runningLabel, false, false, 0);
-		vbox.packEnd(treeScroll, true, true, 0);
-		vbox.showAll();
-
-		auto coreTab = CoreTab(&core, vbox, listStore, iter, instructionView, runningLabel);
-		this.notebook.appendPage(coreTab.widget, "Core %s".format(index));
-		this.coreTabs ~= coreTab;
 	}
 
 	void log(Args...)(string text, auto ref Args args)
