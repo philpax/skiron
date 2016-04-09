@@ -30,6 +30,8 @@ struct Core
 	ListStore listStore;
 	TreeIter iter;
 
+	ListBox instructionList;
+
 	// State
 	bool running;
 	RegisterType[RegisterExtendedCount] registers;
@@ -254,6 +256,10 @@ class Debugger : ApplicationWindow
 		auto vbox = new VBox(false, 0);
 		vbox.show();
 
+		auto instructionView = new ListBox();
+		auto instructionScroll = new ScrolledWindow();
+		instructionScroll.addWithViewport(instructionView);
+
 		auto listStore = new ListStore(GType.INT.repeat(RegisterExtendedCount).array());
 		auto iter = listStore.createIter();
 		foreach (i; 0..RegisterExtendedCount)
@@ -270,10 +276,11 @@ class Debugger : ApplicationWindow
 
 		auto treeScroll = new ScrolledWindow();
 		treeScroll.add(treeView);
-		vbox.packStart(treeScroll, true, true, 0);
+		vbox.packStart(instructionScroll, true, true, 0);
+		vbox.packEnd(treeScroll, true, true, 0);
 		vbox.showAll();
 
-		auto core = Core(index, vbox, listStore, iter);
+		auto core = Core(index, vbox, listStore, iter, instructionView);
 		this.notebook.appendPage(core.widget, "Core %s".format(index));
 		this.cores ~= core;
 
@@ -309,14 +316,24 @@ class Debugger : ApplicationWindow
 
 			auto memoryBegin = systemMemory.address;
 			auto memoryEnd = memoryBegin + systemMemory.memory.length;
+
 			if (memoryBegin == this.textBegin && memoryEnd == this.textEnd)
 			{
-				this.log("Found program listing");
-
 				auto opcodes = cast(Opcode[])systemMemory.memory;
-				auto disassembly = opcodes.map!(a => a.disassemble());
+				foreach (ref core; this.cores)
+				{
+					foreach (index, opcode; opcodes.enumerate)
+					{
+						auto str = "0x%08X: %s".format(
+							this.textBegin + (index * Opcode.sizeof),
+							opcode.disassemble());
 
-				this.log("%s", disassembly);
+						auto label = new Label(str);
+						label.setAlignment(0, 0.5f);
+						core.instructionList.insert(label, -1);
+						label.show();
+					}
+				}
 			}
 			break;
 		default:
