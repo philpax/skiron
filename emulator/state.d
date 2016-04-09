@@ -269,6 +269,17 @@ nothrow:
 
 			this.sendMessage(coreState);
 			break;
+		case MessageId.SystemGetMemory:
+			auto systemGetMemory = SystemGetMemory();
+			systemGetMemory.deserialize(buffer);
+			auto begin = systemGetMemory.begin;
+			auto end = systemGetMemory.end;
+
+			auto systemMemory = SystemMemory();
+			systemMemory.memory = this.memory[begin .. end];
+
+			this.sendMessage(systemMemory);
+			break;
 		default:
 			assert(0);
 		}

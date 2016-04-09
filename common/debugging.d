@@ -12,7 +12,9 @@ enum MessageId : ubyte
 {
 	Initialize,
 	CoreGetState,
-	CoreState
+	CoreState,
+	SystemGetMemory,
+	SystemMemory
 }
 
 enum Serialize;
@@ -162,4 +164,19 @@ struct CoreState
 	@Serialize RegisterType[RegisterExtendedCount] registers;
 
 	mixin Serializable!(MessageId.CoreState);
+}
+
+struct SystemGetMemory
+{
+	@Serialize uint begin;
+	@Serialize uint end;
+
+	mixin Serializable!(MessageId.SystemGetMemory);
+}
+
+struct SystemMemory
+{
+	@Serialize ubyte[] memory;
+
+	mixin Serializable!(MessageId.SystemMemory);
 }

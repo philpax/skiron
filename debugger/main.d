@@ -15,12 +15,13 @@ import gtk.Widget, gdk.FrameClock, gdk.Event;
 // TreeView
 import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText, gtk.TreeIter;
 
-import std.conv, std.string, std.range;
+import std.conv, std.string, std.range, std.algorithm;
 
 import common.debugging;
 import common.socket;
 import common.util;
 import common.cpu;
+import common.opcode;
 
 struct Core
 {
@@ -280,10 +281,12 @@ class Debugger : ApplicationWindow
 		case MessageId.Initialize:
 			auto initialize = Initialize();
 			initialize.deserialize(buffer);
-			this.log("Text section: 0x%X -> 0x%X", initialize.textBegin, initialize.textEnd);
 
 			foreach (coreIndex; 0 .. initialize.coreCount)
 				this.createCore(coreIndex);
+
+			auto systemGetMemory = SystemGetMemory(initialize.textBegin, initialize.textEnd);
+			this.sendMessage(systemGetMemory);
 			break;
 		case MessageId.CoreState:
 			auto coreState = CoreState();
@@ -293,6 +296,15 @@ class Debugger : ApplicationWindow
 			core.running = coreState.running;
 			core.registers = coreState.registers;
 			core.updateUI();
+			break;
+		case MessageId.SystemMemory:
+			auto systemMemory = SystemMemory();
+			systemMemory.deserialize(buffer);
+
+			auto opcodes = cast(Opcode[])systemMemory.memory;
+			auto disassembly = opcodes.map!(a => a.disassemble());
+
+			this.log("%s", disassembly);
 			break;
 		default:
 			assert(0);
