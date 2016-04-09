@@ -8,6 +8,7 @@ enum DebugMessageId : ubyte
 	Initialize,
 	CoreGetState,
 	CoreState,
+	CoreSetRunning,
 	SystemGetMemory,
 	SystemMemory
 }
@@ -34,6 +35,14 @@ struct CoreState
 	uint core;
 	bool running;
 	RegisterType[RegisterExtendedCount] registers;
+
+	mixin Serializable!DebugMessageId;
+}
+
+struct CoreSetRunning
+{
+	uint core;
+	bool running;
 
 	mixin Serializable!DebugMessageId;
 }

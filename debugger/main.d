@@ -280,10 +280,16 @@ class Debugger : ApplicationWindow
 		auto treeScroll = new ScrolledWindow();
 		treeScroll.add(treeView);
 
+		auto menu = new MenuBar();
+		menu.append(new MenuItem((item) {
+			this.sendMessage!CoreSetRunning(index, !this.cores[index].running);
+		}, "Pause/Resume"));
+
 		auto runningLabel = new Label("");
 		runningLabel.setAlignment(0, 0.5f);
 		runningLabel.setPadding(4, 4);
 
+		vbox.packStart(menu, false, false, 0);
 		vbox.packStart(instructionScroll, true, true, 0);
 		vbox.packEnd(runningLabel, false, false, 0);
 		vbox.packEnd(treeScroll, true, true, 0);

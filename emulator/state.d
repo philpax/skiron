@@ -269,6 +269,13 @@ nothrow:
 			auto core = &this.cores[coreGetState.core];
 			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
 			break;
+		case DebugMessageId.CoreSetRunning:
+			auto coreSetRunning = buffer.deserializeMessage!CoreSetRunning();
+
+			auto core = &this.cores[coreSetRunning.core];
+			core.paused = !coreSetRunning.running;
+			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
+			break;
 		case DebugMessageId.SystemGetMemory:
 			auto systemGetMemory = buffer.deserializeMessage!SystemGetMemory();
 
