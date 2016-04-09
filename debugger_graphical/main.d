@@ -164,48 +164,63 @@ class DebuggerWindow : ApplicationWindow
 		this.setDefaultSize(640, 480);
 
 		this.debugger = new Debugger();
+		this.connectWindow = new ConnectWindow(this);
+
+		this.buildMenu();
+		this.buildNotebook();
+		this.buildLog();
 
 		auto vbox = new VBox(false, 0);
+		vbox.packStart(this.menu, false, false, 0);
+		vbox.packEnd(this.notebook, true, true, 0);
+		this.add(vbox);
 
+		this.showAll();
+		this.disconnectItem.setVisible(false);
+
+		this.addTickCallback(&this.onTick);
+		this.addOnDelete(&this.onDelete);
+		this.installDebuggerCallbacks();
+
+		this.log("Debugger: Started");
+	}
+
+	void buildMenu()
+	{
 		this.menu = new MenuBar();
 		this.connectItem = new MenuItem(&this.onConnectClick, "Connect");
 		this.menu.append(connectItem);
 		this.disconnectItem = new MenuItem(&this.onDisconnectClick, "Disconnect");
 		this.menu.append(this.disconnectItem);
-		vbox.packStart(this.menu, false, false, 0);
+	}
 
+	void buildNotebook()
+	{
 		this.notebook = new Notebook();
 		this.notebook.setTabPos(GtkPositionType.TOP);
+	}
 
+	void buildLog()
+	{
 		this.logView = new ListBox();
 		auto logScroll = new ScrolledWindow();
 		logScroll.addWithViewport(this.logView);
+
 		this.logView.addOnSizeAllocate((Allocation, Widget) {
 			auto adj = logScroll.getVadjustment();
 			adj.setValue(adj.getUpper() - adj.getPageSize());
 		});
+
 		this.notebook.appendPage(logScroll, "Log");
+	}
 
-		vbox.packEnd(this.notebook, true, true, 0);
-
-		this.add(vbox);
-
-		this.connectWindow = new ConnectWindow(this);
-
-		this.showAll();
-
-		this.disconnectItem.setVisible(false);
-
-		this.addTickCallback(&this.onTick);
-		this.addOnDelete(&this.onDelete);
-
+	void installDebuggerCallbacks()
+	{
 		this.debugger.onInitialize = &this.onInitialize;
 		this.debugger.onDisconnect = &this.onDisconnect;
 		this.debugger.onCoreState = &this.onCoreState;
 		this.debugger.onSystemOpcodes = &this.onSystemOpcodes;
 		this.debugger.onSystemMemory = (address, bytes) {};
-
-		this.log("Debugger: Started");
 	}
 
 	void onConnectClick(MenuItem)
