@@ -14,22 +14,6 @@ enum MessageId : ubyte
 
 enum Serialize;
 
-private string generateSerializationLength(T)()
-{
-	import std.string : format;
-
-	size_t length = ushort.sizeof + MessageId.sizeof;
-	foreach (fieldName; __traits(allMembers, T))
-	{
-		alias field = Identity!(__traits(getMember, T, fieldName));
-
-		static if (hasUDA!(field, Serialize))
-			length += typeof(field).sizeof;
-	}
-
-	return "enum Length = %s;\n".format(length);
-}
-
 @nogc:
 nothrow:
 
@@ -68,13 +52,21 @@ mixin template Serializable(MessageId messageId)
 {
 @nogc:
 nothrow:
-	mixin(generateSerializationLength!(typeof(this)));
+	ushort length() @property
+	{
+		ushort ret = ushort.sizeof + MessageId.sizeof;
+
+		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))
+			ret += typeof(field).sizeof;
+
+		return ret;
+	}
 
 	ubyte[] serialize(ubyte[] targetBuffer)
 	{
 		auto ptr = targetBuffer.ptr;
 
-		ptr.serialize!ushort(Length);
+		ptr.serialize!ushort(this.length);
 		ptr.serialize(messageId);
 
 		foreach (field; getSymbolsByUDA!(typeof(this), Serialize))

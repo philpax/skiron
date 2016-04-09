@@ -195,9 +195,9 @@ nothrow:
 		free(this.memory.ptr);
 	}
 
-	void sendMessage(T)(T message)
+	void sendMessage(T)(ref T message)
 	{
-		ubyte[T.Length] buffer;
+		auto buffer = StackBuffer!(T.sizeof)(message.length);
 		this.client.send(message.serialize(buffer));
 	}
 

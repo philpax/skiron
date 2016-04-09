@@ -206,9 +206,9 @@ class Debugger : ApplicationWindow
 		this.disconnectItem.setVisible(true);
 	}
 
-	void sendMessage(T)(T message)
+	void sendMessage(T)(ref T message)
 	{
-		ubyte[T.Length] buffer;
+		auto buffer = StackBuffer!(T.sizeof)(message.length);
 		this.connection.send(message.serialize(buffer));
 	}
 
