@@ -259,17 +259,17 @@ nothrow:
 
 	void handleMessage(ubyte[] buffer)
 	{
-		auto messageId = cast(MessageId)buffer[0];
+		auto messageId = cast(DebugMessageId)buffer[0];
 
 		switch (messageId)
 		{
-		case MessageId.CoreGetState:
+		case DebugMessageId.CoreGetState:
 			auto coreGetState = buffer.deserializeMessage!CoreGetState();
 
 			auto core = &this.cores[coreGetState.core];
 			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
 			break;
-		case MessageId.SystemGetMemory:
+		case DebugMessageId.SystemGetMemory:
 			auto systemGetMemory = buffer.deserializeMessage!SystemGetMemory();
 
 			auto begin = systemGetMemory.begin;

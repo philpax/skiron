@@ -3,7 +3,7 @@ module common.debugging;
 import common.cpu;
 public import common.serialization;
 
-enum MessageId : ubyte
+enum DebugMessageId : ubyte
 {
 	Initialize,
 	CoreGetState,
@@ -19,14 +19,14 @@ struct Initialize
 	uint textBegin;
 	uint textEnd;
 
-	mixin Serializable!MessageId;
+	mixin Serializable!DebugMessageId;
 }
 
 struct CoreGetState
 {
 	uint core;
 
-	mixin Serializable!MessageId;
+	mixin Serializable!DebugMessageId;
 }
 
 struct CoreState
@@ -35,7 +35,7 @@ struct CoreState
 	bool running;
 	RegisterType[RegisterExtendedCount] registers;
 
-	mixin Serializable!MessageId;
+	mixin Serializable!DebugMessageId;
 }
 
 struct SystemGetMemory
@@ -43,12 +43,12 @@ struct SystemGetMemory
 	uint begin;
 	uint end;
 
-	mixin Serializable!MessageId;
+	mixin Serializable!DebugMessageId;
 }
 
 struct SystemMemory
 {
 	ubyte[] memory;
 
-	mixin Serializable!MessageId;
+	mixin Serializable!DebugMessageId;
 }

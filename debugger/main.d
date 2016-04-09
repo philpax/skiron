@@ -279,11 +279,11 @@ class Debugger : ApplicationWindow
 
 	void handleMessage(ubyte[] buffer)
 	{
-		auto messageId = cast(MessageId)buffer[0];
+		auto messageId = cast(DebugMessageId)buffer[0];
 
 		switch (messageId)
 		{
-		case MessageId.Initialize:
+		case DebugMessageId.Initialize:
 			auto initialize = buffer.deserializeMessage!Initialize();
 
 			foreach (coreIndex; 0 .. initialize.coreCount)
@@ -291,7 +291,7 @@ class Debugger : ApplicationWindow
 
 			this.sendMessage!SystemGetMemory(initialize.textBegin, initialize.textEnd);
 			break;
-		case MessageId.CoreState:
+		case DebugMessageId.CoreState:
 			auto coreState = buffer.deserializeMessage!CoreState();
 
 			auto core = &this.cores[coreState.core];
@@ -299,7 +299,7 @@ class Debugger : ApplicationWindow
 			core.registers = coreState.registers;
 			core.updateUI();
 			break;
-		case MessageId.SystemMemory:
+		case DebugMessageId.SystemMemory:
 			auto systemMemory = buffer.deserializeMessage!SystemMemory();
 
 			auto opcodes = cast(Opcode[])systemMemory.memory;
