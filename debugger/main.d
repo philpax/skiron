@@ -106,6 +106,9 @@ class Debugger : ApplicationWindow
 	Widget[] coreWidgets;
 	Core[] cores;
 
+	uint textBegin;
+	uint textEnd;
+
 	this(Application application)
 	{
 		super(application);
@@ -285,11 +288,13 @@ class Debugger : ApplicationWindow
 		{
 		case DebugMessageId.Initialize:
 			auto initialize = buffer.deserializeMessage!Initialize();
+			this.textBegin = initialize.textBegin;
+			this.textEnd = initialize.textEnd;
 
 			foreach (coreIndex; 0 .. initialize.coreCount)
 				this.createCore(coreIndex);
 
-			this.sendMessage!SystemGetMemory(initialize.textBegin, initialize.textEnd);
+			this.sendMessage!SystemGetMemory(this.textBegin, this.textEnd);
 			break;
 		case DebugMessageId.CoreState:
 			auto coreState = buffer.deserializeMessage!CoreState();
@@ -302,10 +307,17 @@ class Debugger : ApplicationWindow
 		case DebugMessageId.SystemMemory:
 			auto systemMemory = buffer.deserializeMessage!SystemMemory();
 
-			auto opcodes = cast(Opcode[])systemMemory.memory;
-			auto disassembly = opcodes.map!(a => a.disassemble());
+			auto memoryBegin = systemMemory.address;
+			auto memoryEnd = memoryBegin + systemMemory.memory.length;
+			if (memoryBegin == this.textBegin && memoryEnd == this.textEnd)
+			{
+				this.log("Found program listing");
 
-			this.log("%s", disassembly);
+				auto opcodes = cast(Opcode[])systemMemory.memory;
+				auto disassembly = opcodes.map!(a => a.disassemble());
+
+				this.log("%s", disassembly);
+			}
 			break;
 		default:
 			assert(0);

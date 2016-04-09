@@ -48,6 +48,7 @@ struct SystemGetMemory
 
 struct SystemMemory
 {
+	uint address;
 	ubyte[] memory;
 
 	mixin Serializable!DebugMessageId;

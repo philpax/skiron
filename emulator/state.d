@@ -275,7 +275,7 @@ nothrow:
 			auto begin = systemGetMemory.begin;
 			auto end = systemGetMemory.end;
 
-			this.sendMessage!SystemMemory(this.memory[begin..end]);
+			this.sendMessage!SystemMemory(begin, this.memory[begin..end]);
 			break;
 		default:
 			assert(0);
