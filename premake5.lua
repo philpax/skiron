@@ -6,7 +6,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
-		flags { "Symbols" }
+		flags { "SymbolsLikeC" }
 
 		files { "common/**.d", "emulator/**.d" }
 
@@ -18,7 +18,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
-		flags { "Symbols" }
+		flags { "SymbolsLikeC" }
 
 		files { "common/**.d", "assembler/**.d" }
 
@@ -30,7 +30,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
-		flags { "Symbols" }
+		flags { "SymbolsLikeC" }
 
 		files { "common/**.d", "disassembler/**.d" }
 
@@ -42,7 +42,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
-		flags { "Symbols" }
+		flags { "SymbolsLikeC" }
 
 		includedirs { "vendor/gtkd/src" }
 		files { "common/**.d", "debugger/**.d" }
@@ -56,7 +56,7 @@ solution "skiron"
 		language "D"
 		targetdir "bin"
 		debugdir "bin"
-		flags { "Symbols" }
+		flags { "SymbolsLikeC" }
 
 		files { "common/**.d", "docgen/**.d" }
 
