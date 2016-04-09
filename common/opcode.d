@@ -414,6 +414,12 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	return output;
 }
 
+string disassemble(Opcode opcode)
+{
+	char[256] buffer;
+	return opcode.disassemble(buffer).idup;
+}
+
 unittest
 {
 	Opcode opcode;
@@ -426,4 +432,5 @@ unittest
 	auto slice = opcode.disassemble(buffer);
 
 	assert(slice == "load byte r0, r1 << 2");
+	assert(opcode.disassemble == slice);
 }
