@@ -90,6 +90,8 @@ mixin template Serializable(MessageId messageId)
 {
 @nogc:
 nothrow:
+	enum Serializable = true;
+
 	~this()
 	{
 		// Free the memory of arrays that have been deserialised
@@ -180,3 +182,5 @@ struct SystemMemory
 
 	mixin Serializable!(MessageId.SystemMemory);
 }
+
+enum isSerializableMessage(T) = __traits(compiles, T.Serializable);

@@ -196,6 +196,7 @@ nothrow:
 	}
 
 	void sendMessage(T)(ref T message)
+		if (isSerializableMessage!T)
 	{
 		auto buffer = StackBuffer!(T.sizeof)(message.length);
 		this.client.send(message.serialize(buffer));

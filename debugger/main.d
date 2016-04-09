@@ -208,6 +208,7 @@ class Debugger : ApplicationWindow
 	}
 
 	void sendMessage(T)(ref T message)
+		if (isSerializableMessage!T)
 	{
 		auto buffer = StackBuffer!(T.sizeof)(message.length);
 		this.connection.send(message.serialize(buffer));
