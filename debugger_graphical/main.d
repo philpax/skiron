@@ -44,7 +44,6 @@ struct CoreTab
 	void buildLayout()
 	{
 		auto vbox = new VBox(false, 0);
-		vbox.show();
 
 		this.instructionList = new ListBox();
 		auto instructionScroll = new ScrolledWindow();
@@ -60,8 +59,12 @@ struct CoreTab
 		vbox.packStart(this.menu, false, false, 0);
 		vbox.packStart(instructionScroll, true, true, 0);
 		vbox.packEnd(this.runningLabel, false, false, 0);
-		vbox.packEnd(this.buildGeneralRegisters(), true, true, 0);
-		vbox.packEnd(this.buildStandardRegisters(), true, true, 0);
+
+		auto registersVbox = new VBox(false, 0);
+		registersVbox.packStart(this.buildGeneralRegisters(), true, true, 0);
+		registersVbox.packEnd(this.buildStandardRegisters(), true, true, 0);
+
+		vbox.packEnd(registersVbox, true, true, 0);
 		vbox.showAll();
 
 		this.widget = vbox;
