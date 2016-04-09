@@ -214,6 +214,12 @@ class Debugger : ApplicationWindow
 		this.connection.send(message.serialize(buffer));
 	}
 
+	void sendMessage(T, Args...)(auto ref Args args)
+	{
+		auto message = T(args);
+		this.sendMessage(message);
+	}
+
 	void handleSocket()
 	{
 		if (!this.connection.isValid)
@@ -268,9 +274,7 @@ class Debugger : ApplicationWindow
 		this.notebook.appendPage(core.widget, "Core %s".format(index));
 		this.cores ~= core;
 
-		auto coreGetState = CoreGetState();
-		coreGetState.core = index;
-		this.sendMessage(coreGetState);
+		this.sendMessage!CoreGetState(index);
 	}
 
 	void handleMessage(ubyte[] buffer)
@@ -286,8 +290,7 @@ class Debugger : ApplicationWindow
 			foreach (coreIndex; 0 .. initialize.coreCount)
 				this.createCore(coreIndex);
 
-			auto systemGetMemory = SystemGetMemory(initialize.textBegin, initialize.textEnd);
-			this.sendMessage(systemGetMemory);
+			this.sendMessage!SystemGetMemory(initialize.textBegin, initialize.textEnd);
 			break;
 		case MessageId.CoreState:
 			auto coreState = CoreState();

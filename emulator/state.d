@@ -202,6 +202,12 @@ nothrow:
 		this.client.send(message.serialize(buffer));
 	}
 
+	void sendMessage(T, Args...)(auto ref Args args)
+	{
+		auto message = T(args);
+		this.sendMessage(message);
+	}
+
 	void load(ubyte[] program)
 	{
 		this.memory[0 .. program.length] = program;
@@ -262,24 +268,16 @@ nothrow:
 			coreGetState.deserialize(buffer);
 
 			auto core = &this.cores[coreGetState.core];
-
-			auto coreState = CoreState();
-			coreState.core = coreGetState.core;
-			coreState.running = !core.paused;
-			coreState.registers = core.registers;
-
-			this.sendMessage(coreState);
+			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
 			break;
 		case MessageId.SystemGetMemory:
 			auto systemGetMemory = SystemGetMemory();
 			systemGetMemory.deserialize(buffer);
+
 			auto begin = systemGetMemory.begin;
 			auto end = systemGetMemory.end;
 
-			auto systemMemory = SystemMemory();
-			systemMemory.memory = this.memory[begin .. end];
-
-			this.sendMessage(systemMemory);
+			this.sendMessage!SystemMemory(this.memory[begin..end]);
 			break;
 		default:
 			assert(0);
