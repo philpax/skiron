@@ -1,6 +1,18 @@
 solution "skiron"
 	configurations { "release", "debug", "unittest" }
 
+	project "common"
+		kind "StaticLib"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+		flags { "SymbolsLikeC" }
+
+		files { "common/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }		
+
 	project "emulator"
 		kind "ConsoleApp"
 		language "D"
@@ -8,7 +20,9 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		files { "common/**.d", "emulator/**.d" }
+		links { "bin/common.lib" }
+		includedirs { "common/" }
+		files { "emulator/**.d" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
@@ -20,7 +34,9 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		files { "common/**.d", "assembler/**.d" }
+		links { "bin/common.lib" }
+		includedirs { "common/" }
+		files { "assembler/**.d" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
@@ -32,7 +48,9 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		files { "common/**.d", "disassembler/**.d" }
+		links { "bin/common.lib" }
+		includedirs { "common/" }
+		files { "disassembler/**.d" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
@@ -44,7 +62,9 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		files { "common/**.d", "debugger_backend/**.d" }
+		links { "bin/common.lib" }
+		includedirs { "common/" }
+		files { "debugger_backend/**.d" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
@@ -56,9 +76,9 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		includedirs { "vendor/gtkd/src", "debugger_backend/" }
-		files { "common/**.d", "debugger_graphical/**.d" }
-		links { "vendor/gtkd/gtkd.lib", "debugger_backend" }
+		includedirs { "vendor/gtkd/src", "common/", "debugger_backend/" }
+		files { "debugger_graphical/**.d" }
+		links { "vendor/gtkd/gtkd.lib", "bin/debugger_backend.lib", "bin/common.lib" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
@@ -70,7 +90,9 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		files { "common/**.d", "docgen/**.d" }
+		links { "bin/common.lib" }
+		includedirs { "common/" }
+		files { "docgen/**.d" }
 
 		filter "action:vs*"
 			postbuildcommands "chdir bin && docgen && chdir ../"
