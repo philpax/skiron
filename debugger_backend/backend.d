@@ -30,6 +30,11 @@ struct Core
 	{
 		this.parent.sendMessage!CoreSetRunning(this.index, running);
 	}
+
+	void step()
+	{
+		this.parent.sendMessage!CoreStep(this.index);
+	}
 }
 
 class Debugger

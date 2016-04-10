@@ -70,11 +70,13 @@ nothrow:
 	ubyte[] memory;
 	RegisterType[RegisterExtendedCount] registers;
 	bool running = true;
+	
 	// Changed by debugger
 	bool paused = false;
+	bool doStep = false;
+
 	bool printOpcodes = true;
 	bool printRegisters = true;
-	bool printCurrent;
 	uint id;
 
 	@disable this();
@@ -116,7 +118,7 @@ nothrow:
 
 	void step()
 	{
-		if (this.paused)
+		if (this.paused && !this.doStep)
 			return;
 
 		auto oldRegisters = this.registers;
@@ -155,7 +157,19 @@ nothrow:
 
 			printf("\n");
 		}
+
+		if (this.doStep)
+		{
+			this.sendState();
+			this.doStep = false;
+		}
 	}
+
+	void sendState()
+	{
+		this.state.sendMessage!CoreState(this.id, !this.paused, this.registers);
+	}
+	
 }
 
 struct State
@@ -265,16 +279,19 @@ nothrow:
 		{
 		case DebugMessageId.CoreGetState:
 			auto coreGetState = buffer.deserializeMessage!CoreGetState();
-
-			auto core = &this.cores[coreGetState.core];
-			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
+			this.cores[coreGetState.core].sendState();
 			break;
 		case DebugMessageId.CoreSetRunning:
 			auto coreSetRunning = buffer.deserializeMessage!CoreSetRunning();
 
 			auto core = &this.cores[coreSetRunning.core];
 			core.paused = !coreSetRunning.running;
-			this.sendMessage!CoreState(core.id, !core.paused, core.registers);
+			core.sendState();
+			break;
+		case DebugMessageId.CoreStep:
+			auto coreStep = buffer.deserializeMessage!CoreStep();
+
+			this.cores[coreStep.core].doStep = true;
 			break;
 		case DebugMessageId.SystemGetMemory:
 			auto systemGetMemory = buffer.deserializeMessage!SystemGetMemory();

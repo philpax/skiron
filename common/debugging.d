@@ -9,6 +9,7 @@ enum DebugMessageId : ubyte
 	CoreGetState,
 	CoreState,
 	CoreSetRunning,
+	CoreStep,
 	SystemGetMemory,
 	SystemMemory
 }
@@ -43,6 +44,13 @@ struct CoreSetRunning
 {
 	uint core;
 	bool running;
+
+	mixin Serializable!DebugMessageId;
+}
+
+struct CoreStep
+{
+	uint core;	
 
 	mixin Serializable!DebugMessageId;
 }

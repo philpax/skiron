@@ -32,6 +32,7 @@ struct CoreTab
 
 	MenuBar menu;
 	MenuItem pauseResumeItem;
+	MenuItem stepItem;
 
 	ListBox instructionList;
 	Label runningLabel;
@@ -52,7 +53,9 @@ struct CoreTab
 
 		this.menu = new MenuBar();
 		this.pauseResumeItem = new MenuItem(&this.onPauseResumeClick, "Pause/Resume");
+		this.stepItem = new MenuItem(&this.onStepClick, "Step");
 		this.menu.append(this.pauseResumeItem);
+		this.menu.append(this.stepItem);
 
 		this.runningLabel = new Label("");
 		this.runningLabel.setAlignment(0, 0.5f);
@@ -141,11 +144,17 @@ struct CoreTab
 
 		this.runningLabel.setText(this.core.running ? "Running" : "Paused");
 		this.pauseResumeItem.setLabel(this.core.running ? "Pause" : "Resume");
+		this.stepItem.setVisible(!this.core.running);
 	}
 
 	void onPauseResumeClick(MenuItem item)
 	{
 		this.core.setRunning(!this.core.running);
+	}
+
+	void onStepClick(MenuItem item)
+	{
+		this.core.step();
 	}
 }
 
