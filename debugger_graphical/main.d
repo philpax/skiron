@@ -31,6 +31,7 @@ struct CoreTab
 	TreeIter standardIter;
 
 	MenuBar menu;
+	MenuItem pauseResumeItem;
 
 	ListBox instructionList;
 	Label runningLabel;
@@ -50,7 +51,8 @@ struct CoreTab
 		instructionScroll.addWithViewport(instructionList);
 
 		this.menu = new MenuBar();
-		this.menu.append(new MenuItem(&this.onPauseResumeClick, "Pause/Resume"));
+		this.pauseResumeItem = new MenuItem(&this.onPauseResumeClick, "Pause/Resume");
+		this.menu.append(this.pauseResumeItem);
 
 		this.runningLabel = new Label("");
 		this.runningLabel.setAlignment(0, 0.5f);
@@ -138,6 +140,7 @@ struct CoreTab
 		}
 
 		this.runningLabel.setText(this.core.running ? "Running" : "Paused");
+		this.pauseResumeItem.setLabel(this.core.running ? "Pause" : "Resume");
 	}
 
 	void onPauseResumeClick(MenuItem item)
