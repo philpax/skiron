@@ -14,6 +14,8 @@ import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow, gtk.Fram
 import gtk.Widget, gdk.FrameClock, gdk.Event;
 // TreeView
 import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText, gtk.TreeIter;
+// Pango
+import pango.PgAttributeList, pango.PgAttribute;
 
 import std.string, std.range, std.algorithm;
 
@@ -22,6 +24,8 @@ import debugger_backend.backend;
 struct CoreTab
 {
 	Core* core;
+	DebuggerWindow parent;
+
 	Widget widget;
 
 	ListStore generalStore;
@@ -34,12 +38,21 @@ struct CoreTab
 	MenuItem pauseResumeItem;
 	MenuItem stepItem;
 
-	ListBox instructionList;
 	Label runningLabel;
 
-	this(Core* core)
+	ListBox instructionList;
+	Label lastIpLabel;
+	PgAttributeList defaultAttributes;
+	PgAttributeList highlightedAttributes;
+
+	this(Core* core, DebuggerWindow parent)
 	{
 		this.core = core;
+		this.parent = parent;
+
+		this.defaultAttributes = new PgAttributeList();
+		this.highlightedAttributes = this.defaultAttributes.copy();
+		this.highlightedAttributes.change(PgAttribute.weightNew(PangoWeight.SEMIBOLD));
 	}
 
 	// Separate from the constructor as we need access to the final this pointer
@@ -145,6 +158,30 @@ struct CoreTab
 		this.runningLabel.setText(this.core.running ? "Running" : "Paused");
 		this.pauseResumeItem.setLabel(this.core.running ? "Pause" : "Resume");
 		this.stepItem.setVisible(!this.core.running);
+
+		this.updateIpLabel();
+	}
+
+	void updateIpLabel()
+	{
+		// Get the index for the row of the current IP
+		uint index = (this.core.registers[Register.IP] - this.parent.debugger.textBegin) / Opcode.sizeof;
+		auto row = this.instructionList.getRowAtIndex(index);
+
+		// Bail out if not available
+		if (row is null)
+			return;
+
+		// Update the attributes
+		auto ipLabel = cast(Label)row.getChild();
+
+		ipLabel.setAttributes(this.highlightedAttributes);
+
+		// Reset the last IP label
+		if (this.lastIpLabel)
+			this.lastIpLabel.setAttributes(this.defaultAttributes);
+
+		this.lastIpLabel = ipLabel;
 	}
 
 	void onPauseResumeClick(MenuItem item)
@@ -155,6 +192,23 @@ struct CoreTab
 	void onStepClick(MenuItem item)
 	{
 		this.core.step();
+	}
+
+	void loadOpcodes(Opcode[] opcodes)
+	{
+		foreach (index, opcode; opcodes.enumerate)
+		{
+			auto str = "0x%08X: %s".format(
+				this.parent.debugger.textBegin + (index * Opcode.sizeof),
+				opcode.disassemble());
+
+			auto label = new Label(str);
+			label.setAlignment(0, 0.5f);
+			this.instructionList.insert(label, -1);
+			label.show();
+		}
+
+		this.update();
 	}
 }
 
@@ -303,7 +357,7 @@ class DebuggerWindow : ApplicationWindow
 	{
 		foreach (ref core; this.debugger.cores)
 		{	
-			this.coreTabs ~= CoreTab(&core);
+			this.coreTabs ~= CoreTab(&core, this);
 			auto coreTab = &this.coreTabs[$-1];
 			coreTab.buildLayout();
 			this.notebook.appendPage(coreTab.widget, "Core %s".format(core.index));
@@ -334,19 +388,7 @@ class DebuggerWindow : ApplicationWindow
 	void onSystemOpcodes()
 	{	
 		foreach (ref coreTab; this.coreTabs)
-		{
-			foreach (index, opcode; this.debugger.opcodes.enumerate)
-			{
-				auto str = "0x%08X: %s".format(
-					this.debugger.textBegin + (index * Opcode.sizeof),
-					opcode.disassemble());
-
-				auto label = new Label(str);
-				label.setAlignment(0, 0.5f);
-				coreTab.instructionList.insert(label, -1);
-				label.show();
-			}
-		}
+			coreTab.loadOpcodes(this.debugger.opcodes);
 	}
 
 	bool onTick(Widget, FrameClock)
