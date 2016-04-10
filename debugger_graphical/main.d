@@ -21,6 +21,14 @@ import std.string, std.range, std.algorithm;
 
 import debugger_backend.backend;
 
+void setMargin(Widget widget, uint margin)
+{
+	widget.setMarginTop(margin);
+	widget.setMarginBottom(margin);
+	widget.setMarginStart(margin);
+	widget.setMarginEnd(margin);
+}
+
 struct CoreTab
 {
 	Core* core;
@@ -63,6 +71,9 @@ struct CoreTab
 		this.instructionList = new ListBox();
 		auto instructionScroll = new ScrolledWindow();
 		instructionScroll.addWithViewport(instructionList);
+		auto instructionFrame = new Frame("Instruction List");
+		instructionFrame.add(instructionScroll);
+		instructionFrame.setMargin(4);
 
 		this.menu = new MenuBar();
 		this.pauseResumeItem = new MenuItem(&this.onPauseResumeClick, "Pause/Resume");
@@ -75,14 +86,18 @@ struct CoreTab
 		this.runningLabel.setPadding(4, 4);
 
 		vbox.packStart(this.menu, false, false, 0);
-		vbox.packStart(instructionScroll, true, true, 0);
+		vbox.packStart(instructionFrame, true, true, 0);
 		vbox.packEnd(this.runningLabel, false, false, 0);
 
 		auto registersVbox = new VBox(false, 0);
 		registersVbox.packStart(this.buildGeneralRegisters(), true, true, 0);
 		registersVbox.packEnd(this.buildStandardRegisters(), true, true, 0);
 
-		vbox.packEnd(registersVbox, true, true, 0);
+		auto registersFrame = new Frame("Registers");
+		registersFrame.add(registersVbox);
+		registersFrame.setMargin(4);
+
+		vbox.packEnd(registersFrame, true, true, 0);
 		vbox.showAll();
 
 		this.widget = vbox;
