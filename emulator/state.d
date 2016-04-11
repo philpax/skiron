@@ -184,7 +184,7 @@ nothrow:
 
 	@disable this();
 
-	this(uint memorySize, uint coreCount, bool printOpcodes, bool printRegisters)
+	this(uint memorySize, uint coreCount, bool printOpcodes, bool printRegisters, bool paused)
 	{
 		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
 		this.cores = (cast(Core*)malloc(coreCount * Core.sizeof))[0..coreCount];
@@ -197,7 +197,10 @@ nothrow:
 		uint index = 0;
 
 		foreach (ref core; this.cores)
+		{
 			core = Core(this, index++, printOpcodes, printRegisters);
+			core.paused = paused;
+		}
 	}
 
 	~this()
