@@ -79,6 +79,9 @@ class Debugger
 	void sendMessage(T)(ref T message)
 		if (isSerializableMessage!T)
 	{
+		if (!this.connection.isValid)
+			return;
+
 		auto buffer = StackBuffer!(T.sizeof)(message.length);
 		this.connection.send(message.serialize(buffer));
 	}

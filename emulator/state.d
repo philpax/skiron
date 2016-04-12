@@ -13,6 +13,8 @@ import emulator.controlflow;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 
+import std.algorithm;
+
 string generateOpcodeSwitch()
 {
 	import std.traits, std.string, std.conv;
@@ -167,7 +169,7 @@ nothrow:
 
 	void sendState()
 	{
-		this.state.sendMessage!CoreState(this.id, !this.paused, this.registers);
+		this.state.sendMessage!CoreState(this.id, !this.paused && this.running, this.registers);
 	}
 	
 }
@@ -215,6 +217,9 @@ nothrow:
 	void sendMessage(T)(ref T message)
 		if (isSerializableMessage!T)
 	{
+		if (!this.client.isValid)
+			return;
+
 		auto buffer = StackBuffer!(T.sizeof)(message.length);
 		this.client.send(message.serialize(buffer));
 	}
@@ -313,12 +318,16 @@ nothrow:
 	{
 		import std.algorithm : any;
 
-		while (this.cores.any!(a => a.running))
+		while (this.cores.any!(a => a.running) || this.client.isValid)
 		{
 			this.handleDebuggerConnection();
 
-			foreach (ref core; this.cores)
+			foreach (ref core; this.cores.filter!(a => a.running))
+			{
 				core.step();
+				if (!core.running)
+					core.sendState();
+			}
 		}
 	}
 }
