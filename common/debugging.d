@@ -3,16 +3,7 @@ module common.debugging;
 import common.cpu;
 public import common.serialization;
 
-enum DebugMessageId : ubyte
-{
-	Initialize,
-	CoreGetState,
-	CoreState,
-	CoreSetRunning,
-	CoreStep,
-	SystemGetMemory,
-	SystemMemory
-}
+mixin("DebugMessageId".generateIdEnum!(common.debugging));
 
 struct Initialize
 {

@@ -7,6 +7,20 @@ import std.range : ElementType;
 
 import core.stdc.stdlib : malloc, free;
 
+string generateIdEnum(alias Module)(string name)
+{
+	string s = "enum " ~ name ~ " : ubyte {";
+	foreach (member; __traits(allMembers, Module))
+	{
+		alias memberField = Identity!(__traits(getMember, Module, member));
+		
+		static if (is(memberField == struct))
+			s ~= member ~ ",\n";
+	}
+	s ~= "}";
+	return s;
+}
+
 @nogc:
 nothrow:
 
