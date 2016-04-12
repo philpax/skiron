@@ -97,6 +97,12 @@ class Debugger
 		this.sendMessage!SystemGetMemory(begin, end);
 	}
 
+	void shutdown()
+	{
+		this.sendMessage!Shutdown();
+		this.disconnect();
+	}
+
 	void handleSocket()
 	{
 		if (!this.connection.isValid)

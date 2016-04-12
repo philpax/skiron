@@ -287,6 +287,7 @@ class DebuggerWindow : ApplicationWindow
 
 	MenuItem connectItem;
 	MenuItem disconnectItem;
+	MenuItem shutdownItem;
 
 	Notebook notebook;
 
@@ -312,6 +313,7 @@ class DebuggerWindow : ApplicationWindow
 
 		this.showAll();
 		this.disconnectItem.setVisible(false);
+		this.shutdownItem.setVisible(false);
 
 		this.addTickCallback(&this.onTick);
 		this.addOnDelete(&this.onDelete);
@@ -327,6 +329,8 @@ class DebuggerWindow : ApplicationWindow
 		this.menu.append(connectItem);
 		this.disconnectItem = new MenuItem(&this.onDisconnectClick, "Disconnect");
 		this.menu.append(this.disconnectItem);
+		this.shutdownItem = new MenuItem(&this.onShutdownClick, "Shutdown");
+		this.menu.append(this.shutdownItem);
 	}
 
 	void buildNotebook()
@@ -368,6 +372,11 @@ class DebuggerWindow : ApplicationWindow
 		this.debugger.disconnect();
 	}
 
+	void onShutdownClick(MenuItem)
+	{
+		this.debugger.shutdown();
+	}
+
 	void onInitialize()
 	{
 		foreach (ref core; this.debugger.cores)
@@ -380,6 +389,7 @@ class DebuggerWindow : ApplicationWindow
 
 		this.connectItem.setVisible(false);
 		this.disconnectItem.setVisible(true);
+		this.shutdownItem.setVisible(true);
 	}
 
 	void onDisconnect()
@@ -388,6 +398,7 @@ class DebuggerWindow : ApplicationWindow
 
 		this.connectItem.setVisible(true);
 		this.disconnectItem.setVisible(false);
+		this.shutdownItem.setVisible(false);
 
 		foreach (ref coreTab; this.coreTabs)
 			this.notebook.detachTab(coreTab.widget);

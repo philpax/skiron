@@ -61,3 +61,8 @@ struct SystemMemory
 
 	mixin Serializable!DebugMessageId;
 }
+
+struct Shutdown
+{
+	mixin Serializable!DebugMessageId;
+}

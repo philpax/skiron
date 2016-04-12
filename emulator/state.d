@@ -309,6 +309,13 @@ nothrow:
 
 			this.sendMessage!SystemMemory(begin, this.memory[begin..end]);
 			break;
+		case DebugMessageId.Shutdown:
+			foreach (ref core; this.cores)
+				core.running = false;
+
+			this.client.shutdown(SocketShutdown.BOTH);
+			this.client.close();
+			break;
 		default:
 			assert(0);
 		}
