@@ -3,7 +3,7 @@ module common.debugging;
 import common.cpu;
 public import common.serialization;
 
-mixin("DebugMessageId".generateIdEnum!(common.debugging));
+mixin GenerateIdEnum!("DebugMessageId");
 
 struct Initialize
 {

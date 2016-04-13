@@ -21,6 +21,11 @@ string generateIdEnum(alias Module)(string name)
 	return s;
 }
 
+mixin template GenerateIdEnum(string name, string moduleName = __MODULE__)
+{
+	mixin(generateIdEnum!(mixin(moduleName))(name));
+}
+
 @nogc:
 nothrow:
 
