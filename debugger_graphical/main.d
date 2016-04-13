@@ -8,6 +8,8 @@ import gtk.MenuBar, gtk.MenuItem;
 import gtk.Entry, gtk.Button;
 // Display
 import gtk.Label, gtk.TextView, gtk.ListBox, gtk.ListBoxRow;
+// File choosing
+import gtk.FileChooserDialog;
 // Layout
 import gtk.VBox, gtk.HBox, gtk.Notebook, gtk.Table, gtk.ScrolledWindow, gtk.Frame;
 // Other
@@ -17,7 +19,7 @@ import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText, gt
 // Pango
 import pango.PgAttributeList, pango.PgAttribute;
 
-import std.string, std.range, std.algorithm;
+import std.string, std.range, std.algorithm, std.file;
 
 import debugger_backend.backend;
 
@@ -285,9 +287,12 @@ class DebuggerWindow : ApplicationWindow
 	ConnectWindow connectWindow;
 	ListBox logView;
 
+	MenuItem startItem;
 	MenuItem connectItem;
 	MenuItem disconnectItem;
 	MenuItem shutdownItem;
+
+	FileChooserDialog fileChooserDialog;
 
 	Notebook notebook;
 
@@ -301,6 +306,9 @@ class DebuggerWindow : ApplicationWindow
 
 		this.debugger = new Debugger();
 		this.connectWindow = new ConnectWindow(this);
+
+		this.fileChooserDialog = new FileChooserDialog("Open dialog", this, FileChooserAction.OPEN);
+		this.fileChooserDialog.setCurrentFolder(getcwd());
 
 		this.buildMenu();
 		this.buildNotebook();
@@ -325,8 +333,10 @@ class DebuggerWindow : ApplicationWindow
 	void buildMenu()
 	{
 		this.menu = new MenuBar();
+		this.startItem = new MenuItem(&this.onStartClick, "Start");
+		this.menu.append(this.startItem);
 		this.connectItem = new MenuItem(&this.onConnectClick, "Connect");
-		this.menu.append(connectItem);
+		this.menu.append(this.connectItem);
 		this.disconnectItem = new MenuItem(&this.onDisconnectClick, "Disconnect");
 		this.menu.append(this.disconnectItem);
 		this.shutdownItem = new MenuItem(&this.onShutdownClick, "Shutdown");
@@ -362,6 +372,15 @@ class DebuggerWindow : ApplicationWindow
 		this.debugger.onSystemMemory = (address, bytes) {};
 	}
 
+	void onStartClick(MenuItem)
+	{
+		if (this.fileChooserDialog.run() == ResponseType.OK)
+		{
+			this.fileChooserDialog.close();
+			this.debugger.spawnEmulator(this.fileChooserDialog.getFilename());
+		}
+	}
+
 	void onConnectClick(MenuItem)
 	{
 		this.connectWindow.makeVisible();
@@ -387,6 +406,7 @@ class DebuggerWindow : ApplicationWindow
 			this.notebook.appendPage(coreTab.widget, "Core %s".format(core.index));
 		}
 
+		this.startItem.setVisible(false);
 		this.connectItem.setVisible(false);
 		this.disconnectItem.setVisible(true);
 		this.shutdownItem.setVisible(true);
@@ -396,6 +416,7 @@ class DebuggerWindow : ApplicationWindow
 	{
 		this.log("Emulator: Disconnected");
 
+		this.startItem.setVisible(true);
 		this.connectItem.setVisible(true);
 		this.disconnectItem.setVisible(false);
 		this.shutdownItem.setVisible(false);

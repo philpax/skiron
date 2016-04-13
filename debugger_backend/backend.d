@@ -6,6 +6,7 @@ public import common.cpu;
 public import common.opcode;
 
 import std.conv;
+import std.process;
 
 struct Core
 {
@@ -39,6 +40,7 @@ struct Core
 
 class Debugger
 {
+	ProcessPipes emulatorChild;
 	NonBlockingSocket connection;
 	Core[] cores;
 	Opcode[] opcodes;
@@ -52,6 +54,11 @@ class Debugger
 	void delegate(Core*) onCoreState;
 	void delegate() onSystemOpcodes;
 	void delegate(uint, ubyte[]) onSystemMemory;
+
+	void spawnEmulator(string filePath)
+	{
+		this.emulatorChild = pipeProcess(["emulator", filePath, "--paused"], cast(Redirect)0);
+	}
 
 	void connect(string ipAddress, string port)
 	{
