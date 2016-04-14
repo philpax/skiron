@@ -21,9 +21,9 @@ string generateIdEnum(alias Module)(string name)
 	return s;
 }
 
-mixin template GenerateIdEnum(string name, string moduleName = __MODULE__)
+mixin template GenerateIdEnum(string name)
 {
-	mixin(generateIdEnum!(mixin(moduleName))(name));
+	mixin(generateIdEnum!(__traits(parent, {}))(name));
 }
 
 @nogc:
