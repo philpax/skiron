@@ -2,9 +2,7 @@ module common.opcode;
 
 import common.cpu;
 import common.util;
-
-import std.bitmanip;
-import std.meta;
+import common.encoding;
 
 enum OpcodeBitCount = 6;
 enum OpcodeCount = (1 << OpcodeBitCount);
@@ -17,7 +15,7 @@ struct Opcode
 		enum VariantBitCount = 2;
 		enum OperandSizeBitCount = 2;
 
-		mixin(defineEncoding!("A",
+		mixin DefineEncoding!("A",
 			"Used for three-register instructions.",
 			ubyte,			"opcode",		OpcodeBitCount,
 			"The opcode number.",
@@ -35,9 +33,9 @@ struct Opcode
 			"",
 			OperandSize,	"operandSize",	OperandSizeBitCount,
 			"The sizes of the operands being used.",
-		));
+		);
 
-		mixin(defineEncoding!("B",
+		mixin DefineEncoding!("B",
 			"Used for one-register, one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
@@ -51,9 +49,9 @@ struct Opcode
 			"The encoded signed immediate value.",
 			OperandSize,	"_operandSize",	OperandSizeBitCount,
 			"",
-		));
+		);
 
-		mixin(defineEncoding!("B16",
+		mixin DefineEncoding!("B16",
 			"Used for one-register, one-16-bit-immediate instructions. " ~
 			"This is not a real encoding: it is the result of using Encoding B with an instruction that doesn't use operandSize.",
 			ubyte,			"_opcode",		OpcodeBitCount,
@@ -66,9 +64,9 @@ struct Opcode
 			"The destination/source register.",
 			uint,			"immediateB16",	16,
 			"The unsigned 16-bit encoded immediate value.",
-		));
+		);
 
-		mixin(defineEncoding!("C",
+		mixin DefineEncoding!("C",
 			"Used for one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
@@ -80,9 +78,9 @@ struct Opcode
 			"The encoded signed immediate value.",
 			OperandSize,	"_operandSize",	OperandSizeBitCount,
 			"",
-		));
+		);
 
-		mixin(defineEncoding!("D",
+		mixin DefineEncoding!("D",
 			"Used for two-register, one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
@@ -98,82 +96,13 @@ struct Opcode
 			"The encoded signed immediate value.",
 			OperandSize,	"_operandSize",	OperandSizeBitCount,
 			"",
-		));
+		);
 
 		uint value;
 	}
 }
 
 static assert(Opcode.sizeof == uint.sizeof);
-
-struct EncodingDescription
-{
-	struct Field
-	{
-		string type;
-		string name;
-		int size;
-		string description;
-	}
-
-	string name;
-	string description;
-	Field[] fields;
-}
-
-private:
-string removeUnderscored(string s)
-{
-	if (s.length && s[0] == '_')
-		return "";
-	else
-		return s;
-}
-
-template encodingFilter(Args...)
-{
-	static if (Args.length > 4)
-		alias encodingFilter = AliasSeq!(encodingFilter!(Args[0..4]), encodingFilter!(Args[4..$]));
-	else
-		alias encodingFilter = AliasSeq!(Args[0], removeUnderscored(Args[1]), Args[2]);
-}
-
-string encodingDocsMake(Args...)()
-{
-	import std.string : format;
-
-	static if (Args.length)
-	{
-		auto name = Args[1];
-
-		if (name[0] == '_')
-			name = name[1..$];
-
-		return `EncodingDescription.Field("%s", "%s", %s, "%s"), `.format(Args[0].stringof, name, Args[2], Args[3]) ~ encodingDocsMake!(Args[4..$]);
-	}
-	else
-	{
-		return ``;
-	}
-}
-
-string encodingDocs(string Name, string Description, Args...)()
-{
-	import std.string : format;
-
-	auto ret = `enum EncodingSeq` ~ Name ~ ` = EncodingDescription(`;
-	ret ~= `"%s", "%s", [`.format(Name, Description);
-	ret ~= encodingDocsMake!(Args);
-	ret ~= "]);\n";
-	return ret;
-}
-
-string defineEncoding(string Name, string Description, Args...)()
-{
-	auto ret = bitfields!(encodingFilter!Args);
-	ret ~= encodingDocs!(Name, Description, Args);
-	return ret;
-}
 
 public:
 
