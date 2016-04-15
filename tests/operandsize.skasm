@@ -12,6 +12,6 @@ move byte r1, r0
 cmp byte r0, r1
 loadi r2, 4000
 store byte r2, r0
-load dbyte r3, r2
-cmp dbyte r1, r3
+load byte2 r3, r2
+cmp byte2 r1, r3
 halt

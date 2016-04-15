@@ -110,9 +110,10 @@ public:
 
 enum OperandSize
 {
-	Byte,
-	Dbyte,
-	Qbyte
+	Byte = 0,
+	Byte1 = Byte,
+	Byte2,
+	Byte4
 }
 
 enum Variant
@@ -304,11 +305,11 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		case OperandSize.Byte:
 			sizePrefix = "byte ";
 			break;
-		case OperandSize.Dbyte:
-			sizePrefix = "dbyte ";
+		case OperandSize.Byte2:
+			sizePrefix = "byte2 ";
 			break;
-		case OperandSize.Qbyte:
-			sizePrefix = "qbyte ";
+		case OperandSize.Byte4:
+			sizePrefix = "byte4 ";
 			break;
 		}
 	}

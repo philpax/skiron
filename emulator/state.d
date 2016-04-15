@@ -36,10 +36,10 @@ string generateOpcodeSwitch()
 		case OperandSize.Byte:
 			this.run%1$s!ubyte(opcode);
 			break;
-		case OperandSize.Dbyte:
+		case OperandSize.Byte2:
 			this.run%1$s!ushort(opcode);
 			break;
-		case OperandSize.Qbyte:
+		case OperandSize.Byte4:
 			this.run%1$s!uint(opcode);
 			break;
 	}

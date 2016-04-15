@@ -102,24 +102,24 @@ struct Assembler
 	{
 		auto token = tokens.front;
 
-		if (token.type == tok!"byte")
+		if (token.type == tok!"byte" || token.type == tok!"byte1")
 		{
 			tokens.popFront();
 			output = OperandSize.Byte;
 		}
-		else if (token.type == tok!"dbyte")
+		else if (token.type == tok!"byte2")
 		{
 			tokens.popFront();
-			output = OperandSize.Dbyte;
+			output = OperandSize.Byte2;
 		}
-		else if (token.type == tok!"qbyte")
+		else if (token.type == tok!"byte4")
 		{
 			tokens.popFront();
-			output = OperandSize.Qbyte;
+			output = OperandSize.Byte4;
 		}
 		else
 		{
-			output = OperandSize.Qbyte;
+			output = OperandSize.Byte4;
 		}
 
 		return true;
@@ -367,7 +367,7 @@ struct Assembler
 		return true;
 	}
 
-	void assemblePushManual(Register register, OperandSize operandSize = OperandSize.Qbyte)
+	void assemblePushManual(Register register, OperandSize operandSize = OperandSize.Byte4)
 	{
 		// Synthesize add, store
 		Opcode add;
@@ -404,7 +404,7 @@ struct Assembler
 		return true;
 	}
 
-	void assemblePopManual(Register register, OperandSize operandSize = OperandSize.Qbyte)
+	void assemblePopManual(Register register, OperandSize operandSize = OperandSize.Byte4)
 	{
 		// Synthesize load, add
 		Opcode load;
@@ -517,7 +517,7 @@ struct Assembler
 			Opcode add;
 			add.opcode = Opcodes.AddD.opcode;
 			add.encoding = Opcodes.AddD.encoding;
-			add.operandSize = OperandSize.Qbyte;
+			add.operandSize = OperandSize.Byte4;
 			add.register1 = register;
 			add.register2 = Register.Z;
 
@@ -607,7 +607,7 @@ struct Assembler
 		Opcode add;
 		add.opcode = Opcodes.AddA.opcode;
 		add.encoding = Opcodes.AddA.encoding;
-		add.operandSize = OperandSize.Qbyte;
+		add.operandSize = OperandSize.Byte4;
 		add.register1 = Register.IP;
 		add.register2 = register;
 		add.register3 = Register.Z;
