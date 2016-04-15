@@ -113,7 +113,8 @@ enum OperandSize
 	Byte = 0,
 	Byte1 = Byte,
 	Byte2,
-	Byte4
+	Byte4,
+	Word = Byte4
 }
 
 enum Variant
@@ -309,7 +310,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 			sizePrefix = "byte2 ";
 			break;
 		case OperandSize.Byte4:
-			sizePrefix = "byte4 ";
+			sizePrefix = "word ";
 			break;
 		}
 	}

@@ -112,7 +112,7 @@ struct Assembler
 			tokens.popFront();
 			output = OperandSize.Byte2;
 		}
-		else if (token.type == tok!"byte4")
+		else if (token.type == tok!"byte4" || token.type == tok!"word")
 		{
 			tokens.popFront();
 			output = OperandSize.Byte4;

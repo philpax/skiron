@@ -21,7 +21,7 @@ enum TokDynamic =
 
 enum TokKeywords =
 [
-	"byte", "byte1", "byte2", "byte4"
+	"byte", "byte1", "byte2", "byte4", "word"
 ];
 
 alias AssemblerTokens = TypeTuple!(TokOperators, TokDynamic, TokKeywords);
