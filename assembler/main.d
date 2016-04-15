@@ -510,9 +510,10 @@ struct Assembler
 			}
 		}
 
-		// If we're dealing with a value, and it can be packed into 9 bits
+		// If we're dealing with a value, and it can be packed into 7 bits
 		auto absValue = abs(value);
-		if (label.empty && (absValue & 0b0000_0001_1111_1111) == absValue)
+		enum Mask0 = 0b0000_0000_0111_1111;
+		if (label.empty && (absValue & Mask0) == absValue)
 		{
 			Opcode add;
 			add.opcode = Opcodes.AddD.opcode;
@@ -521,9 +522,8 @@ struct Assembler
 			add.register1 = register;
 			add.register2 = Register.Z;
 
-			enum Mask0 = 0b0000_0000_0111_1111;
-			enum Mask1 = 0b0000_0000_1111_1110;
-			enum Mask2 = 0b0000_0001_1111_1100;
+			enum Mask1 = Mask0 << 1;
+			enum Mask2 = Mask0 << 2;
 			auto sign = value >= 0 ? 1 : -1;
 			// If the value can be packed into 7 bits, multiplied by 1
 			if ((absValue & Mask0) == absValue)
