@@ -24,8 +24,15 @@ string writeOpcodes()
 		if (a.opcode < b.opcode) return true;
 		if (b.opcode < a.opcode) return false;
 
-		return a.operandFormat == OperandFormat.Pseudo && 
-				b.operandFormat != OperandFormat.Pseudo;
+		if (a.operandFormat == OperandFormat.Pseudo && 
+			b.operandFormat != OperandFormat.Pseudo)
+			return true;
+
+		if (b.operandFormat == OperandFormat.Pseudo && 
+			a.operandFormat != OperandFormat.Pseudo)
+			return false;
+
+		return a.name < b.name;
 	});
 
 	const filename = "Instruction-Listing.md";
