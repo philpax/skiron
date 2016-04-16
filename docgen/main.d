@@ -140,6 +140,19 @@ string writeEncodings()
 		file.writeln();
 	}
 
+	file.writeln("## Variants");
+	file.writeln(
+		"The last argument of an instruction can be modified by a Variant before " ~ 
+		"being used in a computation.");
+	file.writeln();
+
+	foreach (pair; VariantDocs)
+	{
+		file.writefln("* **%s**", pair[0].to!string());
+		file.writefln("    * *Index*: %s", cast(uint)pair[0]);
+		file.writefln("    * *Description*: %s", pair[1]);
+	}
+
 	return filename;
 }
 

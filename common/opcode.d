@@ -9,6 +9,15 @@ import std.traits : EnumMembers;
 enum OpcodeBitCount = 6;
 enum OpcodeCount = (1 << OpcodeBitCount);
 
+mixin enumDocumented!("Variant",
+	"Identity", 0,
+		"Pass the operand through unchanged.",
+	"ShiftLeft1", 1,
+		"Shift the operand 1 bit to the left.",
+	"ShiftLeft2", 2,
+		"Shift the operand 2 bits to the left.",
+);
+
 struct Opcode
 {
 	union
@@ -115,13 +124,6 @@ enum OperandSize
 	Byte2,
 	Byte4,
 	Word = Byte4
-}
-
-enum Variant
-{
-	Identity,
-	ShiftLeft1,
-	ShiftLeft2
 }
 
 enum Encoding
