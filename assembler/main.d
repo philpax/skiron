@@ -371,10 +371,12 @@ struct Assembler
 	{
 		// Synthesize add, store
 		Opcode add;
-		add.opcode = Opcodes.AddB.opcode;
-		add.encoding = Opcodes.AddB.encoding;
+		add.opcode = Opcodes.AddD.opcode;
+		add.encoding = Opcodes.AddD.encoding;
+		add.operandSize = OperandSize.Byte4;
 		add.register1 = Register.SP;
-		add.immediateB = -4;
+		add.register2 = Register.SP;
+		add.immediateD = -4;
 
 		Opcode store;
 		store.opcode = Opcodes.Store.opcode;
@@ -415,9 +417,11 @@ struct Assembler
 		load.register2 = Register.SP;
 
 		Opcode add;
-		add.opcode = Opcodes.AddB.opcode;
-		add.encoding = Opcodes.AddB.encoding;
+		add.opcode = Opcodes.AddD.opcode;
+		add.encoding = Opcodes.AddD.encoding;
+		add.operandSize = OperandSize.Byte4;
 		add.register1 = Register.SP;
+		add.register2 = Register.SP;
 		add.immediateB = 4;
 
 		this.output ~= load.value;

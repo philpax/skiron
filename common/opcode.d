@@ -191,8 +191,6 @@ enum Opcodes
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		4, true,  OperandFormat.DstSrcSrc,
 		"Add `src1` and `src2` together, and store the result in `dst`."),
-	AddB	= OpcodeDescriptor("add",		5, true, OperandFormat.DstImm,
-		"Add the immediate to `dst`, and store the result in `dst`."),
 	AddD	= OpcodeDescriptor("add",		6, true, OperandFormat.DstSrcImm,
 		"Add the immediate to `src`, and store the result in `dst`."),
 	Sub		= OpcodeDescriptor("sub",		7, true,  OperandFormat.DstSrcSrc,

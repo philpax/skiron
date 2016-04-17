@@ -21,24 +21,26 @@ string writeOpcodes()
 
 	descriptors.sort!((a,b) 
 	{ 
-		if (a.opcode < b.opcode) return true;
-		if (b.opcode < a.opcode) return false;
+		if (a.operandFormat != OperandFormat.Pseudo && 
+			b.operandFormat != OperandFormat.Pseudo)
+		{
+			if (a.opcode < b.opcode) return true;
+			if (b.opcode < a.opcode) return false;
+		}
 
 		if (a.operandFormat == OperandFormat.Pseudo && 
 			b.operandFormat != OperandFormat.Pseudo)
-			return true;
+			return false;
 
 		if (b.operandFormat == OperandFormat.Pseudo && 
 			a.operandFormat != OperandFormat.Pseudo)
-			return false;
+			return true;
 
 		return a.name < b.name;
 	});
 
 	const filename = "Instruction-Listing.md";
 	auto file = File(filename, "w");
-	file.writefln("Opcode | Instruction | Operands | Description");
-	file.writefln("-------|-------------|----------|------------");
 
 	foreach (index, descriptor; descriptors.enumerate)
 	{
@@ -48,49 +50,50 @@ string writeOpcodes()
 			auto diff = descriptor.opcode - prevDescriptor.opcode;
 
 			if (diff == 2)
-			{
-				file.writefln("`0x%02X` | | | Unallocated opcode", descriptor.opcode - 1);
-			}
+				file.writeln("## Unallocated opcode");
 			else if (diff > 2)
-			{
-				file.writefln("`0x%02X - 0x%02X` | | | Unallocated opcodes (%s free)",
-					prevDescriptor.opcode + 1, descriptor.opcode - 1, diff -  1);
-			}
+				file.writefln("## Unallocated opcodes (%s free)", diff -  1);
+
+			if (diff > 1)
+				file.writeln();
 		}
 
+		file.writefln("## %s", descriptor.name);
+		file.writeln(descriptor.description);
+		file.writeln();
+		file.write("* *Opcode*: ");
+
 		if (descriptor.operandFormat != OperandFormat.Pseudo)
-			file.writef("`0x%02X`", descriptor.opcode);
+			file.writefln("`0x%02X`", descriptor.opcode);
 		else
-			file.writef("Pseudo");
-		file.write(" | ");
-		file.write('`', descriptor.name, '`');
-		file.write(" | ");
-		final switch (descriptor.operandFormat)
+			file.writefln("Pseudo");
+
+		if (descriptor.operandFormat != OperandFormat.None && 
+			descriptor.operandFormat != OperandFormat.Pseudo)
 		{
+			file.write("* *Operand Format*: ");
+			switch (descriptor.operandFormat)
+			{
 			case OperandFormat.DstSrc:
-				file.write("`dst, src`");
+				file.writeln("`dst, src`");
 				break;
 			case OperandFormat.DstSrcSrc:
-				file.write("`dst, src, src`");
+				file.writeln("`dst, src, src`");
 				break;
 			case OperandFormat.DstImm:
-				file.write("`dst, imm`");
+				file.writeln("`dst, imm`");
 				break;
 			case OperandFormat.DstSrcImm:
-				file.write("`dst, src, imm`");
+				file.writeln("`dst, src, imm`");
 				break;
 			case OperandFormat.Label:
-				file.write("`label`");
+				file.writeln("`label`");
 				break;
-			case OperandFormat.None:
-				file.write("");
-				break;
-			case OperandFormat.Pseudo:
-				file.write("");
-				break;
+			default:
+				assert(0);
+			}
 		}
-		file.write(" | ");
-		file.write(descriptor.description);
+		
 		file.writeln();
 	}
 

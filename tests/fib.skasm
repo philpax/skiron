@@ -5,7 +5,7 @@ loadi r2, 4
 loop:
 	add r1, r1, r0
 	add r0, r1, r0
-	add r2, -1
+	add r2, r2, -1
 	cmp r2, z
 	jgt loop
 halt
