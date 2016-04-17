@@ -27,7 +27,7 @@ string generateOpcodeSwitch()
 		if (member.operandFormat == OperandFormat.Pseudo)
 			continue;
 
-		if (member.supportsOperandSize)
+		if (OperandFormatToOperandSizeSupport[member.operandFormat])
 		{
 			s ~= format(
 `case Opcodes.%1$s.opcode:

@@ -35,9 +35,9 @@ void runDiv(Type = uint)(ref Core core, Opcode opcode)
 	core.setDst!Type(opcode, core.getSrc1!Type(opcode) / core.getSrc2!Type(opcode));
 }
 
-void runNot(ref Core core, Opcode opcode)
+void runNot(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst(opcode, ~core.getSrc(opcode));
+	core.setDst!Type(opcode, ~core.getSrc!Type(opcode));
 }
 
 void runAnd(Type = uint)(ref Core core, Opcode opcode)
