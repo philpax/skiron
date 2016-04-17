@@ -5,7 +5,7 @@ import common.util;
 enum RegisterBitCount = 6;
 enum RegisterCount = (1 << RegisterBitCount);
 
-mixin enumDocumented!("Register",
+mixin EnumDocumented!("Register",
 	"Z", RegisterCount - 5, 
 		"Zero register (always 0). Any writes to this register will be discarded; " ~
 		"any reads will always return 0.",

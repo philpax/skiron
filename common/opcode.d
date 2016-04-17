@@ -9,7 +9,7 @@ import std.traits : EnumMembers;
 enum OpcodeBitCount = 6;
 enum OpcodeCount = (1 << OpcodeBitCount);
 
-mixin enumDocumented!("Variant",
+mixin EnumDocumented!("Variant",
 	"Identity", 0,
 		"Pass the operand through unchanged.",
 	"ShiftLeft1", 1,

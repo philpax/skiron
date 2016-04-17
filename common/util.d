@@ -166,7 +166,7 @@ string enumDocumentedImpl(string Name, Args...)()
 	return ret;
 }
 
-mixin template enumDocumented(string Name, Args...)
+mixin template EnumDocumented(string Name, Args...)
 {
 	import std.typecons : tuple;
 	mixin(enumDocumentedImpl!(Name, Args));
