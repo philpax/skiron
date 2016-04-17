@@ -118,16 +118,22 @@ enum Encoding
 }
 
 // Not the same as encoding; dictates how many operands there are
-enum OperandFormat
-{
-	DstSrc,
-	DstSrcSrc,
-	DstUImm,
-	DstSrcImm,
-	Label,
-	None,
-	Pseudo
-}
+mixin EnumDocumented!("OperandFormat",
+	"DstSrc",
+		"Destination, source.",
+	"DstSrcSrc",
+		"Destination, source1, source2.",
+	"DstUImm",
+		"Destination, unsigned immediate.",
+	"DstSrcImm",
+		"Destination, source, immediate.",
+	"Label",
+		"Label.",
+	"None",
+		"No operands.",
+	"Pseudo",
+		"Pseudo-instruction."
+);
 
 immutable OperandFormatToEncoding = [
 	Encoding.A,

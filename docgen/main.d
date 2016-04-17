@@ -156,6 +156,19 @@ string writeEncodings()
 		file.writefln("    * *Description*: %s", pair[1]);
 	}
 
+	file.writeln();
+	file.writeln("## Operand Formats");
+	file.writeln(
+		"An opcode has an operand format, which specifies which arguments it takes.");
+	file.writeln();
+
+	foreach (pair; OperandFormatDocs)
+	{
+		file.writefln("* **%s**", pair[0].to!string());
+		file.writefln("    * *Index*: %s", cast(uint)pair[0]);
+		file.writefln("    * *Description*: %s", pair[1]);
+	}
+
 	return filename;
 }
 
