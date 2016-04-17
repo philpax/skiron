@@ -122,7 +122,7 @@ enum OperandFormat
 {
 	DstSrc,
 	DstSrcSrc,
-	DstImm,
+	DstUImm,
 	DstSrcImm,
 	Label,
 	None,
@@ -178,9 +178,9 @@ enum Opcodes
 		"Loads the value located in `[src]` into `dst`."),
 	Store 	= OpcodeDescriptor("store",		1,  OperandFormat.DstSrc,
 		"Stores the value located in `src` into `[dst]`."),
-	LoadLi	= OpcodeDescriptor("loadli",	2,  OperandFormat.DstImm,
+	LoadLi	= OpcodeDescriptor("loadli",	2,  OperandFormat.DstUImm,
 		"Load the immediate into the lower half of `src`."),
-	LoadUi	= OpcodeDescriptor("loadui",	3,  OperandFormat.DstImm,
+	LoadUi	= OpcodeDescriptor("loadui",	3,  OperandFormat.DstUImm,
 		"Load the immediate into the upper half of `src`."),
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		4,  OperandFormat.DstSrcSrc,
@@ -336,7 +336,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg3 = opcode.register3.registerName(buffers[2]);
 
 		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
-	case OperandFormat.DstImm:
+	case OperandFormat.DstUImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
 		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);

@@ -268,7 +268,7 @@ struct Assembler
 		return true;
 	}
 
-	bool assembleDstImm(const(OpcodeDescriptor)* descriptor)
+	bool assembleDstUImm(const(OpcodeDescriptor)* descriptor)
 	{
 		auto newTokens = this.tokens;
 

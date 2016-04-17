@@ -80,7 +80,7 @@ string writeOpcodes()
 			case OperandFormat.DstSrcSrc:
 				file.writeln("`dst, src, src`");
 				break;
-			case OperandFormat.DstImm:
+			case OperandFormat.DstUImm:
 				file.writeln("`dst, imm`");
 				break;
 			case OperandFormat.DstSrcImm:
