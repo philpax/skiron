@@ -414,7 +414,7 @@ struct Assembler
 		add.operandSize = OperandSize.Byte4;
 		add.register1 = Register.SP;
 		add.register2 = Register.SP;
-		add.immediateB = 4;
+		add.immediateD = 4;
 
 		this.output ~= load.value;
 		this.output ~= add.value;
