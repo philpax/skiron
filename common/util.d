@@ -133,20 +133,37 @@ unittest
 	assert(buf.data.ptr == buf.bufferPtr);
 }
 
-private template SelectTwo(uint Index1, uint Index2, Args...)
+private template Select2From3(uint Index1, uint Index2, Args...)
 {	
 	import std.typecons : tuple;
 	import std.meta : AliasSeq;
 
 	static if (Args.length == 3)
 	{
-		enum SelectTwo = tuple(Args[Index1], Args[Index2]);
+		enum Select2From3 = tuple(Args[Index1], Args[Index2]);
 	}
 	else
 	{
-		enum SelectTwo = AliasSeq!(
-			SelectTwo!(Index1, Index2, Args[0..3]), 
-			SelectTwo!(Index1, Index2, Args[3..$]));
+		enum Select2From3 = AliasSeq!(
+			Select2From3!(Index1, Index2, Args[0..3]), 
+			Select2From3!(Index1, Index2, Args[3..$]));
+	}
+}
+
+private template Select2From2(Args...)
+{	
+	import std.typecons : tuple;
+	import std.meta : AliasSeq;
+
+	static if (Args.length == 2)
+	{
+		enum Select2From2 = tuple(Args[0], Args[1]);
+	}
+	else
+	{
+		enum Select2From2 = AliasSeq!(
+			Select2From2!(Args[0..2]), 
+			Select2From2!(Args[2..$]));
 	}
 }
 
@@ -155,13 +172,29 @@ string enumDocumentedImpl(string Name, Args...)()
 	import std.string : format;
 
 	string ret = "enum " ~ Name ~ " { ";
-	foreach (value; SelectTwo!(0, 1, Args))
-		ret ~= `%s = %s, `.format(value.expand);
-	ret ~= "}\n";
-	ret ~= "enum " ~ Name ~ "Docs = [";
-	foreach (value; SelectTwo!(0, 2, Args))
-		ret ~= `tuple(%s.%s, "%s"), `.format(Name, value.expand);
-	ret ~= "];\n";
+
+	static if (Args.length % 3 == 0)
+	{
+		foreach (value; Select2From3!(0, 1, Args))
+			ret ~= `%s = %s, `.format(value.expand);
+		ret ~= "}\n";
+
+		ret ~= "enum " ~ Name ~ "Docs = [";
+		foreach (value; Select2From3!(0, 2, Args))
+			ret ~= `tuple(%s.%s, "%s"), `.format(Name, value.expand);
+		ret ~= "];\n";
+	}
+	else static if (Args.length % 2 == 0)
+	{
+		foreach (value; Select2From2!Args)
+			ret ~= `%s, `.format(value[0]);
+		ret ~= "}\n";
+
+		ret ~= "enum " ~ Name ~ "Docs = [";
+		foreach (value; Select2From2!(Args))
+			ret ~= `tuple(%s.%s, "%s"), `.format(Name, value.expand);
+		ret ~= "];\n";
+	}
 
 	return ret;
 }
