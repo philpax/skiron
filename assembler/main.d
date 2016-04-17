@@ -285,15 +285,7 @@ struct Assembler
 		opcode.opcode = descriptor.opcode;
 		opcode.encoding = descriptor.encoding;
 		opcode.register1 = register1;
-		if (descriptor.supportsOperandSize)
-		{
-			opcode.operandSize = operandSize;
-			opcode.immediateB = immediate;
-		}
-		else
-		{
-			opcode.immediateB16 = immediate;
-		}
+		opcode.immediateB = cast(ushort)immediate;
 		opcode.variant = variant;
 
 		foreach (_; 0..this.repCount)
@@ -493,13 +485,13 @@ struct Assembler
 			loadui.opcode = Opcodes.LoadUi.opcode;
 			loadui.encoding = Opcodes.LoadUi.encoding;
 			loadui.register1 = register;
-			loadui.immediateB16 = high;
+			loadui.immediateB = high;
 
 			Opcode loadli;
 			loadli.opcode = Opcodes.LoadLi.opcode;
 			loadli.encoding = Opcodes.LoadLi.encoding;
 			loadli.register1 = register;
-			loadli.immediateB16 = low;
+			loadli.immediateB = low;
 
 			foreach (_; 0..this.repCount)
 			{
@@ -751,8 +743,8 @@ struct Assembler
 				auto location = relocation.location;
 				auto label = this.labels[relocation.label];
 
-				opcodes[location].immediateB16 = (label >> 16) & 0xFFFF;
-				opcodes[location+1].immediateB16 = label & 0xFFFF;
+				opcodes[location].immediateB = (label >> 16) & 0xFFFF;
+				opcodes[location+1].immediateB = label & 0xFFFF;
 				break;
 			}
 		}

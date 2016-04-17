@@ -56,25 +56,8 @@ struct Opcode
 			"The variant/modifier to apply to immediateB.",
 			Register,		"_register1",	RegisterBitCount,
 			"The destination/source register.",
-			int,			"immediateB",	14,
+			ushort,			"immediateB",	16,
 			"The encoded signed immediate value.",
-			OperandSize,	"_operandSize",	OperandSizeBitCount,
-			"",
-		);
-
-		mixin DefineEncoding!("B16",
-			"Used for one-register, one-16-bit-immediate instructions. " ~
-			"This is not a real encoding: it is the result of using Encoding B with an instruction that doesn't use operandSize.",
-			ubyte,			"_opcode",		OpcodeBitCount,
-			"",
-			Encoding,		"_encoding",	EncodingBitCount,
-			"",
-			Variant,		"_variant",		VariantBitCount,
-			"The variant/modifier to apply to immediateB.",
-			Register,		"_register1",	RegisterBitCount,
-			"The destination/source register.",
-			uint,			"immediateB16",	16,
-			"The unsigned 16-bit encoded immediate value.",
 		);
 
 		mixin DefineEncoding!("C",
@@ -345,10 +328,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	case OperandFormat.DstImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
-		if (descriptor.supportsOperandSize)
-			return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
-		else
-			return "%s %s%s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, opcode.immediateB16, variant);
+		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
 	case OperandFormat.DstSrcImm:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
