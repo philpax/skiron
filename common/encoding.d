@@ -2,6 +2,7 @@ module common.encoding;
 
 import std.bitmanip;
 import std.meta;
+import std.algorithm;
 
 struct EncodingDescription
 {
@@ -76,4 +77,13 @@ string defineEncoding(string Name, string Description, Args...)()
 mixin template DefineEncoding(string Name, string Description, Args...)
 {
 	mixin(defineEncoding!(Name, Description, Args));
+}
+
+EncodingDescription[] getEncodings(Opcode)()
+{
+	EncodingDescription[] ret;
+	enum r = [__traits(allMembers, Opcode)].filter!(a => a.startsWith("EncodingSeq"));
+	foreach (encoding; aliasSeqOf!(r))
+		ret ~= __traits(getMember, Opcode, encoding);
+	return ret;
 }
