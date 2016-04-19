@@ -199,6 +199,8 @@ struct CoreTab
 		if (this.lastIpLabel)
 			this.lastIpLabel.setAttributes(this.defaultAttributes);
 
+		row.activate();
+
 		this.lastIpLabel = ipLabel;
 	}
 
