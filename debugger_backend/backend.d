@@ -7,6 +7,7 @@ public import common.opcode;
 
 import std.conv;
 import std.process;
+import std.parallelism;
 
 struct Core
 {
@@ -40,7 +41,6 @@ struct Core
 
 class Debugger
 {
-	ProcessPipes emulatorChild;
 	NonBlockingSocket connection;
 	Core[] cores;
 	Opcode[] opcodes;
@@ -57,7 +57,14 @@ class Debugger
 
 	void spawnEmulator(string filePath)
 	{
-		this.emulatorChild = pipeProcess(["emulator", filePath, "--paused"], cast(Redirect)0);
+		import core.thread : Thread;
+		import core.time : msecs;
+
+		spawnProcess(["emulator", filePath, "--paused"]);
+		task({
+			Thread.getThis.sleep(1000.msecs);
+			this.connect("127.0.0.1", "1234");
+		}).executeInNewThread();
 	}
 
 	void connect(string ipAddress, string port)
