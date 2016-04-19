@@ -19,6 +19,7 @@ import gtk.ListStore, gtk.TreeView, gtk.TreeViewColumn, gtk.CellRendererText, gt
 // Pango
 import pango.PgAttributeList, pango.PgAttribute;
 
+import std.datetime;
 import std.string, std.range, std.algorithm, std.file;
 
 import debugger_backend.backend;
@@ -298,6 +299,8 @@ class DebuggerWindow : ApplicationWindow
 
 	CoreTab[] coreTabs;
 
+	StopWatch timeSinceSpawn;
+
 	this(Application application)
 	{
 		super(application);
@@ -378,6 +381,9 @@ class DebuggerWindow : ApplicationWindow
 		{
 			this.fileChooserDialog.close();
 			this.debugger.spawnEmulator(this.fileChooserDialog.getFilename());
+
+			this.timeSinceSpawn.reset();
+			this.timeSinceSpawn.start();
 		}
 	}
 
@@ -440,6 +446,12 @@ class DebuggerWindow : ApplicationWindow
 
 	bool onTick(Widget, FrameClock)
 	{
+		if (this.timeSinceSpawn.running && this.timeSinceSpawn.peek.seconds >= 3)
+		{
+			this.timeSinceSpawn.stop();
+			this.start("127.0.0.1", "1234");
+		}
+
 		this.debugger.handleSocket();
 
 		return true;
