@@ -57,7 +57,7 @@ struct Opcode
 			Register,		"_register1",	RegisterBitCount,
 			"The destination/source register.",
 			ushort,			"immediateB",	16,
-			"The encoded signed immediate value.",
+			"The encoded unsigned immediate value.",
 		);
 
 		mixin DefineEncoding!("C",
