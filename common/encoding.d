@@ -81,9 +81,15 @@ mixin template DefineEncoding(string Name, string Description, Args...)
 
 EncodingDescriptor[] getEncodings(Opcode)()
 {
-	EncodingDescriptor[] ret;
-	enum r = [__traits(allMembers, Opcode)].filter!(a => a.startsWith("EncodingSeq"));
-	foreach (encoding; aliasSeqOf!(r))
-		ret ~= __traits(getMember, Opcode, encoding);
-	return ret;
+	return mixin({
+		import std.string : format, join;
+		import std.array : array;
+
+		enum members = [__traits(allMembers, Opcode)]; 
+		return "[%s]".format(
+			members.filter!(a => a.startsWith("EncodingSeq"))
+				   .map!(a => Opcode.stringof ~ "." ~ a)
+				   .join(", ")
+				   .array());
+	}());
 }
