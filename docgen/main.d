@@ -10,6 +10,7 @@ import std.path;
 import std.math;
 
 import common.opcode;
+import common.encoding;
 import common.cpu;
 
 string writeOpcodes()
@@ -109,10 +110,8 @@ string writeEncodings()
 	enum isEncodingSeq(string String) = String.startsWith(prefix);
 
 	string[string] fieldDescriptions;
-	foreach (encodingSeqName; Filter!(isEncodingSeq, __traits(allMembers, Opcode)))
+	foreach (encodingDescriptor; getEncodings!Opcode())
 	{
-		auto encodingDescriptor = __traits(getMember, Opcode, encodingSeqName);
-
 		file.writefln("## Encoding %s", encodingDescriptor.name);
 		file.writeln(encodingDescriptor.description);
 		file.writeln();
