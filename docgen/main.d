@@ -111,19 +111,19 @@ string writeEncodings()
 	string[string] fieldDescriptions;
 	foreach (encodingSeqName; Filter!(isEncodingSeq, __traits(allMembers, Opcode)))
 	{
-		auto encodingDescription = __traits(getMember, Opcode, encodingSeqName);
+		auto encodingDescriptor = __traits(getMember, Opcode, encodingSeqName);
 
-		file.writefln("## Encoding %s", encodingDescription.name);
-		file.writeln(encodingDescription.description);
+		file.writefln("## Encoding %s", encodingDescriptor.name);
+		file.writeln(encodingDescriptor.description);
 		file.writeln();
 
 		file.writeln("### Field Layout");
-		file.writeln(encodingDescription.fields.map!(a => "%s bits".format(a.size)).join(" | "));
-		file.writeln(encodingDescription.fields.map!(a => "---").join(" | "));
-		file.writeln(encodingDescription.fields.map!(a => '`' ~ a.name ~ '`').join(" | "));
+		file.writeln(encodingDescriptor.fields.map!(a => "%s bits".format(a.size)).join(" | "));
+		file.writeln(encodingDescriptor.fields.map!(a => "---").join(" | "));
+		file.writeln(encodingDescriptor.fields.map!(a => '`' ~ a.name ~ '`').join(" | "));
 		file.writeln();
 
-		foreach (field; encodingDescription.fields)
+		foreach (field; encodingDescriptor.fields)
 		{
 			auto description = field.description;
 

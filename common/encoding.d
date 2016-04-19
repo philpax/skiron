@@ -4,7 +4,7 @@ import std.bitmanip;
 import std.meta;
 import std.algorithm;
 
-struct EncodingDescription
+struct EncodingDescriptor
 {
 	struct Field
 	{
@@ -47,7 +47,7 @@ string encodingDocsMake(Args...)()
 		if (name[0] == '_')
 			name = name[1..$];
 
-		return `EncodingDescription.Field("%s", "%s", %s, "%s"), `.format(Args[0].stringof, name, Args[2], Args[3]) ~ encodingDocsMake!(Args[4..$]);
+		return `EncodingDescriptor.Field("%s", "%s", %s, "%s"), `.format(Args[0].stringof, name, Args[2], Args[3]) ~ encodingDocsMake!(Args[4..$]);
 	}
 	else
 	{
@@ -59,7 +59,7 @@ string encodingDocs(string Name, string Description, Args...)()
 {
 	import std.string : format;
 
-	auto ret = `enum EncodingSeq` ~ Name ~ ` = EncodingDescription(`;
+	auto ret = `enum EncodingSeq` ~ Name ~ ` = EncodingDescriptor(`;
 	ret ~= `"%s", "%s", [`.format(Name, Description);
 	ret ~= encodingDocsMake!(Args);
 	ret ~= "]);\n";
@@ -79,9 +79,9 @@ mixin template DefineEncoding(string Name, string Description, Args...)
 	mixin(defineEncoding!(Name, Description, Args));
 }
 
-EncodingDescription[] getEncodings(Opcode)()
+EncodingDescriptor[] getEncodings(Opcode)()
 {
-	EncodingDescription[] ret;
+	EncodingDescriptor[] ret;
 	enum r = [__traits(allMembers, Opcode)].filter!(a => a.startsWith("EncodingSeq"));
 	foreach (encoding; aliasSeqOf!(r))
 		ret ~= __traits(getMember, Opcode, encoding);
