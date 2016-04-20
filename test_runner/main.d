@@ -26,7 +26,7 @@ void main()
 		auto headerLine = fileText.lineSplitter.front;
 		auto registerTargets = headerLine.findSplit("TEST: ")[2]
 										 .splitter(",")
-			                             .map!(a => a.strip.split)
+										 .map!(a => a.strip.split)
 										 .map!(a => tuple(a[0].registerFromName(), a[1].to!RegisterType))
 										 .assocArray();
 
