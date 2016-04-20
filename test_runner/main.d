@@ -36,6 +36,8 @@ void main()
 		targets[filePath] = registerTargets;
 	}
 
+	writeln("Tests: ", targets.byKey.map!(a => a.baseName()).join(", "));
+
 	foreach (filePath; targets.byKey)
 	{
 		auto registerTargets = targets[filePath];
