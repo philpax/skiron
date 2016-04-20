@@ -14,9 +14,10 @@ import debugger_backend.backend;
 
 void main()
 {
+	RegisterType[Register][string] targets;
+
 	foreach (filePath; "../tests".dirEntries("*.skasm", SpanMode.depth))
 	{
-		auto fileName = filePath.baseName();
 		auto fileText = filePath.readText();
 
 		if (fileText.empty)
@@ -31,6 +32,14 @@ void main()
 
 		if (registerTargets.length == 0)
 			continue;
+
+		targets[filePath] = registerTargets;
+	}
+
+	foreach (filePath; targets.byKey)
+	{
+		auto registerTargets = targets[filePath];
+		auto fileName = filePath.baseName();
 
 		bool run = true;
 		auto debugger = new Debugger();
@@ -57,6 +66,7 @@ void main()
 
 			"[%s] %s".writefln(fileName, success ? "Test passed" : "Test failed");
 			debugger.shutdown();
+			debugger.waitForSpawnedEmulator();
 			run = false;
 		};
 
