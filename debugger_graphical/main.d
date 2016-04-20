@@ -371,7 +371,6 @@ class DebuggerWindow : ApplicationWindow
 		this.debugger.onDisconnect = &this.onDisconnect;
 		this.debugger.onCoreState = &this.onCoreState;
 		this.debugger.onSystemOpcodes = &this.onSystemOpcodes;
-		this.debugger.onSystemMemory = (address, bytes) {};
 	}
 
 	void onStartClick(MenuItem)

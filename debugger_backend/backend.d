@@ -85,7 +85,9 @@ class Debugger
 
 		this.connection.shutdown(SocketShutdown.BOTH);
 		this.connection.close();
-		this.onDisconnect();
+		
+		if (this.onDisconnect !is null)
+			this.onDisconnect();
 
 		this.cores = [];
 	}
@@ -166,6 +168,8 @@ class Debugger
 				this.createCore(coreIndex);
 
 			this.onInitialize();
+			if (this.onInitialize !is null)
+				this.onInitialize();
 			this.getMemory(this.textBegin, this.textEnd);
 			break;
 		case DebugMessageId.CoreState:
@@ -174,7 +178,8 @@ class Debugger
 			auto core = &this.cores[coreState.core];
 			core.running = coreState.running;
 			core.registers = coreState.registers;
-			this.onCoreState(core);
+			if (this.onCoreState !is null)
+				this.onCoreState(core);
 			break;
 		case DebugMessageId.SystemMemory:
 			auto systemMemory = buffer.deserializeMessage!SystemMemory();
@@ -186,9 +191,11 @@ class Debugger
 			if (memoryBegin == this.textBegin && memoryEnd == this.textEnd)
 			{
 				this.opcodes = cast(Opcode[])systemMemory.memory;
-				this.onSystemOpcodes();
+				if (this.onSystemOpcodes !is null)
+					this.onSystemOpcodes();
 			}
-			this.onSystemMemory(memoryBegin, memory);
+			if (this.onSystemMemory !is null)
+				this.onSystemMemory(memoryBegin, memory);
 			break;
 		default:
 			assert(0);
