@@ -41,7 +41,14 @@ struct CoreSetRunning
 
 struct CoreStep
 {
-	uint core;	
+	uint core;
+
+	mixin Serializable!DebugMessageId;
+}
+
+struct CoreHalt
+{
+	uint core;
 
 	mixin Serializable!DebugMessageId;
 }

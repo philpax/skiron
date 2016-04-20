@@ -332,8 +332,12 @@ nothrow:
 			foreach (ref core; this.cores.filter!(a => a.running))
 			{
 				core.step();
+
 				if (!core.running)
+				{
 					core.sendState();
+					this.sendMessage!CoreHalt(core.id);
+				}
 			}
 		}
 	}

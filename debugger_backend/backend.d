@@ -52,6 +52,7 @@ class Debugger
 	void delegate() onDisconnect;
 
 	void delegate(Core*) onCoreState;
+	void delegate(Core*) onCoreHalt;
 	void delegate() onSystemOpcodes;
 	void delegate(uint, ubyte[]) onSystemMemory;
 
@@ -180,6 +181,13 @@ class Debugger
 			core.registers = coreState.registers;
 			if (this.onCoreState !is null)
 				this.onCoreState(core);
+			break;
+		case DebugMessageId.CoreHalt:
+			auto coreHalt = buffer.deserializeMessage!CoreHalt();
+
+			auto core = &this.cores[coreHalt.core];
+			if (this.onCoreHalt !is null)
+				this.onCoreHalt(core);
 			break;
 		case DebugMessageId.SystemMemory:
 			auto systemMemory = buffer.deserializeMessage!SystemMemory();
