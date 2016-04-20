@@ -63,11 +63,41 @@ char[] registerName(Register index, char[] buffer) @nogc nothrow
 	}
 
 	
-	mixin(generateRegisterIf());		
+	mixin(generateRegisterIf());
 }
 
 string registerName(Register index)
 {
 	char[16] buffer;
 	return index.registerName(buffer).idup;
+}
+
+Register registerFromName(string name)
+{
+	import std.algorithm : startsWith, all;
+	import std.conv : to;
+	import std.ascii : isDigit;
+	import std.uni : toLower;
+
+	string generateRegisterIf()
+	{
+		import std.traits : EnumMembers;
+		import std.string : format;
+
+		string ret = "";
+		foreach (member; EnumMembers!Register)
+		{
+			string name = member.to!string();
+			ret ~= `if (name == "%s") return Register.%s;`.format(name.toLower(), name);
+		}
+
+		ret ~= `else if (name.startsWith("r") && name.length > 1 && name[1..$].all!isDigit)`;
+		ret ~= ` return cast(Register)name[1..$].to!ubyte();`;
+		ret ~= `throw new Exception("Invalid register");`;
+
+		return ret;
+	}
+
+	
+	mixin(generateRegisterIf());
 }

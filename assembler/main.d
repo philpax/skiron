@@ -131,21 +131,14 @@ struct Assembler
 		if (token.type != tok!"identifier")
 			return false;
 
-		auto t = token.text;
-		if (t == "ip")
-			output = Register.IP;
-		else if (t == "sp")
-			output = Register.SP;
-		else if (t == "bp")
-			output = Register.BP;
-		else if (t == "ra")
-			output = Register.RA;
-		else if (t == "z")
-			output = Register.Z;
-		else if (t.startsWith("r") && t.length > 1 && t[1..$].all!isDigit)
-			output = cast(Register)t[1..$].to!ubyte();
-		else
+		try
+		{
+			output = token.text.registerFromName();
+		}
+		catch (Exception)
+		{
 			return false;
+		}
 
 		tokens.popFront();
 		return true;
