@@ -83,6 +83,20 @@ solution "skiron"
 		filter "configurations:unittest"
 			flags { "UnitTest" }
 
+	project "test_runner"
+		kind "ConsoleApp"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+		flags { "SymbolsLikeC" }
+
+		links { "bin/debugger_backend.lib", "bin/common.lib" }
+		includedirs { "common/", "debugger_backend/" }
+		files { "test_runner/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
+
 	project "docgen"
 		kind "ConsoleApp"
 		language "D"
