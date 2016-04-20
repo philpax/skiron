@@ -60,7 +60,7 @@ void main()
 			run = false;
 		};
 
-		debugger.spawnEmulator(filePath);
+		debugger.spawnEmulator(filePath, true);
 
 		while (run)
 			debugger.handleSocket();

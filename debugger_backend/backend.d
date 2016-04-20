@@ -45,7 +45,7 @@ class Debugger
 	Core[] cores;
 	Opcode[] opcodes;
 
-	Pid spawnedProcess;
+	ProcessPipes spawnedProcess;
 
 	uint textBegin;
 	uint textEnd;
@@ -58,12 +58,13 @@ class Debugger
 	void delegate() onSystemOpcodes;
 	void delegate(uint, ubyte[]) onSystemMemory;
 
-	void spawnEmulator(string filePath, string[] args = ["--paused"])
+	void spawnEmulator(string filePath, bool redirectStdout = false, string[] args = ["--paused"])
 	{
 		import core.thread : Thread;
 		import core.time : msecs;
 
-		this.spawnedProcess = spawnProcess(["emulator", filePath] ~ args);
+		auto redirect = redirectStdout ? Redirect.stdout : cast(Redirect)0;
+		this.spawnedProcess = pipeProcess(["emulator", filePath] ~ args, redirect);
 		task({
 			Thread.getThis.sleep(1000.msecs);
 			this.connect("127.0.0.1", "1234");
@@ -72,7 +73,7 @@ class Debugger
 
 	void waitForSpawnedEmulator()
 	{
-		this.spawnedProcess.wait();
+		this.spawnedProcess.pid.wait();
 	}
 
 	void connect(string ipAddress, string port)
