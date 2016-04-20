@@ -1,3 +1,4 @@
+# TEST: r0 3735928559, r1 3735928559
 loadi r0, -559038737
 loadi r1, 0xDEADBEEF
 halt

@@ -1,3 +1,4 @@
+# TEST: r2 64
 # Load values into registers
 loadi r0, 32
 loadi r1, 18
