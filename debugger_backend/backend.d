@@ -66,7 +66,7 @@ class Debugger
 		auto redirect = redirectStdout ? Redirect.stdout : cast(Redirect)0;
 		this.spawnedProcess = pipeProcess(["emulator", filePath] ~ args, redirect);
 		task({
-			Thread.getThis.sleep(1000.msecs);
+			Thread.getThis.sleep(50.msecs);
 			this.connect("127.0.0.1", "1234");
 		}).executeInNewThread();
 	}
