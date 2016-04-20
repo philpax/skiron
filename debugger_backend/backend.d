@@ -176,7 +176,6 @@ class Debugger
 			foreach (coreIndex; 0 .. initialize.coreCount)
 				this.createCore(coreIndex);
 
-			this.onInitialize();
 			if (this.onInitialize !is null)
 				this.onInitialize();
 			this.getMemory(this.textBegin, this.textEnd);
