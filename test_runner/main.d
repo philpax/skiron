@@ -14,7 +14,14 @@ import debugger_backend.backend;
 
 void main()
 {
-	RegisterType[Register][string] targets;
+	struct Test
+	{
+		string name;
+		string path;
+		RegisterType[Register] targets;
+	}
+
+	Test[] tests;
 
 	foreach (filePath; "../tests".dirEntries("*.skasm", SpanMode.depth))
 	{
@@ -33,16 +40,13 @@ void main()
 		if (registerTargets.length == 0)
 			continue;
 
-		targets[filePath] = registerTargets;
+		tests ~= Test(filePath.baseName.stripExtension(), filePath, registerTargets);
 	}
 
-	writeln("Tests: ", targets.byKey.map!(a => a.baseName()).join(", "));
+	writeln("Tests: ", tests.map!(a => a.name).join(", "));
 
-	foreach (filePath; targets.byKey)
+	foreach (test; tests)
 	{
-		auto registerTargets = targets[filePath];
-		auto fileName = filePath.baseName();
-
 		bool run = true;
 		auto debugger = new Debugger();
 
@@ -55,24 +59,24 @@ void main()
 
 			bool success = true;
 
-			foreach (register, value; registerTargets)
+			foreach (register, value; test.targets)
 			{
 				auto coreValue = core.registers[register];
 				
 				if (coreValue != value)
 				{
-					"[%s] %s: Expected %s, got %s".writefln(fileName, register.registerName(), value, coreValue);
+					"[%s] %s: Expected %s, got %s".writefln(test.name, register.registerName(), value, coreValue);
 					success = false;
 				}
 			}
 
-			"[%s] %s".writefln(fileName, success ? "Test passed" : "Test failed");
+			"[%s] %s".writefln(test.name, success ? "Test passed" : "Test failed");
 			debugger.shutdown();
 			debugger.waitForSpawnedEmulator();
 			run = false;
 		};
 
-		debugger.spawnEmulator(filePath, true);
+		debugger.spawnEmulator(test.path, true);
 
 		while (run)
 			debugger.handleSocket();
