@@ -58,16 +58,18 @@ class Debugger
 	void delegate() onSystemOpcodes;
 	void delegate(uint, ubyte[]) onSystemMemory;
 
-	void spawnEmulator(string filePath, bool redirectStdout = false, string[] args = ["--paused"])
+	void spawnEmulator(string filePath, ushort port = 1234, bool redirectStdout = false, string[] args = ["--paused"])
 	{
 		import core.thread : Thread;
 		import core.time : msecs;
 
 		auto redirect = redirectStdout ? Redirect.stdout : cast(Redirect)0;
+		auto portStr = port.to!string();
+		args ~= ["--port", portStr];
 		this.spawnedProcess = pipeProcess(["emulator", filePath] ~ args, redirect);
 		task({
 			Thread.getThis.sleep(50.msecs);
-			this.connect("127.0.0.1", "1234");
+			this.connect("127.0.0.1", portStr);
 		}).executeInNewThread();
 	}
 
