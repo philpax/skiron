@@ -43,7 +43,7 @@ void main()
 		tests ~= Test(filePath.baseName.stripExtension(), filePath, registerTargets);
 	}
 
-	writeln("Tests: ", tests.map!(a => a.name).join(", "));
+	writeln("== Tests: ", tests.map!(a => a.name).join(", "), " ==");
 
 	foreach (test; tests)
 	{
@@ -65,12 +65,12 @@ void main()
 				
 				if (coreValue != value)
 				{
-					"[%s] %s: Expected %s, got %s".writefln(test.name, register.registerName(), value, coreValue);
+					"%s | %s: Expected %s, got %s".writefln(test.name, register.registerName(), value, coreValue);
 					success = false;
 				}
 			}
 
-			"[%s] %s".writefln(test.name, success ? "Test passed" : "Test failed");
+			"%s | %s".writefln(success ? "Pass" : "Fail", test.name);
 			debugger.shutdown();
 			debugger.waitForSpawnedEmulator();
 			run = false;
