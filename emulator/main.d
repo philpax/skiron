@@ -23,7 +23,9 @@ void main(string[] args)
 	args.getopt(
 		"print-opcodes", &config.printOpcodes, 
 		"print-registers", &config.printRegisters,
-		"paused", &config.paused);
+		"paused", &config.paused,
+		"memory-size", &config.memorySize,
+		"core-count", &config.coreCount);
 
 	if (args.length < 2)
 	{
