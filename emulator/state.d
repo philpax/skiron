@@ -171,7 +171,15 @@ nothrow:
 	{
 		this.state.sendMessage!CoreState(this.id, !this.paused && this.running, this.registers);
 	}
-	
+}
+
+struct Config
+{
+	uint memorySize = 1024 * 1024;
+	uint coreCount = 1;
+	bool printOpcodes = false;
+	bool printRegisters = false;
+	bool paused = false;
 }
 
 struct State
@@ -186,11 +194,11 @@ nothrow:
 
 	@disable this();
 
-	this(uint memorySize, uint coreCount, bool printOpcodes, bool printRegisters, bool paused)
+	this(const ref Config config)
 	{
-		this.memory = cast(ubyte[])malloc(memorySize)[0..memorySize];
-		this.cores = (cast(Core*)malloc(coreCount * Core.sizeof))[0..coreCount];
-		printf("Memory: %u kB | Core count: %u\n", memorySize/1024, coreCount);
+		this.memory = cast(ubyte[])malloc(config.memorySize)[0..config.memorySize];
+		this.cores = (cast(Core*)malloc(config.coreCount * Core.sizeof))[0..config.coreCount];
+		printf("Memory: %u kB | Core count: %u\n", this.memory.length/1024, this.cores.length);
 
 		this.server = NonBlockingSocket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
 		this.server.bind(1234);
@@ -200,8 +208,8 @@ nothrow:
 
 		foreach (ref core; this.cores)
 		{
-			core = Core(this, index++, printOpcodes, printRegisters);
-			core.paused = paused;
+			core = Core(this, index++, config.printOpcodes, config.printRegisters);
+			core.paused = config.paused;
 		}
 	}
 

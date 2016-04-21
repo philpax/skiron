@@ -3,30 +3,27 @@ import core.memory;
 import std.file;
 import std.path;
 import std.stdio;
-import std.process;
 import std.getopt;
 
 import common.util;
 
 import emulator.state;
 
-void runEmulator(ubyte[] program, bool printOpcodes, bool printRegisters, bool paused) @nogc nothrow
+void runEmulator(ubyte[] program, const ref Config config) @nogc nothrow
 {
 	printf("Skiron Emulator\n");
-	auto state = State(1024 * 1024, 1, printOpcodes, printRegisters, paused);
+	auto state = State(config);
 	state.load(program);
 	state.run();
 }
 
 void main(string[] args)
 {
-	bool printOpcodes = false;
-	bool printRegisters = false;
-	bool paused = false;
+	Config config;
 	args.getopt(
-		"print-opcodes", &printOpcodes, 
-		"print-registers", &printRegisters,
-		"paused", &paused);
+		"print-opcodes", &config.printOpcodes, 
+		"print-registers", &config.printRegisters,
+		"paused", &config.paused);
 
 	if (args.length < 2)
 	{
@@ -43,6 +40,7 @@ void main(string[] args)
 
 	if (filePath.extension() == ".skasm")
 	{
+		import std.process : execute;
 		writefln("Assembling '%s'", filePath);
 		auto assembler = ["assembler", filePath].execute();
 
@@ -77,5 +75,5 @@ void main(string[] args)
 	GC.disable();
 
 	program = program[uint.sizeof .. $];
-	program.runEmulator(printOpcodes, printRegisters, paused);
+	program.runEmulator(config);
 }
