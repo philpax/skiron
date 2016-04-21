@@ -25,7 +25,8 @@ void main(string[] args)
 		"print-registers", &config.printRegisters,
 		"paused", &config.paused,
 		"memory-size", &config.memorySize,
-		"core-count", &config.coreCount);
+		"core-count", &config.coreCount,
+		"port", &config.port);
 
 	if (args.length < 2)
 	{

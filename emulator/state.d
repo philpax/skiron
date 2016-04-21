@@ -177,6 +177,7 @@ struct Config
 {
 	uint memorySize = 1024 * 1024;
 	uint coreCount = 1;
+	ushort port = 1234;
 	bool printOpcodes = false;
 	bool printRegisters = false;
 	bool paused = false;
@@ -201,8 +202,9 @@ nothrow:
 		printf("Memory: %u kB | Core count: %u\n", this.memory.length/1024, this.cores.length);
 
 		this.server = NonBlockingSocket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
-		this.server.bind(1234);
+		this.server.bind(config.port);
 		this.server.listen(1);
+		printf("Debugger: Waiting for connection on port %i\n", config.port);
 
 		uint index = 0;
 
