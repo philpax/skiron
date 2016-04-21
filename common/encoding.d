@@ -74,9 +74,10 @@ string defineEncoding(string Name, string Description, Args...)()
 	return ret;
 }
 
-mixin template DefineEncoding(string Name, string Description, Args...)
+mixin template DefineEncoding(alias encoding, string Description, Args...)
 {
-	mixin(defineEncoding!(Name, Description, Args));
+	import std.conv;
+	mixin(defineEncoding!(to!string(encoding), Description, Args));
 }
 
 EncodingDescriptor[] getEncodings(Opcode)()

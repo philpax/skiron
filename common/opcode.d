@@ -18,6 +18,14 @@ mixin EnumDocumented!("Variant",
 		"Shift the operand 2 bits to the left.",
 );
 
+enum Encoding
+{
+	A,
+	B,
+	C,
+	D,
+}
+
 struct Opcode
 {
 	union
@@ -26,7 +34,7 @@ struct Opcode
 		enum VariantBitCount = 2;
 		enum OperandSizeBitCount = 2;
 
-		mixin DefineEncoding!("A",
+		mixin DefineEncoding!(Encoding.A,
 			"Used for three-register instructions.",
 			ubyte,			"opcode",		OpcodeBitCount,
 			"The opcode number.",
@@ -46,7 +54,7 @@ struct Opcode
 			"The sizes of the operands being used.",
 		);
 
-		mixin DefineEncoding!("B",
+		mixin DefineEncoding!(Encoding.B,
 			"Used for one-register, one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
@@ -60,7 +68,7 @@ struct Opcode
 			"The encoded unsigned immediate value.",
 		);
 
-		mixin DefineEncoding!("C",
+		mixin DefineEncoding!(Encoding.C,
 			"Used for one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
@@ -74,7 +82,7 @@ struct Opcode
 			"",
 		);
 
-		mixin DefineEncoding!("D",
+		mixin DefineEncoding!(Encoding.D,
 			"Used for two-register, one-immediate instructions.",
 			ubyte,			"_opcode",		OpcodeBitCount,
 			"",
@@ -107,14 +115,6 @@ enum OperandSize
 	Byte2,
 	Byte4,
 	Word = Byte4
-}
-
-enum Encoding
-{
-	A,
-	B,
-	C,
-	D,
 }
 
 // Not the same as encoding; dictates how many operands there are
