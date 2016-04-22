@@ -7,6 +7,7 @@ import std.typecons;
 import std.conv;
 import std.parallelism;
 import std.path;
+import std.traits;
 
 import common.cpu;
 
@@ -14,11 +15,13 @@ import debugger_backend.backend;
 
 void main()
 {
+	alias TargetType = Signed!RegisterType;
+
 	struct Test
 	{
 		string name;
 		string path;
-		RegisterType[Register] targets;
+		TargetType[Register] targets;
 	}
 
 	Test[] tests;
@@ -34,7 +37,7 @@ void main()
 		auto registerTargets = headerLine.findSplit("TEST: ")[2]
 										 .splitter(",")
 										 .map!(a => a.strip.split)
-										 .map!(a => tuple(a[0].registerFromName(), a[1].to!RegisterType))
+										 .map!(a => tuple(a[0].registerFromName(), cast(TargetType)a[1].to!long))
 										 .assocArray();
 
 		if (registerTargets.length == 0)
@@ -61,7 +64,7 @@ void main()
 
 			foreach (register, value; test.targets)
 			{
-				auto coreValue = core.registers[register];
+				auto coreValue = cast(TargetType)core.registers[register];
 				
 				if (coreValue != value)
 				{
@@ -76,7 +79,7 @@ void main()
 			run = false;
 		};
 
-		debugger.spawnEmulator(test.path, true);
+		debugger.spawnEmulator(test.path, 1234, true);
 
 		while (run)
 			debugger.handleSocket();
