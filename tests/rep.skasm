@@ -1,3 +1,4 @@
+# TEST: r0 100, r1 100, r2 200
 target:
 rep 10 add r0, r0, 10
 rep 4 move r1, r0
