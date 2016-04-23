@@ -12,10 +12,14 @@ string generateIdEnum(alias Module)(string name)
 	string s = "enum " ~ name ~ " : ubyte {";
 	foreach (member; __traits(allMembers, Module))
 	{
-		alias memberField = Identity!(__traits(getMember, Module, member));
+		// WORKAROUND: Issue 15907
+		static if (member != "object" && member != "common")
+		{
+			alias memberField = Identity!(__traits(getMember, Module, member));
 		
-		static if (is(memberField == struct))
-			s ~= member ~ ",\n";
+			static if (is(memberField == struct))
+				s ~= member ~ ",\n";
+		}
 	}
 	s ~= "}";
 	return s;
@@ -104,6 +108,8 @@ nothrow:
 
 	~this()
 	{
+		import core.stdc.stdlib : free;
+
 		// Free the memory of arrays that have been deserialised
 		foreach (field; this.tupleof)
 		{

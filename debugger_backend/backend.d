@@ -87,7 +87,7 @@ class Debugger
 
 		auto address = getAddress(ipAddress, port.to!ushort)[0];
 		this.connection = NonBlockingSocket(
-			AddressFamily.INET, std.socket.SocketType.STREAM, ProtocolType.TCP);
+			AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
 
 		auto connectionAttempt = this.connection.connect(address);
 	}
