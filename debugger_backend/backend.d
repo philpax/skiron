@@ -5,9 +5,12 @@ public import common.util;
 public import common.cpu;
 public import common.opcode;
 
+import std.utf;
 import std.conv;
 import std.process;
 import std.parallelism;
+
+import core.thread;
 
 struct Core
 {
