@@ -1,6 +1,18 @@
 solution "skiron"
 	configurations { "release", "debug", "unittest" }
 
+	project "arsd"
+		kind "StaticLib"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+		flags { "SymbolsLikeC" }
+
+		files { "vendor/arsd/simpledisplay.d", "vendor/arsd/color.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
+
 	project "common"
 		kind "StaticLib"
 		language "D"
@@ -20,8 +32,8 @@ solution "skiron"
 		debugdir "bin"
 		flags { "SymbolsLikeC" }
 
-		links { "bin/common.lib" }
-		includedirs { "common/" }
+		links { "bin/common.lib", "bin/arsd.lib" }
+		includedirs { "common/", "vendor/" }
 		files { "emulator/**.d" }
 
 		filter "configurations:unittest"

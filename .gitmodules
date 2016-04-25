@@ -2,3 +2,6 @@
 	path = vendor/gtkd
 	url = https://github.com/gtkd-developers/GtkD.git
 	ignore = dirty
+[submodule "vendor/arsd"]
+	path = vendor/arsd
+	url = https://github.com/adamdruppe/arsd.git

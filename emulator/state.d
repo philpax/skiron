@@ -335,7 +335,7 @@ nothrow:
 	{
 		import std.algorithm : any;
 
-		while (this.cores.any!(a => a.running) || this.client.isValid)
+		if (this.cores.any!(a => a.running) || this.client.isValid)
 		{
 			this.handleDebuggerConnection();
 

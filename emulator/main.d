@@ -9,13 +9,7 @@ import common.util;
 
 import emulator.state;
 
-void runEmulator(ubyte[] program, const ref Config config) @nogc nothrow
-{
-	printf("Skiron Emulator\n");
-	auto state = State(config);
-	state.load(program);
-	state.run();
-}
+import arsd.simpledisplay;
 
 void main(string[] args)
 {
@@ -77,6 +71,15 @@ void main(string[] args)
 	GC.collect();
 	GC.disable();
 
+	auto window = new SimpleWindow(640, 480);
+
 	program = program[uint.sizeof .. $];
-	program.runEmulator(config);
+	
+	printf("Skiron Emulator\n");
+	auto state = State(config);
+	state.load(program);
+
+	window.eventLoop(1,
+		() { state.run(); }
+	);
 }
