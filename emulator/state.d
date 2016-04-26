@@ -9,6 +9,7 @@ import common.util;
 import emulator.memory;
 import emulator.arithmetic;
 import emulator.controlflow;
+import emulator.screen;
 
 import core.stdc.stdlib;
 import core.stdc.stdio;
@@ -191,6 +192,9 @@ struct State
 nothrow:
 	ubyte[] memory;
 	Core[] cores;
+
+	Screen screen;
+
 	uint textEnd = 0;
 	NonBlockingSocket server;
 	NonBlockingSocket client;
@@ -202,6 +206,9 @@ nothrow:
 		this.memory = cast(ubyte[])malloc(config.memorySize)[0..config.memorySize];
 		this.cores = (cast(Core*)malloc(config.coreCount * Core.sizeof))[0..config.coreCount];
 		printf("Memory: %u kB | Core count: %u\n", this.memory.length/1024, this.cores.length);
+
+		this.screen = Screen(0x1_000_000, config.width, config.height);
+		printf("Screen: Created, memory map size: %u bytes\n", this.screen.mapSize);
 
 		this.server = NonBlockingSocket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
 		this.server.bind(config.port);
