@@ -87,6 +87,12 @@ void main(string[] args)
 
 	window.eventLoop(16, ()
 	{
+		if (!processThread.isRunning)
+		{
+			window.close();
+			return;
+		}
+
 		// Do more efficiently at a later stage
 		foreach (y; 0..displayImage.height)
 		{
