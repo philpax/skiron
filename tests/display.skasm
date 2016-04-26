@@ -1,0 +1,35 @@
+# r0: width address
+# r1: height address
+# r2: width
+# r3: height
+# r4: loop counter
+# r5: loop end
+# r6: pixels address
+# r7: temporary
+# r8: temporary
+loadi r0, 0x1000000
+add r1, r0, 4
+
+load r2, r0
+load r3, r1
+
+loadi r4, 0
+#loadi r5, 2 # fixed loop
+#move r5, r2 # width
+mul r5, r2, r3 # width * height (full screen)
+add r6, r1, 4
+
+loadi r7, 255
+
+loop:
+	store byte r6, r7
+	add r6, r6, 1
+	and r8, r4, r7
+	store byte r6, r8
+	add r6, r6, 2
+
+	add r4, r4, 1
+	cmp r4, r5
+	jne loop
+
+halt
