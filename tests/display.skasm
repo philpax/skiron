@@ -1,35 +1,58 @@
-# r0: width address
-# r1: height address
-# r2: width
-# r3: height
-# r4: loop counter
-# r5: loop end
-# r6: pixels address
-# r7: temporary
-# r8: temporary
+# Registers:
+# r0: Width address
+# r1: Height address
+# r2: Width
+# r3: Height
+# r4: Loop counter
+# r5: Loop end
+# r6: Pixels address
+# r7: Temporary
+# r8: Temporary
+
+# Load r0 with the width address, and r1 with the height address
 loadi r0, 0x1000000
 add r1, r0, 4
 
+# Load width and height
 load r2, r0
 load r3, r1
 
+# Load the loop counter with 0
 loadi r4, 0
-#loadi r5, 2 # fixed loop
-#move r5, r2 # width
-mul r5, r2, r3 # width * height (full screen)
+
+# Load the loop end (uncomment as appropriate)
+# Fixed loop end
+# loadi r5, 2
+
+# Width
+# move r5, r2 
+
+# Width * Height (full screen)
+mul r5, r2, r3 
+
+# Set the starting address for pixels
 add r6, r1, 4
 
+# Load r7 with 255 (full channel)
 loadi r7, 255
 
+# Loop until we reach the end
 loop:
+	# Store 255 in R
 	store byte r6, r7
+	# Move to G
 	add r6, r6, 1
+	# Bitwise-and loop counter with 255
 	and r8, r4, r7
+	# Store the result of the and in G
 	store byte r6, r8
+	# Move to next pixel
 	add r6, r6, 2
 
+	# Increment loop counter, compare, and jump
 	add r4, r4, 1
 	cmp r4, r5
 	jne loop
 
+# Finish
 halt
