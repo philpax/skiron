@@ -12,14 +12,6 @@ import emulator.state;
 
 import arsd.simpledisplay;
 
-void runEmulator(ubyte[] program, const ref Config config) @nogc nothrow
-{
-	printf("Skiron Emulator\n");
-	auto state = State(config);
-	state.load(program);
-	state.run();
-}
-
 void main(string[] args)
 {
 	Config config;
@@ -79,16 +71,35 @@ void main(string[] args)
 		return;
 	}
 
+	program = program[uint.sizeof .. $];
+
 	GC.collect();
 	GC.disable();
 
 	auto window = new SimpleWindow(config.width, config.height);
+	auto displayImage = new Image(window.width, window.height);
+	
+	printf("Skiron Emulator\n");
+	auto state = State(config);
+	state.load(program);
 
-	auto processThread = new Thread({
-		program = program[uint.sizeof .. $];
-		program.runEmulator(config);
-	}).start();
+	auto processThread = new Thread(() => state.run()).start();
 
-	window.eventLoop(0);
+	window.eventLoop(16, ()
+	{
+		// Do more efficiently at a later stage
+		foreach (y; 0..displayImage.height)
+		{
+			foreach (x; 0..displayImage.width)
+			{
+				auto screen = &state.screen;
+				auto pixel = screen.pixels[y * screen.width + x];
+				displayImage[x, y] = Color(pixel.r, pixel.g, pixel.b);
+			}
+		}
+
+		auto screenPainter = window.draw();
+		screenPainter.drawImage(Point(0, 0), displayImage);
+	});
 	processThread.join();
 }
