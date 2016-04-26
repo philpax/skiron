@@ -76,7 +76,7 @@ void main(string[] args)
 	GC.collect();
 	GC.disable();
 
-	auto window = new SimpleWindow(config.width, config.height);
+	auto window = new SimpleWindow(config.width, config.height, "Skiron Emulator");
 	auto displayImage = new Image(window.width, window.height);
 	
 	printf("Skiron Emulator\n");
