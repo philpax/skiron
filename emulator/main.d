@@ -29,7 +29,9 @@ void main(string[] args)
 		"paused", &config.paused,
 		"memory-size", &config.memorySize,
 		"core-count", &config.coreCount,
-		"port", &config.port);
+		"port", &config.port,
+		"width", &config.width,
+		"height", &config.height);
 
 	if (args.length < 2)
 	{
@@ -80,7 +82,7 @@ void main(string[] args)
 	GC.collect();
 	GC.disable();
 
-	auto window = new SimpleWindow(640, 480);
+	auto window = new SimpleWindow(config.width, config.height);
 
 	auto processThread = new Thread({
 		program = program[uint.sizeof .. $];

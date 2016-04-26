@@ -181,6 +181,8 @@ struct Config
 	bool printOpcodes = false;
 	bool printRegisters = false;
 	bool paused = false;
+	uint width = 640;
+	uint height = 480;
 }
 
 struct State
