@@ -63,9 +63,6 @@ mixin template Device()
 		return address >= this.mapBegin && address <= this.mapEnd;
 	}
 
-
-	import core.stdc.stdio;
-
 	void* translateOffset(size_t offset)
 	{
 		alias MappedSymbols = getSymbolsByUDA!(typeof(this), MemoryMap);
