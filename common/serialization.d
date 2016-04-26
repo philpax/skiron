@@ -91,8 +91,8 @@ T deserialize(T)(ref ubyte* ptr)
 
 uint serializationLength(T)(T value)
 {
-	static if (isDynamicArray!T)
-		return uint.sizeof + value.length;
+	static if (is(T U : U[]))
+		return uint.sizeof + U.sizeof * value.length;
 	else
 		return T.sizeof;
 }
