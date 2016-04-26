@@ -1,4 +1,5 @@
 import core.memory;
+import core.thread;
 
 import std.file;
 import std.path;
@@ -10,6 +11,14 @@ import common.util;
 import emulator.state;
 
 import arsd.simpledisplay;
+
+void runEmulator(ubyte[] program, const ref Config config) @nogc nothrow
+{
+	printf("Skiron Emulator\n");
+	auto state = State(config);
+	state.load(program);
+	state.run();
+}
 
 void main(string[] args)
 {
@@ -73,13 +82,11 @@ void main(string[] args)
 
 	auto window = new SimpleWindow(640, 480);
 
-	program = program[uint.sizeof .. $];
-	
-	printf("Skiron Emulator\n");
-	auto state = State(config);
-	state.load(program);
+	auto processThread = new Thread({
+		program = program[uint.sizeof .. $];
+		program.runEmulator(config);
+	}).start();
 
-	window.eventLoop(1,
-		() { state.run(); }
-	);
+	window.eventLoop(0);
+	processThread.join();
 }
