@@ -13,6 +13,7 @@ import emulator.screen;
 
 import core.stdc.stdlib;
 import core.stdc.stdio;
+import core.time;
 
 import std.algorithm;
 
@@ -199,6 +200,9 @@ nothrow:
 	NonBlockingSocket server;
 	NonBlockingSocket client;
 
+	uint ticksPerSecond;
+	ulong totalTicks;
+
 	@disable this();
 
 	this(const ref Config config)
@@ -344,6 +348,9 @@ nothrow:
 	{
 		import std.algorithm : any;
 
+		auto tickBeginTime = MonoTime.currTime;
+		auto tickCounter = 0;
+
 		while (this.cores.any!(a => a.running) || this.client.isValid)
 		{
 			this.handleDebuggerConnection();
@@ -357,6 +364,16 @@ nothrow:
 					core.sendState();
 					this.sendMessage!CoreHalt(core.id);
 				}
+			}
+
+			tickCounter++;
+			this.totalTicks++;
+
+			if ((MonoTime.currTime - tickBeginTime) > 1.seconds)
+			{
+				this.ticksPerSecond = tickCounter;
+				tickCounter = 0;
+				tickBeginTime = MonoTime.currTime;
 			}
 		}
 	}

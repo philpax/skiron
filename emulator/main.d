@@ -5,6 +5,8 @@ import std.file;
 import std.path;
 import std.stdio;
 import std.getopt;
+import std.string;
+import std.datetime;
 
 import common.util;
 
@@ -73,16 +75,14 @@ void main(string[] args)
 
 	program = program[uint.sizeof .. $];
 
-	GC.collect();
-	GC.disable();
-
 	auto window = new SimpleWindow(config.width, config.height, "Skiron Emulator");
 	auto displayImage = new Image(window.width, window.height);
 	
-	printf("Skiron Emulator\n");
+	writeln("Skiron Emulator");
 	auto state = State(config);
 	state.load(program);
 
+	auto stopWatch = StopWatch(AutoStart.yes);
 	auto processThread = new Thread(() => state.run()).start();
 
 	window.eventLoop(16, ()
@@ -106,6 +106,16 @@ void main(string[] args)
 
 		auto screenPainter = window.draw();
 		screenPainter.drawImage(Point(0, 0), displayImage);
+
+		auto msPerTick = 1000.0f / state.ticksPerSecond;
+		window.title = "Skiron Emulator (%s ticks/s, %s ms/tick)".format(state.ticksPerSecond, msPerTick);
 	});
+
 	processThread.join();
+	stopWatch.stop();
+
+	auto secondsTaken = stopWatch.peek.msecs / 1000.0f;
+	writefln("Total ticks: %s", state.totalTicks);
+	writefln("Average ticks/second: %s", state.totalTicks / secondsTaken);
+	writefln("Average ms/tick: %s ms", (secondsTaken * 1000.0f) / state.totalTicks);
 }
