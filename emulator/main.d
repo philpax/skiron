@@ -121,6 +121,7 @@ void main(string[] args)
 
 	auto secondsTaken = stopWatch.peek.msecs / 1000.0f;
 	writefln("Total ticks: %s", state.totalTicks);
+	writefln("Total time: %s s", secondsTaken);
 	writefln("Average ticks/second: %s", state.totalTicks / secondsTaken);
 	writefln("Average ms/tick: %s ms", (secondsTaken * 1000.0f) / state.totalTicks);
 }
