@@ -17,11 +17,12 @@ import core.time;
 
 import std.algorithm;
 
-string generateOpcodeSwitch()
+string generateOpcodeArray()
 {
 	import std.traits, std.string, std.conv;
+/*
 	string s = 
-`final switch (opcode.opcode)
+`switch (opcode.opcode)
 {
 `;
 	foreach (member; EnumMembers!Opcodes)
@@ -29,27 +30,7 @@ string generateOpcodeSwitch()
 		if (member.operandFormat == OperandFormat.Pseudo)
 			continue;
 
-		if (OperandFormatToOperandSizeSupport[member.operandFormat])
-		{
-			s ~= format(
-`case Opcodes.%1$s.opcode:
-	final switch (opcode.operandSize)
-	{
-		case OperandSize.Byte:
-			this.run%1$s!ubyte(opcode);
-			break;
-		case OperandSize.Byte2:
-			this.run%1$s!ushort(opcode);
-			break;
-		case OperandSize.Byte4:
-			this.run%1$s!uint(opcode);
-			break;
-	}
-	break;
-`, 
-			member.to!string());
-		}
-		else
+		if (!OperandFormatToOperandSizeSupport[member.operandFormat])
 		{
 			s ~= format(
 `case Opcodes.%1$s.opcode:
@@ -59,7 +40,39 @@ string generateOpcodeSwitch()
 			member.to!string());
 		}
 	}
-	s ~= "}\n";
+	s ~= "}\n";*/
+
+	string s;
+	s ~= "alias HandlerType = void function(ref Core, Opcode) @nogc nothrow;\n";
+	s ~= "static HandlerType[%s][OpcodeCount] opcodeHandlers = [\n".format(1 << Opcode.OperandSizeBitCount);
+
+	auto lastOpcode = 0;
+	foreach (member; EnumMembers!Opcodes)
+	{
+		if (member.operandFormat == OperandFormat.Pseudo)
+			continue;
+
+		auto diff = member.opcode - lastOpcode;
+		if (diff > 1)
+		{
+			foreach (_; 0 .. (diff - 1))
+				s ~= "[&runHalt, &runHalt, &runHalt, &runHalt],\n";
+		}
+
+		if (!OperandFormatToOperandSizeSupport[member.operandFormat])
+		{
+			s ~= "[&run%1$s, &run%1$s, &run%1$s, &run%1$s],\n".format(member.to!string());
+		}
+		else
+		{
+			s ~= "[&run%1$s!ubyte, &run%1$s!ushort, &run%1$s!uint, &run%1$s!uint],\n".format(member.to!string());
+		}
+
+		lastOpcode = member.opcode;
+	}
+	s ~= "];\n";
+	s ~= "opcodeHandlers[opcode.opcode][opcode.operandSize](this, opcode);\n";
+		
 	return s;
 }
 
@@ -137,7 +150,7 @@ nothrow:
 
 		this.ip += uint.sizeof;
 
-		mixin(generateOpcodeSwitch());
+		mixin(generateOpcodeArray());
 		if (this.printRegisters)
 		{
 			char[8] name;
