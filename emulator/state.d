@@ -353,8 +353,6 @@ nothrow:
 
 		while (this.cores.any!(a => a.running) || this.client.isValid)
 		{
-			this.handleDebuggerConnection();
-
 			foreach (ref core; this.cores.filter!(a => a.running))
 			{
 				core.step();

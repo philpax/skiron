@@ -7,6 +7,7 @@ import std.stdio;
 import std.getopt;
 import std.string;
 import std.datetime;
+import std.algorithm;
 
 import common.util;
 
@@ -84,6 +85,10 @@ void main(string[] args)
 
 	auto stopWatch = StopWatch(AutoStart.yes);
 	auto processThread = new Thread(() => state.run()).start();
+	auto debuggerThread = new Thread({
+		while (state.cores.any!(a => a.running) || state.client.isValid)
+			state.handleDebuggerConnection();
+	}).start();
 
 	window.eventLoop(16, ()
 	{
