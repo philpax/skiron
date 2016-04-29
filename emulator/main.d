@@ -13,6 +13,7 @@ import common.util;
 
 import emulator.state;
 import emulator.screen;
+import emulator.keyboard;
 
 import arsd.simpledisplay;
 
@@ -81,7 +82,8 @@ void main(string[] args)
 	auto displayImage = new Image(window.width, window.height);
 
 	auto screen = new Screen(0x1_000_000, config.width, config.height);
-	Device[] devices = [screen];
+	auto keyboard = new Keyboard(0x512_000);
+	Device[] devices = [screen, keyboard];
 
 	writeln("Skiron Emulator");
 	auto state = State(config, devices);
@@ -118,9 +120,9 @@ void main(string[] args)
 		auto msPerTick = 1000.0f / state.ticksPerSecond;
 		window.title = "Skiron Emulator (%s ticks/s, %s ms/tick)".format(state.ticksPerSecond, msPerTick);
 	},
-	delegate (KeyEvent ke)
+	(KeyEvent ke)
 	{
-
+		keyboard.key = ke.key;
 	});
 
 	processThread.join();
