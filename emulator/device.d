@@ -9,77 +9,89 @@ enum AccessMode
 
 struct MemoryMap
 {
+	uint offset;
 	AccessMode accessMode;
 }
 
-mixin template Device()
+class Device
 {
-	import std.traits : getSymbolsByUDA, isDynamicArray;
-
+@nogc:
+nothrow:
 	uint address;
+	
+	this(uint address)
+	{
+		this.address = address;
+	}
 
 	uint mapSize() @property const
 	{
-		uint ret;
-		foreach (symbol; getSymbolsByUDA!(typeof(this), MemoryMap))
-		{
-			alias T = typeof(symbol);
-
-			static if (is(T U : U[]))
-				ret += U.sizeof * symbol.length;
-			else
-				ret += T.sizeof;
-		}
-
-		return ret;
+		return 0;
 	}
+	
+	alias mapBegin = address;
 
-	uint mapBegin() @property const
-	{
-		return this.address;
-	}
-
-	uint mapEnd() @property const
+	final uint mapEnd() @property const
 	{
 		return this.mapBegin + this.mapSize;
 	}
 
-	bool isAddressMapped(uint address)
+	final bool isAddressMapped(uint address) const
 	{
 		return address >= this.mapBegin && address <= this.mapEnd;
 	}
 
-	void* translateOffset(size_t offset)
+	void* map(uint address)
 	{
-		alias MappedSymbols = getSymbolsByUDA!(typeof(this), MemoryMap);
+		return null;
+	}
+}
 
-		// Terrible heuristic! Improve later
-		alias LastElement = MappedSymbols[$-1];
-		if (isDynamicArray!(typeof(LastElement)) && offset >= LastElement.offsetof)
-		{
-			static if (is(typeof(LastElement) U : U[]))
-				return cast(void*)(cast(ubyte*)LastElement.ptr + (offset - LastElement.offsetof));
-			else
-				static assert(false);
-		}
+enum StringOf(alias a) = a.stringof;
+mixin template DeviceImpl()
+{
+	import std.traits : getSymbolsByUDA, getUDAs, isDynamicArray, Identity;
+	import std.meta : staticMap;
+
+	final size_t getSize(T)(T value) const
+	{
+		static if (is(T U : U[]))
+			return U.sizeof * value.length;
 		else
+			return T.sizeof;
+	}
+
+	override uint mapSize() @property const
+	{
+		uint ret;
+		foreach (symbol; getSymbolsByUDA!(typeof(this), MemoryMap))
+			ret += this.getSize(symbol);
+
+		return ret;
+	}
+
+	override void* map(uint address)
+	{
+		auto offset = address - this.mapBegin;
+
+		enum symbolStrings = staticMap!(StringOf, getSymbolsByUDA!(typeof(this), MemoryMap));
+		foreach (fieldName; symbolStrings)
 		{
-			return cast(void*)(cast(ubyte*)&this + offset);
+			alias field = Identity!(__traits(getMember, this, fieldName));
+			enum memoryMap = getUDAs!(field, MemoryMap)[0];
+			auto fieldMapBegin = memoryMap.offset;
+			auto fieldMapEnd = fieldMapBegin + this.getSize(field);
+
+			auto offsetFromField = offset - fieldMapBegin;
+
+			if (offset >= fieldMapBegin && offset <= fieldMapEnd)
+			{
+				static if (isDynamicArray!(typeof(field)))
+					return cast(ubyte*)field.ptr + offsetFromField;
+				else
+					return cast(ubyte*)&field + offsetFromField;
+			}
 		}
-	}
-
-	void* translateAddress(uint address)
-	{
-		return this.translateOffset(address - this.mapBegin);
-	}
-
-	T get(T)(uint address)
-	{
-		return *cast(T*)this.translateAddress(address);
-	}
-
-	void set(T)(uint address, T value)
-	{
-		*cast(T*)this.translateAddress(address) = value;
+		return null;
 	}
 }

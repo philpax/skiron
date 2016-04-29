@@ -8,25 +8,36 @@ nothrow:
 void runLoad(Type = uint)(ref Core core, Opcode opcode)
 {
 	auto address = core.getSrc!uint(opcode);
-	auto value = 0;
+	void* dataPtr = &core.memory.ptr[address];
 
-	if (core.state.screen.isAddressMapped(address))
-		value = core.state.screen.get!Type(address);
-	else
-		value = *cast(Type*)&core.memory[address];
+	foreach (device; core.state.devices)
+	{
+		if (device.isAddressMapped(address))
+		{
+			dataPtr = device.map(address);
+			break;
+		}
+	}
 
-	core.setDst!Type(opcode, value);
+	core.setDst!Type(opcode, *cast(Type*)dataPtr);
 }
 
 void runStore(Type = uint)(ref Core core, Opcode opcode)
 {
 	auto address = core.getDst!uint(opcode);
 	auto value = core.getSrc!Type(opcode);
+	void* dataPtr = &core.memory.ptr[address];
 
-	if (core.state.screen.isAddressMapped(address))
-		core.state.screen.set!Type(address, value);
-	else
-		*cast(Type*)&core.memory[core.getDst(opcode)] = value;
+	foreach (device; core.state.devices)
+	{
+		if (device.isAddressMapped(address))
+		{
+			dataPtr = device.map(address);
+			break;
+		}
+	}
+	
+	*cast(Type*)dataPtr = value;
 }
 
 void runLoadLi(ref Core core, Opcode opcode)

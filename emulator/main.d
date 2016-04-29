@@ -12,6 +12,7 @@ import std.algorithm;
 import common.util;
 
 import emulator.state;
+import emulator.screen;
 
 import arsd.simpledisplay;
 
@@ -78,9 +79,12 @@ void main(string[] args)
 
 	auto window = new SimpleWindow(config.width, config.height, "Skiron Emulator");
 	auto displayImage = new Image(window.width, window.height);
-	
+
+	auto screen = new Screen(0x1_000_000, config.width, config.height);
+	Device[] devices = [screen];
+
 	writeln("Skiron Emulator");
-	auto state = State(config);
+	auto state = State(config, devices);
 	state.load(program);
 
 	auto stopWatch = StopWatch(AutoStart.yes);
@@ -103,7 +107,6 @@ void main(string[] args)
 		{
 			foreach (x; 0..displayImage.width)
 			{
-				auto screen = &state.screen;
 				auto pixel = screen.pixels[y * screen.width + x];
 				displayImage[x, y] = Color(pixel.r, pixel.g, pixel.b);
 			}
@@ -114,6 +117,10 @@ void main(string[] args)
 
 		auto msPerTick = 1000.0f / state.ticksPerSecond;
 		window.title = "Skiron Emulator (%s ticks/s, %s ms/tick)".format(state.ticksPerSecond, msPerTick);
+	},
+	delegate (KeyEvent ke)
+	{
+
 	});
 
 	processThread.join();

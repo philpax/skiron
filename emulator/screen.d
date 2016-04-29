@@ -1,6 +1,6 @@
 module emulator.screen;
 
-import emulator.device;
+public import emulator.device;
 
 import core.stdc.stdlib;
 
@@ -16,22 +16,22 @@ union Pixel
 	ubyte[3] data;
 }
 
-struct Screen
+class Screen : Device
 {
 @nogc:
 nothrow:
-	@MemoryMap(AccessMode.Read)
+	@MemoryMap(0, AccessMode.Read)
 	uint width;
 
-	@MemoryMap(AccessMode.Read)
+	@MemoryMap(4, AccessMode.Read)
 	uint height;
 
-	@MemoryMap(AccessMode.ReadWrite)
+	@MemoryMap(8, AccessMode.ReadWrite)
 	Pixel[] pixels;
 
 	this(uint address, uint width, uint height)
 	{
-		this.address = address;
+		super(address);
 		this.width = width;
 		this.height = height;
 
@@ -44,5 +44,5 @@ nothrow:
 		.free(this.pixels.ptr);
 	}
 
-	mixin Device;
+	mixin DeviceImpl;
 }
