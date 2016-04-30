@@ -57,6 +57,14 @@ void main()
 			debugger.cores[0].setRunning(true);
 		};
 
+		debugger.onDisconnect = {
+			run = false;
+		};
+
+		debugger.onLog = (string s) {
+			"%s | %s".writefln(test.name, s);
+		};
+
 		debugger.onCoreHalt = (Core* core) {
 			if (core.running) return;
 

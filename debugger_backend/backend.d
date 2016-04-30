@@ -55,6 +55,7 @@ class Debugger
 
 	void delegate() onInitialize;
 	void delegate() onDisconnect;
+	void delegate(string s) onLog;
 
 	void delegate(Core*) onCoreState;
 	void delegate(Core*) onCoreHalt;
@@ -72,6 +73,19 @@ class Debugger
 		this.spawnedProcess = pipeProcess(["emulator", filePath] ~ args, redirect);
 		task({
 			Thread.getThis.sleep(50.msecs);
+
+			if (this.spawnedProcess.pid.tryWait.terminated)
+			{
+				if (redirectStdout)
+				{
+					foreach (line; this.spawnedProcess.stdout.byLineCopy)
+						this.onLog(line);
+					this.onDisconnect();
+				}
+
+				return;
+			}
+
 			this.connect("127.0.0.1", portStr);
 		}).executeInNewThread();
 	}
