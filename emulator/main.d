@@ -75,6 +75,8 @@ void handleWindow(ref State state, Screen screen, Keyboard keyboard, Thread proc
 	{
 		keyboard.key = ke.key;
 	});
+
+	state.forceShutdown = true;
 }
 
 void main(string[] args)

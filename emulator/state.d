@@ -15,6 +15,7 @@ import emulator.device;
 import core.stdc.stdlib;
 import core.stdc.stdio;
 import core.time;
+import core.atomic;
 
 import std.algorithm;
 
@@ -205,6 +206,8 @@ nothrow:
 	uint ticksPerSecond;
 	ulong totalTicks;
 
+	shared bool forceShutdown = false;
+
 	@disable this();
 
 	this(const ref Config config, Device[] devices)
@@ -310,6 +313,15 @@ nothrow:
 		}
 	}
 
+	void shutdown()
+	{	
+		foreach (ref core; this.cores)
+			core.running = false;
+
+		this.client.shutdown(SocketShutdown.BOTH);
+		this.client.close();
+	}
+
 	void handleMessage(ubyte[] buffer)
 	{
 		auto messageId = cast(DebugMessageId)buffer[0];
@@ -341,11 +353,7 @@ nothrow:
 			this.sendMessage!SystemMemory(begin, this.memory[begin..end]);
 			break;
 		case DebugMessageId.Shutdown:
-			foreach (ref core; this.cores)
-				core.running = false;
-
-			this.client.shutdown(SocketShutdown.BOTH);
-			this.client.close();
+			this.shutdown();
 			break;
 		default:
 			assert(0);
@@ -381,6 +389,9 @@ nothrow:
 				tickCounter = 0;
 				tickBeginTime = MonoTime.currTime;
 			}
+
+			if (this.forceShutdown.atomicLoad())
+				this.shutdown();
 		}
 	}
 }
