@@ -18,75 +18,34 @@ import emulator.keyboard;
 
 import arsd.simpledisplay;
 
-void main(string[] args)
+string assembleIfNecessary(string filePath)
 {
-	Config config;
-	args.getopt(
-		"print-opcodes", &config.printOpcodes, 
-		"print-registers", &config.printRegisters,
-		"paused", &config.paused,
-		"memory-size", &config.memorySize,
-		"core-count", &config.coreCount,
-		"port", &config.port,
-		"width", &config.width,
-		"height", &config.height);
+	import std.process : execute;
 
-	if (args.length < 2)
+	if (filePath.extension() != ".skasm")
+		return filePath;
+
+	writefln("Assembling '%s'", filePath);
+	auto assembler = ["assembler", filePath].execute();
+
+	if (assembler.status != 0)
 	{
-		writeln("emulator filename");
-		return;
+		writefln("Failed to assemble '%s'", filePath);
+		writefln("Assembler output: %s", assembler.output);
+		return null;
+	}
+	else
+	{
+		writefln("Successfully assembled '%s'", filePath);
 	}
 
-	auto filePath = args[1];
-	if (!filePath.exists())
-	{
-		writefln("File '%s' does not exist", filePath);
-		return;
-	}
+	return filePath.setExtension(".bin");
+}
 
-	if (filePath.extension() == ".skasm")
-	{
-		import std.process : execute;
-		writefln("Assembling '%s'", filePath);
-		auto assembler = ["assembler", filePath].execute();
-
-		if (assembler.status != 0)
-		{
-			writefln("Failed to assemble '%s'", filePath);
-			writefln("Assembler output: %s", assembler.output);
-			return;
-		}
-		else
-		{
-			writefln("Successfully assembled '%s'", filePath);
-		}
-
-		filePath = filePath.setExtension(".bin");
-	}
-	
-	Program program;
-	auto file = cast(ubyte[])filePath.read();
-
-	if (!file.parseProgram(program))
-		return writeln("Failed to parse Skiron program");
-	
-	auto window = new SimpleWindow(config.width, config.height, "Skiron Emulator");
+void handleWindow(ref State state, Screen screen, Keyboard keyboard, Thread processThread)
+{	
+	auto window = new SimpleWindow(screen.width, screen.height, "Skiron Emulator");
 	auto displayImage = new Image(window.width, window.height);
-
-	auto screen = new Screen(0x1_000_000, config.width, config.height);
-	auto keyboard = new Keyboard(0x512_000);
-	Device[] devices = [screen, keyboard];
-
-	writeln("Skiron Emulator");
-	auto state = State(config, devices);
-	state.load(program);
-
-	auto stopWatch = StopWatch(AutoStart.yes);
-	auto processThread = new Thread(() => state.run()).start();
-	auto debuggerThread = new Thread({
-		while (state.cores.any!(a => a.running) || state.client.isValid)
-			state.handleDebuggerConnection();
-	}).start();
 
 	window.eventLoop(16, ()
 	{
@@ -116,10 +75,75 @@ void main(string[] args)
 	{
 		keyboard.key = ke.key;
 	});
+}
 
+void main(string[] args)
+{
+	// Read config
+	Config config;
+	args.getopt(
+		"print-opcodes", &config.printOpcodes, 
+		"print-registers", &config.printRegisters,
+		"paused", &config.paused,
+		"memory-size", &config.memorySize,
+		"core-count", &config.coreCount,
+		"port", &config.port,
+		"width", &config.width,
+		"height", &config.height);
+
+	if (args.length < 2)
+	{
+		writeln("emulator filename");
+		return;
+	}
+
+	// Validate user path
+	auto filePath = args[1];
+	if (!filePath.exists())
+	{
+		writefln("File '%s' does not exist", filePath);
+		return;
+	}
+
+	// Assemble if required
+	filePath = filePath.assembleIfNecessary();
+	if (!filePath)
+		return;
+	
+	// Read and parse program
+	Program program;
+	auto file = cast(ubyte[])filePath.read();
+
+	if (!file.parseProgram(program))
+		return writeln("Failed to parse Skiron program");
+
+	// Create IO devices
+	auto screen = new Screen(0x1_000_000, config.width, config.height);
+	auto keyboard = new Keyboard(0x512_000);
+	Device[] devices = [screen, keyboard];
+
+	// Create state
+	writeln("Skiron Emulator");
+	auto state = State(config, devices);
+	state.load(program);
+
+	// Create threads to drive state and debugger
+	auto stopWatch = StopWatch(AutoStart.yes);
+	auto processThread = new Thread(() => state.run()).start();
+	auto debuggerThread = new Thread({
+		while (state.cores.any!(a => a.running) || state.client.isValid)
+			state.handleDebuggerConnection();
+	}).start();
+
+	// Spawn a window
+	state.handleWindow(screen, keyboard, processThread);
+
+	// Wait for threads
 	processThread.join();
+	debuggerThread.join();
 	stopWatch.stop();
 
+	// Print performance stats
 	auto secondsTaken = stopWatch.peek.msecs / 1000.0f;
 	writefln("Total ticks: %s", state.totalTicks);
 	writefln("Total time: %s s", secondsTaken);
