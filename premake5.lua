@@ -13,6 +13,10 @@ solution "skiron"
 			filter "configurations:unittest"
 				flags { "UnitTest" }
 
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
+
 		project "arsd"
 			kind "StaticLib"
 			language "D"
@@ -25,6 +29,10 @@ solution "skiron"
 			filter "configurations:unittest"
 				flags { "UnitTest" }
 
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
+
 	group ""
 		project "common"
 			kind "StaticLib"
@@ -36,7 +44,11 @@ solution "skiron"
 			files { "common/**.d" }
 
 			filter "configurations:unittest"
-				flags { "UnitTest" }		
+				flags { "UnitTest" }
+
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"	
 
 		project "emulator"
 			kind "ConsoleApp"
@@ -52,6 +64,10 @@ solution "skiron"
 			filter "configurations:unittest"
 				flags { "UnitTest" }
 
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
+
 		project "assembler"
 			kind "ConsoleApp"
 			language "D"
@@ -65,6 +81,10 @@ solution "skiron"
 
 			filter "configurations:unittest"
 				flags { "UnitTest" }
+
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
 
 		project "disassembler"
 			kind "ConsoleApp"
@@ -80,6 +100,10 @@ solution "skiron"
 			filter "configurations:unittest"
 				flags { "UnitTest" }
 
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
+
 		project "debugger_backend"
 			kind "StaticLib"
 			language "D"
@@ -93,6 +117,10 @@ solution "skiron"
 
 			filter "configurations:unittest"
 				flags { "UnitTest" }
+
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
 
 		project "debugger_graphical"
 			kind "WindowedApp"
@@ -108,6 +136,10 @@ solution "skiron"
 			filter "configurations:unittest"
 				flags { "UnitTest" }
 
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
+
 		project "test_runner"
 			kind "ConsoleApp"
 			language "D"
@@ -121,6 +153,10 @@ solution "skiron"
 
 			filter "configurations:unittest"
 				flags { "UnitTest" }
+
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
 
 		project "docgen"
 			kind "ConsoleApp"
@@ -143,3 +179,7 @@ solution "skiron"
 
 			filter "configurations:unittest"
 				flags { "UnitTest" }
+
+			filter "configurations:release"
+				flags { "NoBoundsCheck" }
+				optimize "full"
