@@ -37,13 +37,15 @@ bool assemblePush(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 
 	OperandSize operandSize;
 	Register register;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register)) return false;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.assemblePushManual(register, operandSize);
-
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -76,13 +78,15 @@ bool assemblePop(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 
 	OperandSize operandSize;
 	Register register;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register)) return false;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.assemblePopManual(register, operandSize);
-
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -98,6 +102,9 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	string label;
 	if (!assembler.parseLabel(newTokens, label)) return false;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 	{
 		assembler.assemblePushManual(Register.RA);
@@ -109,7 +116,6 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 			
 		assembler.assemblePopManual(Register.RA);
 	}
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -122,8 +128,10 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	int value;
 	string label;
 
-	if (!assembler.parseRegister(newTokens, register)) return false;
-	if (!(assembler.parseNumber(newTokens, value) || assembler.parseLabel(newTokens, label)))
+	if (!assembler.parseRegister(newTokens, register)) 
+		return false;
+
+	if (!assembler.parseNumber(newTokens, value) && !assembler.parseLabel(newTokens, label))
 		return false;
 
 	void writeLoadPair()
@@ -224,24 +232,18 @@ bool assembleDw(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	int value;
 	if (!assembler.parseNumber(newTokens, value)) return false;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (i; 0..assembler.repCount)
 		assembler.writeOutput(value);
-
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
 
 bool assembleRep(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
-	auto newTokens = assembler.tokens;
-
-	int repCount;
-	if (!assembler.parseNumber(newTokens, repCount)) return false;
-	assembler.repCount = repCount;
-	assembler.tokens = newTokens;
-
-	return true;
+	return assembler.parseNumber(assembler.tokens, assembler.repCount);
 }
 
 bool assembleJr(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
@@ -260,10 +262,11 @@ bool assembleJr(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	add.register2 = register;
 	add.register3 = Register.Z;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.writeOutput(add);
-
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -274,6 +277,7 @@ bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 
 	OperandSize operandSize;
 	Register dst, src;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, dst)) return false;
 	if (!assembler.parseRegister(newTokens, src)) return false;
@@ -287,10 +291,11 @@ bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	add.register2 = src;
 	add.register3 = Register.Z;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.writeOutput(add);
-
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }

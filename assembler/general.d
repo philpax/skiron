@@ -21,6 +21,7 @@ bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	OperandSize operandSize;
 	Register register1, register2;
 	Variant variant;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseRegister(newTokens, register2)) return false;
@@ -35,9 +36,11 @@ bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	opcode.register3 = cast(Register)0;
 	opcode.variant = variant;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.writeOutput(opcode);
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -49,6 +52,7 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	OperandSize operandSize;
 	Register register1, register2, register3;
 	Variant variant;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseRegister(newTokens, register2)) return false;
@@ -64,9 +68,11 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	opcode.register3 = register3;
 	opcode.variant = variant;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.writeOutput(opcode);
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -79,6 +85,7 @@ bool assembleDstUImm(ref Assembler assembler, const(OpcodeDescriptor)* descripto
 	Register register1;
 	int immediate;
 	Variant variant;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseNumber(newTokens, immediate)) return false;
@@ -91,9 +98,11 @@ bool assembleDstUImm(ref Assembler assembler, const(OpcodeDescriptor)* descripto
 	opcode.immediateB = cast(ushort)immediate;
 	opcode.variant = variant;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.writeOutput(opcode);
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -106,6 +115,7 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	Register register1, register2;
 	int immediate;
 	Variant variant;
+
 	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseRegister(newTokens, register2)) return false;
@@ -121,9 +131,11 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	opcode.immediateD = immediate;
 	opcode.variant = variant;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 		assembler.writeOutput(opcode);
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -151,6 +163,9 @@ bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	string label;
 	if (!assembler.parseLabel(newTokens, label)) return false;
 
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
 	foreach (_; 0..assembler.repCount)
 	{
 		assembler.writeOutput(opcode);
@@ -158,7 +173,6 @@ bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 			label, assembler.output.length-1, 
 			Assembler.Relocation.Type.Offset);
 	}
-	assembler.finishAssemble(newTokens);
 
 	return true;
 }
@@ -200,6 +214,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 	}
 
 	assembler.tokens.popFront();
+
 	foreach (descriptor; *matchingDescriptors)
 	{
 		mixin (generateSwitchStatement());
@@ -207,6 +222,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 		if (foundMatching)
 			break;
 	}
+
 	if (!foundMatching)
 		token.error("No valid overloads for `%s` found.", token.text);
 }
@@ -223,7 +239,7 @@ void assembleSectionToken(ref Assembler assembler, ref const(Token) token)
 		assembler.sections[$-1].end = assembler.getEndOffset();
 
 	if (token.text.length >= ProgramSection.NameLength)
-		token.error("Token name `%s` too long.", token.text);
+		token.error("Section name `%s` too long.", token.text);
 
 	ProgramSection section;
 	section.name = token.text;
