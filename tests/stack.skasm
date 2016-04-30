@@ -1,4 +1,4 @@
-# TEST: sp 76, bp 76, r0 8, r1 4, r3 8
+# TEST: sp 80, bp 80, r0 8, r1 4, r3 8
 # Stack testing
 loadi sp, stack_begin
 move bp, sp
