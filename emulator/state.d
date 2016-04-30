@@ -5,6 +5,7 @@ public import common.opcode;
 import common.socket;
 import common.debugging;
 import common.util;
+import common.program;
 
 import emulator.memory;
 import emulator.arithmetic;
@@ -195,7 +196,9 @@ nothrow:
 	Core[] cores;
 	Device[] devices;
 
+	uint textBegin = 0;
 	uint textEnd = 0;
+
 	NonBlockingSocket server;
 	NonBlockingSocket client;
 
@@ -251,10 +254,17 @@ nothrow:
 		this.sendMessage(message);
 	}
 
-	void load(ubyte[] program)
+	void load(const ref Program program)
 	{
-		this.memory[0 .. program.length] = program;
-		this.textEnd = program.length;
+		auto opcodes = cast(ubyte[])program.opcodes;
+		
+		this.textBegin = 0;
+		this.textEnd = opcodes.length;
+		this.memory[textBegin .. textEnd] = opcodes;
+		
+		auto dataSection = program.getSection(".data");
+		if (dataSection.length)
+			this.memory[textEnd .. textEnd + dataSection.length] = dataSection;
 	}
 
 	void handleDebuggerConnection()
@@ -270,7 +280,7 @@ nothrow:
 				Initialize initialize;
 				initialize.coreCount = this.cores.length;
 				initialize.memorySize = this.memory.length;
-				initialize.textBegin = 0;
+				initialize.textBegin = this.textBegin;
 				initialize.textEnd = this.textEnd;
 				this.sendMessage(initialize);
 			}

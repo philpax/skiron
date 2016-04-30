@@ -16,7 +16,7 @@ enum TokOperators =
 
 enum TokDynamic =
 [
-	"comment", "identifier", "numberLiteral", "label", "whitespace"
+	"comment", "identifier", "numberLiteral", "label", "whitespace", "section"
 ];
 
 enum TokKeywords =
@@ -44,6 +44,7 @@ enum tokenHandlers =
 	"\t", "lexWhitespace",
 	"\r", "lexWhitespace",
 	"\n", "lexWhitespace",
+	".", "lexSection",
 ];
 
 public alias TokID = TokenIdType!AssemblerTokens;
@@ -229,6 +230,29 @@ struct AssemblerLexer
 			}
 		}
 		return Token(tok!"numberLiteral", cache.intern(range.slice(mark)), line, column, index);
+	}
+
+	/// Token handler
+	void lexSection(ref Token token) pure nothrow @safe
+	{
+		mixin (tokenStart);
+		if (isSeparating(0))
+		{
+			error("Invalid section header");
+			range.popFront();
+		}
+		while (true)
+		{
+			if (isSeparating(0))
+				break;
+			else
+				range.popFront();
+		}
+
+		TokID type = tok!"section";
+
+		token = Token(type, cache.intern(range.slice(mark)), line,
+					  column, index);
 	}
 
 	bool isSeparating(size_t offset) @nogc

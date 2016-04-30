@@ -1,5 +1,6 @@
 # TEST: r0 1, r1 1, r2 2, ip 20
 # entry point
+.text
 main:
 	loadi r50, 6
 	loadi sp, stack_begin
@@ -43,6 +44,7 @@ is_even:
 	pop r0
 	jr ra
 
+.data
 stack_end:
 	rep 16 dw 0
 stack_begin:

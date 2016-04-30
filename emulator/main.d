@@ -10,6 +10,7 @@ import std.datetime;
 import std.algorithm;
 
 import common.util;
+import common.program;
 
 import emulator.state;
 import emulator.screen;
@@ -62,22 +63,13 @@ void main(string[] args)
 
 		filePath = filePath.setExtension(".bin");
 	}
+	
+	Program program;
+	auto file = cast(ubyte[])filePath.read();
 
-	auto program = cast(ubyte[])filePath.read();
-	if (program.length < 4)
-	{
-		writefln("File '%s' too small", filePath);
-		return;
-	}
-
-	if ((cast(uint*)program.ptr)[0] != HeaderMagicCode)
-	{
-		writefln("Expected file '%s' to start with Skiron header", filePath);
-		return;
-	}
-
-	program = program[uint.sizeof .. $];
-
+	if (!file.parseProgram(program))
+		return writeln("Failed to parse Skiron program");
+	
 	auto window = new SimpleWindow(config.width, config.height, "Skiron Emulator");
 	auto displayImage = new Image(window.width, window.height);
 

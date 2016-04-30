@@ -13,6 +13,7 @@ import core.stdc.stdlib;
 import common.opcode;
 import common.cpu;
 import common.util;
+import common.program;
 
 void error(Args...)(string text, auto ref Args args)
 {
@@ -55,6 +56,8 @@ struct Assembler
 	Relocation[] relocations;
 	size_t repCount = 1;
 
+	ProgramSection[] sections;
+
 	alias AssembleFunction = bool delegate(const(OpcodeDescriptor)* descriptor);
 	immutable AssembleFunction[string] pseudoAssemble;
 
@@ -80,6 +83,17 @@ struct Assembler
 		}
 
 		this.pseudoAssemble = mixin(generatePseudoAssemble());
+	}
+
+	void writeOutput(T)(ref const T value, uint offset = 0)
+	{
+		foreach (index, word; (cast(uint*)&value)[0..value.sizeof/uint.sizeof].enumerate)
+		{
+			if (offset)
+				this.output[offset/uint.sizeof + index] = word;
+			else
+				this.output ~= word;
+		}
 	}
 
 	bool parseNumber(Int)(ref const(Token)[] tokens, ref Int output)
@@ -684,17 +698,38 @@ struct Assembler
 			token.error("No valid overloads for `%s` found.", token.text);
 	}
 
+	uint getEndOffset() const
+	{
+		return cast(uint)(this.output.length * uint.sizeof);
+	}
+
 	void assembleLabelToken(ref const(Token) token)
 	{
-		this.labels[token.text] = cast(uint)(this.output.length * uint.sizeof);
+		this.labels[token.text] = this.getEndOffset();
+		this.tokens.popFront();
+	}
+
+	void assembleSectionToken(ref const(Token) token)
+	{
+		if (this.sections.length)
+			this.sections[$-1].end = this.getEndOffset();
+
+		if (token.text.length >= ProgramSection.NameLength)
+			token.error("Token name `%s` too long.", token.text);
+
+		ProgramSection section;
+		section.name = token.text;
+		section.begin = this.getEndOffset();
+		this.sections ~= section;
+
 		this.tokens.popFront();
 	}
 
 	void assemble()
 	{
-		this.output ~= HeaderMagicCode;
-
-		// Prefill the labels AA
+		ProgramHeader header;
+	
+		// Prefill the labels AA, and build up the sections
 		foreach (token; this.tokens)
 		{
 			if (token.type == tok!"label")
@@ -704,6 +739,20 @@ struct Assembler
 					token.error("Redefining label `%s`", text);
 				this.labels[token.text] = 0;
 			}
+			else if (token.type == tok!"section")
+			{
+				header.sectionCount++;
+			}
+		}
+
+		this.writeOutput(header);
+
+		auto programSectionPoint = this.getEndOffset();
+
+		foreach (_; 0..header.sectionCount)
+		{
+			auto section = ProgramSection();
+			this.writeOutput(section);
 		}
 
 		while (!this.tokens.empty)
@@ -714,10 +763,21 @@ struct Assembler
 				this.assembleIdentifierToken(token);
 			else if (token.type == tok!"label")
 				this.assembleLabelToken(token);
+			else if (token.type == tok!"section")
+				this.assembleSectionToken(token);
 			else if (token.type == tok!"")
 				break;
 			else
 				token.error("Unhandled token: %s.", token.to!string());
+		}
+
+		if (this.sections.length)
+			this.sections[$-1].end = this.getEndOffset();
+
+		foreach (index, section; this.sections.enumerate)
+		{
+			auto offset = programSectionPoint + (index * ProgramSection.sizeof);
+			this.writeOutput(section, offset);
 		}
 
 		auto opcodes = cast(Opcode[])this.output;
