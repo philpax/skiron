@@ -36,7 +36,7 @@ bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	opcode.variant = variant;
 
 	foreach (_; 0..assembler.repCount)
-		assembler.output ~= opcode.value;
+		assembler.writeOutput(opcode);
 	assembler.finishAssemble(newTokens);
 
 	return true;
@@ -65,7 +65,7 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	opcode.variant = variant;
 
 	foreach (_; 0..assembler.repCount)
-		assembler.output ~= opcode.value;
+		assembler.writeOutput(opcode);
 	assembler.finishAssemble(newTokens);
 
 	return true;
@@ -92,7 +92,7 @@ bool assembleDstUImm(ref Assembler assembler, const(OpcodeDescriptor)* descripto
 	opcode.variant = variant;
 
 	foreach (_; 0..assembler.repCount)
-		assembler.output ~= opcode.value;
+		assembler.writeOutput(opcode);
 	assembler.finishAssemble(newTokens);
 
 	return true;
@@ -122,7 +122,7 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	opcode.variant = variant;
 
 	foreach (_; 0..assembler.repCount)
-		assembler.output ~= opcode.value;
+		assembler.writeOutput(opcode);
 	assembler.finishAssemble(newTokens);
 
 	return true;
@@ -135,7 +135,7 @@ bool assembleNone(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	opcode.encoding = descriptor.encoding;
 
 	foreach (_; 0..assembler.repCount)
-		assembler.output ~= opcode.value;
+		assembler.writeOutput(opcode);
 
 	return true;
 }
@@ -153,7 +153,7 @@ bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 
 	foreach (_; 0..assembler.repCount)
 	{
-		assembler.output ~= opcode.value;
+		assembler.writeOutput(opcode);
 		assembler.relocations ~= Assembler.Relocation(
 			label, assembler.output.length-1, 
 			Assembler.Relocation.Type.Offset);
