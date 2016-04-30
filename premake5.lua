@@ -1,6 +1,17 @@
 solution "skiron"
 	configurations { "release", "debug", "unittest" }
 
+	project "gtkd"
+		kind "StaticLib"
+		language "D"
+		targetdir "bin"
+		debugdir "bin"
+
+		files { "vendor/gtkd/src/**.d" }
+
+		filter "configurations:unittest"
+			flags { "UnitTest" }
+
 	project "arsd"
 		kind "StaticLib"
 		language "D"
@@ -90,7 +101,7 @@ solution "skiron"
 
 		includedirs { "vendor/gtkd/src", "common/", "debugger_backend/" }
 		files { "debugger_graphical/**.d" }
-		links { "vendor/gtkd/gtkd.lib", "bin/debugger_backend.lib", "bin/common.lib" }
+		links { "bin/gtkd.lib", "bin/debugger_backend.lib", "bin/common.lib" }
 
 		filter "configurations:unittest"
 			flags { "UnitTest" }
