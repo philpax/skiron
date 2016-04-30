@@ -1,3 +1,5 @@
+module assembler.main;
+
 import std.file;
 import std.path;
 import std.traits;
@@ -6,7 +8,6 @@ import std.conv;
 import std.range;
 import std.algorithm;
 import std.stdio;
-import lexer;
 
 import core.stdc.stdlib;
 
@@ -14,6 +15,11 @@ import common.opcode;
 import common.cpu;
 import common.util;
 import common.program;
+
+import assembler.lexer;
+import assembler.parse;
+import assembler.general;
+import assembler.pseudo;
 
 void error(Args...)(string text, auto ref Args args)
 {
@@ -49,16 +55,18 @@ struct Assembler
 		Type type;
 	}
 
+	ProgramSection[] sections;
 	const(Token)[] tokens;
 	uint[] output;
-	uint[string] labels;
-	OpcodeDescriptor[][string] descriptors;
+
 	Relocation[] relocations;
+	uint[string] labels;
+
 	size_t repCount = 1;
 
-	ProgramSection[] sections;
+	OpcodeDescriptor[][string] descriptors;
 
-	alias AssembleFunction = bool delegate(const(OpcodeDescriptor)* descriptor);
+	alias AssembleFunction = bool function(ref Assembler, const(OpcodeDescriptor)*);
 	immutable AssembleFunction[string] pseudoAssemble;
 
 	this(const(Token)[] tokens)
@@ -96,636 +104,12 @@ struct Assembler
 		}
 	}
 
-	bool parseNumber(Int)(ref const(Token)[] tokens, ref Int output)
-		if (is(Int : int))
-	{
-		auto token = tokens.front;
-		if (token.type != tok!"numberLiteral")
-			return false;
-
-		auto text = token.text;
-		if (text.startsWith("0x"))
-			output = cast(Int)text[2..$].to!long(16);
-		else
-			output = cast(Int)text.to!long;
-		tokens.popFront();
-		return true;
-	}
-
-	bool parseSizePrefix(ref const(Token)[] tokens, ref OperandSize output)
-	{
-		auto token = tokens.front;
-
-		if (token.type == tok!"byte" || token.type == tok!"byte1")
-		{
-			tokens.popFront();
-			output = OperandSize.Byte;
-		}
-		else if (token.type == tok!"byte2")
-		{
-			tokens.popFront();
-			output = OperandSize.Byte2;
-		}
-		else if (token.type == tok!"byte4" || token.type == tok!"word")
-		{
-			tokens.popFront();
-			output = OperandSize.Byte4;
-		}
-		else
-		{
-			output = OperandSize.Byte4;
-		}
-
-		return true;
-	}
-
-	bool parseRegister(ref const(Token)[] tokens, ref Register output)
-	{
-		auto token = tokens.front;
-		if (token.type != tok!"identifier")
-			return false;
-
-		try
-		{
-			output = token.text.registerFromName();
-		}
-		catch (Exception)
-		{
-			return false;
-		}
-
-		tokens.popFront();
-		return true;
-	}
-
-	bool parseLabel(ref const(Token)[] tokens, ref string output)
-	{
-		auto token = tokens.front;
-		if (token.type != tok!"identifier")
-			return false;
-
-		auto ptr = token.text in this.labels;
-		if (!ptr)
-			return false;
-
-		output = token.text;
-		tokens.popFront();
-
-		return true;
-	}
-
-	bool parseVariant(ref const(Token)[] tokens, ref Variant output)
-	{
-		Token token = tokens.front;
-
-		if (token.type == tok!"<<")
-		{
-			tokens.popFront();
-
-			int shift;
-			if (!this.parseNumber(tokens, shift))
-			{
-				token.error("Expected number in shift");
-				return false;
-			}
-
-			if (shift == 1)
-			{
-				output = Variant.ShiftLeft1;
-			}
-			else if (shift == 2)
-			{
-				output = Variant.ShiftLeft2;
-			}
-			else
-			{
-				token.error("Shift size not encodable");
-				return false;
-			}
-		}
-		else
-		{
-			// TODO: Look into why exactly Variant.Default doesn't work
-			output = cast(Variant)0;
-		}
-
-		return true;
-	}
-
-	void finishAssemble(const(Token)[] tokens)
-	{
-		this.tokens = tokens;
-		this.repCount = 1;
-	}
-
-	bool assembleDstSrc(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register register1, register2;
-		Variant variant;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register1)) return false;
-		if (!this.parseRegister(newTokens, register2)) return false;
-		if (!this.parseVariant(newTokens, variant)) return false;
-
-		Opcode opcode;
-		opcode.opcode = descriptor.opcode;
-		opcode.encoding = descriptor.encoding;
-		opcode.operandSize = operandSize;
-		opcode.register1 = register1;
-		opcode.register2 = register2;
-		opcode.register3 = cast(Register)0;
-		opcode.variant = variant;
-
-		foreach (_; 0..this.repCount)
-			this.output ~= opcode.value;
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleDstSrcSrc(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register register1, register2, register3;
-		Variant variant;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register1)) return false;
-		if (!this.parseRegister(newTokens, register2)) return false;
-		if (!this.parseRegister(newTokens, register3)) return false;
-		if (!this.parseVariant(newTokens, variant)) return false;
-
-		Opcode opcode;
-		opcode.opcode = descriptor.opcode;
-		opcode.encoding = descriptor.encoding;
-		opcode.operandSize = operandSize;
-		opcode.register1 = register1;
-		opcode.register2 = register2;
-		opcode.register3 = register3;
-		opcode.variant = variant;
-
-		foreach (_; 0..this.repCount)
-			this.output ~= opcode.value;
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleDstUImm(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register register1;
-		int immediate;
-		Variant variant;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register1)) return false;
-		if (!this.parseNumber(newTokens, immediate)) return false;
-		if (!this.parseVariant(newTokens, variant)) return false;
-
-		Opcode opcode;
-		opcode.opcode = descriptor.opcode;
-		opcode.encoding = descriptor.encoding;
-		opcode.register1 = register1;
-		opcode.immediateB = cast(ushort)immediate;
-		opcode.variant = variant;
-
-		foreach (_; 0..this.repCount)
-			output ~= opcode.value;
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleDstSrcImm(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register register1, register2;
-		int immediate;
-		Variant variant;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register1)) return false;
-		if (!this.parseRegister(newTokens, register2)) return false;
-		if (!this.parseNumber(newTokens, immediate)) return false;
-		if (!this.parseVariant(newTokens, variant)) return false;
-
-		Opcode opcode;
-		opcode.operandSize = operandSize;
-		opcode.opcode = descriptor.opcode;
-		opcode.encoding = descriptor.encoding;
-		opcode.register1 = register1;
-		opcode.register2 = register2;
-		opcode.immediateD = immediate;
-		opcode.variant = variant;
-
-		foreach (_; 0..this.repCount)
-			this.output ~= opcode.value;
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleNone(const(OpcodeDescriptor)* descriptor)
-	{
-		Opcode opcode;
-		opcode.opcode = descriptor.opcode;
-		opcode.encoding = descriptor.encoding;
-
-		foreach (_; 0..this.repCount)
-			this.output ~= opcode.value;
-
-		return true;
-	}
-
-	bool assembleLabel(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		Opcode opcode;
-		opcode.opcode = descriptor.opcode;
-		opcode.encoding = descriptor.encoding;
-
-		string label;
-		if (!this.parseLabel(newTokens, label)) return false;
-
-		foreach (_; 0..this.repCount)
-		{
-			this.output ~= opcode.value;
-			this.relocations ~= Relocation(
-				label, this.output.length-1, Relocation.Type.Offset);
-		}
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	void assemblePushManual(Register register, OperandSize operandSize = OperandSize.Byte4)
-	{
-		// Synthesize add, store
-		Opcode add;
-		add.opcode = Opcodes.AddD.opcode;
-		add.encoding = Opcodes.AddD.encoding;
-		add.operandSize = OperandSize.Byte4;
-		add.register1 = Register.SP;
-		add.register2 = Register.SP;
-		add.immediateD = -4;
-
-		Opcode store;
-		store.opcode = Opcodes.Store.opcode;
-		store.encoding = Opcodes.Store.encoding;
-		store.operandSize = operandSize;
-		store.register1 = Register.SP;
-		store.register2 = register;
-
-		this.output ~= add.value;
-		this.output ~= store.value;
-	}
-
-	bool assemblePush(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register register;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register)) return false;
-
-		foreach (_; 0..this.repCount)
-			this.assemblePushManual(register, operandSize);
-
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	void assemblePopManual(Register register, OperandSize operandSize = OperandSize.Byte4)
-	{
-		// Synthesize load, add
-		Opcode load;
-		load.opcode = Opcodes.Load.opcode;
-		load.encoding = Opcodes.Load.encoding;
-		load.operandSize = operandSize;
-		load.register1 = register;
-		load.register2 = Register.SP;
-
-		Opcode add;
-		add.opcode = Opcodes.AddD.opcode;
-		add.encoding = Opcodes.AddD.encoding;
-		add.operandSize = OperandSize.Byte4;
-		add.register1 = Register.SP;
-		add.register2 = Register.SP;
-		add.immediateD = 4;
-
-		this.output ~= load.value;
-		this.output ~= add.value;
-	}
-
-	bool assemblePop(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register register;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, register)) return false;
-
-		foreach (_; 0..this.repCount)
-			this.assemblePopManual(register, operandSize);
-
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleCallSv(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		Opcode call;
-		call.opcode = Opcodes.Call.opcode;
-		call.encoding = Opcodes.Call.encoding;
-
-		string label;
-		if (!this.parseLabel(newTokens, label)) return false;
-
-		foreach (_; 0..this.repCount)
-		{
-			this.assemblePushManual(Register.RA);
-			
-			this.output ~= call.value;
-			this.relocations ~= Relocation(
-				label, this.output.length-1, Relocation.Type.Offset);
-			
-			this.assemblePopManual(Register.RA);
-		}
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleLoadI(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		Register register;
-		int value;
-		string label;
-
-		if (!this.parseRegister(newTokens, register)) return false;
-		if (!(this.parseNumber(newTokens, value) || this.parseLabel(newTokens, label)))
-			return false;
-
-		void writeLoadPair()
-		{
-			ushort high = (value >> 16) & 0xFFFF;
-			ushort low =  (value >>  0) & 0xFFFF;
-
-			// Synthesize loadui, loadli
-			Opcode loadui;
-			loadui.opcode = Opcodes.LoadUi.opcode;
-			loadui.encoding = Opcodes.LoadUi.encoding;
-			loadui.register1 = register;
-			loadui.immediateB = high;
-
-			Opcode loadli;
-			loadli.opcode = Opcodes.LoadLi.opcode;
-			loadli.encoding = Opcodes.LoadLi.encoding;
-			loadli.register1 = register;
-			loadli.immediateB = low;
-
-			foreach (_; 0..this.repCount)
-			{
-				this.output ~= loadui.value;
-				this.output ~= loadli.value;
-
-				if (label.length)
-				{
-					this.relocations ~= Relocation(
-						label, this.output.length - 2, Relocation.Type.SplitAbsolute);
-				}
-			}
-		}
-
-		// If we're dealing with a value, and it can be packed into 7 bits
-		auto absValue = abs(value);
-		enum Mask0 = 0b0000_0000_0111_1111;
-		if (label.empty && (absValue & Mask0) == absValue)
-		{
-			Opcode add;
-			add.opcode = Opcodes.AddD.opcode;
-			add.encoding = Opcodes.AddD.encoding;
-			add.operandSize = OperandSize.Byte4;
-			add.register1 = register;
-			add.register2 = Register.Z;
-
-			enum Mask1 = Mask0 << 1;
-			enum Mask2 = Mask0 << 2;
-			auto sign = value >= 0 ? 1 : -1;
-			// If the value can be packed into 7 bits, multiplied by 1
-			if ((absValue & Mask0) == absValue)
-			{
-				add.immediateD = ((absValue & Mask0) >> 0) * sign;
-				add.variant = Variant.Identity;
-
-				foreach (_; 0..this.repCount)
-					this.output ~= add.value;
-			}
-			// If the value can be packed into 7 bits, multiplied by 2
-			else if ((absValue & Mask1) == absValue)
-			{
-				add.immediateD = ((absValue & Mask1) >> 1) * sign;
-				add.variant = Variant.ShiftLeft1;
-
-				foreach (_; 0..this.repCount)
-					this.output ~= add.value;
-			}
-			// If the value can be packed into 7 bits, multiplied by 4
-			else if ((absValue & Mask2) == absValue)
-			{
-				add.immediateD = ((absValue & Mask2) >> 2) * sign;
-				add.variant = Variant.ShiftLeft2;
-
-				foreach (_; 0..this.repCount)
-					this.output ~= add.value;
-			}
-			// Otherwise, give up and write a load pair
-			else
-			{
-				writeLoadPair();
-			}
-		}
-		else
-		{
-			// Can't be packed into an add opcode; write a load pair
-			writeLoadPair();
-		}
-
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleDw(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		int value;
-		if (!this.parseNumber(newTokens, value)) return false;
-
-		foreach (i; 0..this.repCount)
-			output ~= value;
-
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleRep(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		int repCount;
-		if (!this.parseNumber(newTokens, repCount)) return false;
-		this.repCount = repCount;
-		this.tokens = newTokens;
-
-		return true;
-	}
-
-	bool assembleJr(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		Register register;
-		if (!this.parseRegister(newTokens, register)) return false;
-
-		// Synthesize add
-		Opcode add;
-		add.opcode = Opcodes.AddA.opcode;
-		add.encoding = Opcodes.AddA.encoding;
-		add.operandSize = OperandSize.Byte4;
-		add.register1 = Register.IP;
-		add.register2 = register;
-		add.register3 = Register.Z;
-
-		foreach (_; 0..this.repCount)
-			this.output ~= add.value;
-
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	bool assembleMove(const(OpcodeDescriptor)* descriptor)
-	{
-		auto newTokens = this.tokens;
-
-		OperandSize operandSize;
-		Register dst, src;
-		if (!this.parseSizePrefix(newTokens, operandSize)) return false;
-		if (!this.parseRegister(newTokens, dst)) return false;
-		if (!this.parseRegister(newTokens, src)) return false;
-
-		// Synthesize add
-		Opcode add;
-		add.opcode = Opcodes.AddA.opcode;
-		add.encoding = Opcodes.AddA.encoding;
-		add.operandSize = operandSize;
-		add.register1 = dst;
-		add.register2 = src;
-		add.register3 = Register.Z;
-
-		foreach (_; 0..this.repCount)
-			this.output ~= add.value;
-
-		this.finishAssemble(newTokens);
-
-		return true;
-	}
-
-	void assembleIdentifierToken(ref const(Token) token)
-	{
-		auto matchingDescriptors = token.text in this.descriptors;
-		if (!matchingDescriptors)
-			token.error("No matching opcode found for `%s`.", token.text);
-
-		bool foundMatching = false;
-
-		string generateSwitchStatement()
-		{
-			string s =
-`final switch (descriptor.operandFormat)
-{
-`;
-			foreach (member; EnumMembers!OperandFormat)
-			{
-				if (member == OperandFormat.Pseudo)
-					continue;
-
-				s ~= format(
-`case OperandFormat.%1$s:
-	foundMatching |= this.assemble%1$s(&descriptor);
-	break;
-`,
-				member.to!string());
-			}
-
-			s ~=
-`case OperandFormat.Pseudo:
-	foundMatching |= this.pseudoAssemble[token.text](&descriptor);
-	break;
-}
-`;
-			return s;
-		}
-
-		this.tokens.popFront();
-		foreach (descriptor; *matchingDescriptors)
-		{
-			mixin (generateSwitchStatement());
-
-			if (foundMatching)
-				break;
-		}
-		if (!foundMatching)
-			token.error("No valid overloads for `%s` found.", token.text);
-	}
-
 	uint getEndOffset() const
 	{
 		return cast(uint)(this.output.length * uint.sizeof);
 	}
 
-	void assembleLabelToken(ref const(Token) token)
-	{
-		this.labels[token.text] = this.getEndOffset();
-		this.tokens.popFront();
-	}
-
-	void assembleSectionToken(ref const(Token) token)
-	{
-		if (this.sections.length)
-			this.sections[$-1].end = this.getEndOffset();
-
-		if (token.text.length >= ProgramSection.NameLength)
-			token.error("Token name `%s` too long.", token.text);
-
-		ProgramSection section;
-		section.name = token.text;
-		section.begin = this.getEndOffset();
-		this.sections ~= section;
-
-		this.tokens.popFront();
-	}
-
-	void assemble()
+	uint writeHeader()
 	{
 		ProgramHeader header;
 	
@@ -755,6 +139,11 @@ struct Assembler
 			this.writeOutput(section);
 		}
 
+		return programSectionPoint;
+	}
+
+	void dispatchTokens()
+	{
 		while (!this.tokens.empty)
 		{
 			auto token = this.tokens.front;
@@ -770,7 +159,10 @@ struct Assembler
 			else
 				token.error("Unhandled token: %s.", token.to!string());
 		}
+	}
 
+	void rewriteSections(uint programSectionPoint)
+	{
 		if (this.sections.length)
 			this.sections[$-1].end = this.getEndOffset();
 
@@ -779,7 +171,10 @@ struct Assembler
 			auto offset = programSectionPoint + (index * ProgramSection.sizeof);
 			this.writeOutput(section, offset);
 		}
+	}
 
+	void completeRelocations()
+	{
 		auto opcodes = cast(Opcode[])this.output;
 		foreach (const relocation; this.relocations)
 		{
@@ -801,6 +196,14 @@ struct Assembler
 				break;
 			}
 		}
+	}
+
+	void assemble()
+	{
+		auto programSectionPoint = this.writeHeader();
+		this.dispatchTokens();
+		this.rewriteSections(programSectionPoint);
+		this.completeRelocations();
 	}
 }
 

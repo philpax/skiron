@@ -1,4 +1,4 @@
-module lexer;
+module assembler.lexer;
 
 import std.array;
 import std.string;
