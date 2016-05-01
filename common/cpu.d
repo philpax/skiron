@@ -51,10 +51,10 @@ char[] registerName(Register index, char[] buffer) @nogc nothrow
 
 	foreach (member; EnumMembers!Register)
 	{
-		enum loweredName = `"%s"`.format(member.to!string().toLower());
+		enum loweredName = member.to!string.toLower.idup;
 
 		if (index == member)
-			return "%s".sformat(buffer, mixin(loweredName));
+			return "%s".sformat(buffer, loweredName);
 	}
 
 	return "r%s".sformat(buffer, cast(ubyte)index);
