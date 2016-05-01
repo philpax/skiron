@@ -44,27 +44,20 @@ enum Flags
 
 char[] registerName(Register index, char[] buffer) @nogc nothrow
 {
-	string generateRegisterIf()
+	import std.traits : EnumMembers;
+	import std.conv : to;
+	import std.uni : toLower;
+	import std.string : format;
+
+	foreach (member; EnumMembers!Register)
 	{
-		import std.traits : EnumMembers;
-		import std.conv : to;
-		import std.string : format;
-		import std.uni : toLower;
+		enum loweredName = `"%s"`.format(member.to!string().toLower());
 
-		string ret = "";
-		foreach (member; EnumMembers!Register)
-		{
-			string name = member.to!string();
-			ret ~= "if (index == Register.%s) return \"%s\".sformat(buffer);\n".format(name, name.toLower());
-		}
-
-		ret ~= `else return "r%s".sformat(buffer, cast(ubyte)index);`;
-
-		return ret;
+		if (index == member)
+			return "%s".sformat(buffer, mixin(loweredName));
 	}
 
-	
-	mixin(generateRegisterIf());
+	return "r%s".sformat(buffer, cast(ubyte)index);
 }
 
 string registerName(Register index)
@@ -75,36 +68,27 @@ string registerName(Register index)
 
 Register registerFromName(string name)
 {
-	import std.algorithm : startsWith, all;
+	import std.traits : EnumMembers;
+	import std.algorithm : all;
 	import std.conv : to;
 	import std.ascii : isDigit;
-	import std.uni : toLower;
+	import std.uni : toLower;	
 
-	string generateRegisterIf()
+	foreach (member; EnumMembers!Register)
 	{
-		import std.traits : EnumMembers;
-		import std.string : format;
-
-		string ret = "";
-		foreach (member; EnumMembers!Register)
-		{
-			string name = member.to!string();
-			ret ~= `if (name == "%s") return Register.%s;`.format(name.toLower(), name);
-		}
-
-		ret ~= `
-else if (name.startsWith("r") && name.length > 1 && name[1..$].all!isDigit)
-{
-	auto index = name[1..$].to!ubyte();
-	if (index >= RegisterGeneralCount)
-		throw new Exception("Invalid register index");
-	return cast(Register)index;
-}
-throw new Exception("Invalid register");`;
-
-		return ret;
+		if (name == member.to!string().toLower())
+			return member;
 	}
 
+	if (name[0] == 'r' && name.length > 1 && name[1..$].all!isDigit)
+	{
+		auto index = name[1..$].to!ubyte();
 	
-	mixin(generateRegisterIf());
+		if (index >= RegisterGeneralCount)
+			throw new Exception("Invalid register index");
+
+		return cast(Register)index;
+	}
+
+	throw new Exception("Invalid register");
 }
