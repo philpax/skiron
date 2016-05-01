@@ -8,9 +8,13 @@ import common.debugging;
 import emulator.state;
 import emulator.instruction;
 
+import std.traits : EnumMembers;
+import std.algorithm : map;
+import std.conv : to;
+import std.string : format, join;
+
 string generateOpcodeSwitch()
 {
-	import std.traits, std.string, std.conv;
 	string s = 
 `final switch (opcode.opcode)
 {
@@ -54,6 +58,20 @@ string generateOpcodeSwitch()
 	return s;
 }
 
+string generateRegisterProperties()
+{
+	import std.uni : toLower;
+
+	return [EnumMembers!Register].map!((a) {
+		return
+`	@property ref uint %s()
+	{
+		return this.registers[Register.%s];
+	}
+`.format(a.to!string.toLower(), a.to!string());
+	}).join('\n');
+}
+
 @nogc:
 nothrow:
 
@@ -83,30 +101,7 @@ nothrow:
 
 	~this() {}
 
-	@property ref uint ip()
-	{
-		return this.registers[Register.IP];
-	}
-
-	@property ref uint sp()
-	{
-		return this.registers[Register.SP];
-	}
-
-	@property ref uint bp()
-	{
-		return this.registers[Register.BP];
-	}
-
-	@property ref uint ra()
-	{
-		return this.registers[Register.RA];
-	}
-
-	@property ref uint flags()
-	{
-		return this.registers[Register.Flags];
-	}
+	mixin(generateRegisterProperties());
 
 	void step()
 	{
