@@ -79,15 +79,12 @@ struct Assembler
 		// Construct the AA of pseudoinstructions => assemble functions
 		auto generatePseudoAssemble()
 		{
-			string ret = "[";
+			enum opcodes = [EnumMembers!Opcodes];
 
-			foreach (member; EnumMembers!Opcodes)
-				static if (member.operandFormat == OperandFormat.Pseudo)
-					ret ~= (`"%s" : &assemble%s, `).format(member.name, member.to!string);
-
-			ret ~= "]";
-
-			return ret;
+			return "[%s]".format(
+						opcodes.filter!(a => a.operandFormat == OperandFormat.Pseudo)
+							   .map!(a => `"%s": &assemble%s`.format(a.name, a.to!string()))
+							   .join(", "));
 		}
 
 		this.pseudoAssemble = mixin(generatePseudoAssemble());
