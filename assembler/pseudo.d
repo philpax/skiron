@@ -122,6 +122,8 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 
 bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
+	import std.algorithm : filter;
+
 	auto newTokens = assembler.tokens;
 
 	Register register;
@@ -166,10 +168,17 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		}
 	}
 
-	// If we're dealing with a value, and it can be packed into 7 bits
+	// If we're dealing with a value, and it can be packed
 	auto absValue = abs(value);
-	enum Mask0 = 0b0000_0000_0111_1111;
-	if (label.empty && (absValue & Mask0) == absValue)
+
+	// Remove 1 from BitCount to account for the sign mask
+	enum BitCount = Opcode.EncodingSeqD.fields
+									   .filter!(a => a.name == "immediateD")
+									   .front.size - 1;
+
+	// Add 2 to account for the shifting possible
+	enum MaskAll = ~(~0 << (BitCount + 2));
+	if (label.empty && (absValue & MaskAll) == absValue)
 	{
 		Opcode add;
 		add.opcode = Opcodes.AddD.opcode;
@@ -178,10 +187,12 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		add.register1 = register;
 		add.register2 = Register.Z;
 
+		auto sign = value >= 0 ? 1 : -1;
+		
+		enum Mask0 = ~(~0 << BitCount);
 		enum Mask1 = Mask0 << 1;
 		enum Mask2 = Mask0 << 2;
-		auto sign = value >= 0 ? 1 : -1;
-		// If the value can be packed into 7 bits, multiplied by 1
+		// If the value can be packed into n bits, multiplied by 1
 		if ((absValue & Mask0) == absValue)
 		{
 			add.immediateD = ((absValue & Mask0) >> 0) * sign;
@@ -190,7 +201,7 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 			foreach (_; 0..assembler.repCount)
 				assembler.writeOutput(add);
 		}
-		// If the value can be packed into 7 bits, multiplied by 2
+		// If the value can be packed into n bits, multiplied by 2
 		else if ((absValue & Mask1) == absValue)
 		{
 			add.immediateD = ((absValue & Mask1) >> 1) * sign;
@@ -199,7 +210,7 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 			foreach (_; 0..assembler.repCount)
 				assembler.writeOutput(add);
 		}
-		// If the value can be packed into 7 bits, multiplied by 4
+		// If the value can be packed into n bits, multiplied by 4
 		else if ((absValue & Mask2) == absValue)
 		{
 			add.immediateD = ((absValue & Mask2) >> 2) * sign;
