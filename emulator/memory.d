@@ -1,5 +1,6 @@
 module emulator.memory;
 
+import emulator.core;
 import emulator.state;
 
 @nogc:

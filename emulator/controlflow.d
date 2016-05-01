@@ -1,6 +1,6 @@
 module emulator.controlflow;
 
-import emulator.state;
+import emulator.core;
 
 @nogc:
 nothrow:

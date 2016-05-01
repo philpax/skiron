@@ -1,6 +1,6 @@
 module emulator.arithmetic;
 
-import emulator.state;
+import emulator.core;
 
 @nogc:
 nothrow:
