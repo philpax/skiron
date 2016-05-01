@@ -81,18 +81,15 @@ nothrow:
 	bool paused = false;
 	bool doStep = false;
 
-	bool printOpcodes = true;
-	bool printRegisters = true;
 	uint id;
 
 	@disable this();
-	this(ref State state, uint id, bool printOpcodes, bool printRegisters)
+	this(ref State state, uint id, bool paused)
 	{
 		this.state = &state;
 		this.memory = state.memory;
-		this.printOpcodes = printOpcodes;
-		this.printRegisters = printRegisters;
 		this.id = id;
+		this.paused = paused;
 	}
 
 	~this() {}
@@ -127,42 +124,10 @@ nothrow:
 		if (this.paused && !this.doStep)
 			return;
 
-		auto oldRegisters = this.registers;
 		auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
-
-		if (this.printOpcodes)
-		{
-			char[64] buffer;
-			auto inst = opcode.disassemble(buffer);
-			printf("C%i %i: %.*s\n", this.id, this.ip, inst.length, inst.ptr);
-		}
-
 		this.ip += uint.sizeof;
 
 		mixin(generateOpcodeSwitch());
-		if (this.printRegisters)
-		{
-			char[8] name;
-			bool first = true;
-			foreach (index; 0 .. oldRegisters.length)
-			{
-				auto oldValue = oldRegisters[index];
-				auto newValue = this.registers[index];
-
-				if (oldValue == newValue)
-					continue;
-
-				auto reg = registerName(cast(Register)index, name);
-
-				if (!first)
-					printf(", ");
-
-				printf("%.*s %X -> %X", reg.length, reg.ptr, oldValue, newValue);
-				first = false;
-			}
-
-			printf("\n");
-		}
 
 		if (this.doStep)
 		{
@@ -182,8 +147,6 @@ struct Config
 	uint memorySize = 1024 * 1024;
 	uint coreCount = 1;
 	ushort port = 1234;
-	bool printOpcodes = false;
-	bool printRegisters = false;
 	bool paused = false;
 	uint width = 640;
 	uint height = 480;
@@ -224,12 +187,8 @@ nothrow:
 		printf("Debugger: Waiting for connection on port %i\n", config.port);
 
 		uint index = 0;
-
 		foreach (ref core; this.cores)
-		{
-			core = Core(this, index++, config.printOpcodes, config.printRegisters);
-			core.paused = config.paused;
-		}
+			core = Core(this, index++, config.paused);
 	}
 
 	~this()

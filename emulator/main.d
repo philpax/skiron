@@ -84,8 +84,6 @@ void main(string[] args)
 	// Read config
 	Config config;
 	args.getopt(
-		"print-opcodes", &config.printOpcodes, 
-		"print-registers", &config.printRegisters,
 		"paused", &config.paused,
 		"memory-size", &config.memorySize,
 		"core-count", &config.coreCount,
