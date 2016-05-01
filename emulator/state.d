@@ -202,10 +202,17 @@ nothrow:
 		auto tickBeginTime = MonoTime.currTime;
 		auto tickCounter = 0;
 
-		while (this.cores.any!(a => a.running) || this.client.isValid)
+		bool running = true;
+
+		while (running || this.client.isValid)
 		{
-			foreach (ref core; this.cores.filter!(a => a.running))
+			running = false;
+
+			foreach (ref core; this.cores)
 			{
+				if (!core.running)
+					continue;
+
 				core.step();
 
 				if (!core.running)
@@ -213,6 +220,8 @@ nothrow:
 					core.sendState();
 					this.sendMessage!CoreHalt(core.id);
 				}
+
+				running = true;
 			}
 
 			tickCounter++;
