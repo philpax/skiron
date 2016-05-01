@@ -30,6 +30,7 @@ mixin EnumDocumented!("Register",
 
 // We may have "pseudo-registers" like Flags after the official register count.
 // This includes them.
+enum RegisterGeneralCount = Register.min;
 enum RegisterExtendedCount = Register.max + 1;
 alias RegisterType = uint;
 
@@ -91,9 +92,15 @@ Register registerFromName(string name)
 			ret ~= `if (name == "%s") return Register.%s;`.format(name.toLower(), name);
 		}
 
-		ret ~= `else if (name.startsWith("r") && name.length > 1 && name[1..$].all!isDigit)`;
-		ret ~= ` return cast(Register)name[1..$].to!ubyte();`;
-		ret ~= `throw new Exception("Invalid register");`;
+		ret ~= `
+else if (name.startsWith("r") && name.length > 1 && name[1..$].all!isDigit)
+{
+	auto index = name[1..$].to!ubyte();
+	if (index >= RegisterGeneralCount)
+		throw new Exception("Invalid register index");
+	return cast(Register)index;
+}
+throw new Exception("Invalid register");`;
 
 		return ret;
 	}
