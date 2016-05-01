@@ -1,21 +1,16 @@
 module docgen.registers;
 
 import std.stdio;
-import std.traits : EnumMembers;
 import std.string : toLower;
 import std.conv : to;
 import std.algorithm : filter;
-import std.math : log2;
 
 import common.opcode;
 import common.encoding;
 import common.cpu;
 
-string writeRegisters()
+void writeRegistersDescription(ref File file)
 {
-	const filename = "Registers.md";
-	auto file = File(filename, "w");
-
 	file.writeln("# Registers");
 	file.writefln(
 		"As Skiron is a RISC-inspired architecture, a high register count is one " ~
@@ -27,8 +22,10 @@ string writeRegisters()
 		RegisterCount, RegisterExtendedCount - RegisterCount, RegisterCount - Register.min);
 
 	file.writeln();
+}
 
-	// Standard Registers
+void writeStandardRegisters(ref File file)
+{
 	file.writeln("## Standard Registers");
 	file.writeln(
 		"The standard registers have specific behaviours associated with them. " ~
@@ -43,8 +40,13 @@ string writeRegisters()
 	}
 
 	file.writeln();
+}
 
-	// Extended Registers
+void writeExtendedRegisters(ref File file)
+{
+	import std.math : log2;
+	import std.traits : EnumMembers;
+
 	file.writeln("## Extended Registers");
 	file.writeln(
 		"The extended registers are not directly accessible through normal means. " ~
@@ -70,7 +72,17 @@ string writeRegisters()
 					file.writefln("        * %s: 1 << %s", member, number.log2());
 			}
 		}
-	}	
+	}
+}
+
+string writeRegisters()
+{
+	const filename = "Registers.md";
+	auto file = File(filename, "w");
+
+	file.writeRegistersDescription();
+	file.writeStandardRegisters();
+	file.writeExtendedRegisters();
 
 	return filename;
 }

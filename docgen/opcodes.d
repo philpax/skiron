@@ -1,16 +1,15 @@
 module docgen.opcodes;
 
 import std.stdio;
-import std.traits : EnumMembers;
-import std.algorithm : sort;
-import std.range : enumerate;
 
 import common.opcode;
 import common.encoding;
 import common.cpu;
 
-string writeOpcodes()
+OpcodeDescriptor[] getDescriptors()
 {
+	import std.traits : EnumMembers;
+	import std.algorithm : sort;
 	OpcodeDescriptor[] descriptors;
 
 	foreach (member; EnumMembers!Opcodes)
@@ -36,9 +35,17 @@ string writeOpcodes()
 		return a.name < b.name;
 	});
 
+	return descriptors;
+}
+
+string writeOpcodes()
+{
+	import std.range : enumerate;
+
 	const filename = "Instruction-Listing.md";
 	auto file = File(filename, "w");
 
+	auto descriptors = getDescriptors();
 	foreach (index, descriptor; descriptors.enumerate)
 	{
 		if (index > 0)

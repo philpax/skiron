@@ -9,14 +9,8 @@ import common.opcode;
 import common.encoding;
 import common.cpu;
 
-string writeEncodings()
+void writeEncodingList(ref File file)
 {
-	const filename = "Opcode-Encoding.md";
-	auto file = File(filename, "w");
-
-	enum prefix = "EncodingSeq";
-	enum isEncodingSeq(string String) = String.startsWith(prefix);
-
 	string[string] fieldDescriptions;
 	foreach (encodingDescriptor; getEncodings!Opcode())
 	{
@@ -49,7 +43,10 @@ string writeEncodings()
 
 		file.writeln();
 	}
+}
 
+void writeVariants(ref File file)
+{
 	file.writeln("## Variants");
 	file.writeln(
 		"The last argument of an instruction can be modified by a Variant before " ~ 
@@ -64,6 +61,10 @@ string writeEncodings()
 	}
 
 	file.writeln();
+}
+
+void writeOperandFormats(ref File file)
+{
 	file.writeln("## Operand Formats");
 	file.writeln(
 		"An opcode has an operand format, which specifies which arguments it takes.");
@@ -75,6 +76,16 @@ string writeEncodings()
 		file.writefln("    * *Index*: %s", cast(uint)pair[0]);
 		file.writefln("    * *Description*: %s", pair[1]);
 	}
+}
+
+string writeEncodings()
+{
+	const filename = "Opcode-Encoding.md";
+	auto file = File(filename, "w");
+
+	file.writeEncodingList();	
+	file.writeVariants();
+	file.writeOperandFormats();
 
 	return filename;
 }
