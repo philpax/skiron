@@ -41,7 +41,6 @@ nothrow:
 	NonBlockingSocket server;
 	NonBlockingSocket client;
 
-	uint ticksPerSecond;
 	ulong totalTicks;
 
 	shared bool forceShutdown = false;
@@ -224,15 +223,7 @@ nothrow:
 				running = true;
 			}
 
-			tickCounter++;
 			this.totalTicks++;
-
-			if ((MonoTime.currTime - tickBeginTime) > 1.seconds)
-			{
-				this.ticksPerSecond = tickCounter;
-				tickCounter = 0;
-				tickBeginTime = MonoTime.currTime;
-			}
 
 			if (this.forceShutdown.atomicLoad())
 				this.shutdown();

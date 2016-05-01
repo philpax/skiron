@@ -66,9 +66,6 @@ void handleWindow(ref State state, Screen screen, Keyboard keyboard, Thread proc
 
 		auto screenPainter = window.draw();
 		screenPainter.drawImage(Point(0, 0), displayImage);
-
-		auto msPerTick = 1000.0f / state.ticksPerSecond;
-		window.title = "Skiron Emulator (%s ticks/s, %s ms/tick)".format(state.ticksPerSecond, msPerTick);
 	},
 	(KeyEvent ke)
 	{
