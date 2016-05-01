@@ -8,7 +8,8 @@ import common.util;
 import common.program;
 
 import emulator.core;
-import emulator.device;
+
+import emulator.device.device;
 
 import core.stdc.stdlib;
 import core.stdc.stdio;

@@ -1,6 +1,6 @@
-module emulator.screen;
+module emulator.device.screen;
 
-public import emulator.device;
+import emulator.device.device;
 
 import core.stdc.stdlib;
 

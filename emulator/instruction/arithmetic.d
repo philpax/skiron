@@ -1,4 +1,4 @@
-module emulator.arithmetic;
+module emulator.instruction.arithmetic;
 
 import emulator.core;
 

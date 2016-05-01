@@ -1,4 +1,4 @@
-module emulator.device;
+module emulator.device.device;
 
 enum AccessMode
 {

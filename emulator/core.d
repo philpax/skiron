@@ -6,9 +6,10 @@ public import common.opcode;
 import common.debugging;
 
 import emulator.state;
-import emulator.memory;
-import emulator.arithmetic;
-import emulator.controlflow;
+
+import emulator.instruction.memory;
+import emulator.instruction.arithmetic;
+import emulator.instruction.controlflow;
 
 string generateOpcodeSwitch()
 {

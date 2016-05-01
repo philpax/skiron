@@ -1,4 +1,4 @@
-module emulator.memory;
+module emulator.instruction.memory;
 
 import emulator.core;
 import emulator.state;

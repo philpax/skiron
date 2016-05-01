@@ -13,8 +13,10 @@ import common.util;
 import common.program;
 
 import emulator.state;
-import emulator.screen;
-import emulator.keyboard;
+
+import emulator.device.device;
+import emulator.device.screen;
+import emulator.device.keyboard;
 
 import arsd.simpledisplay;
 

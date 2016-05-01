@@ -1,6 +1,6 @@
-module emulator.keyboard;
+module emulator.device.keyboard;
 
-import emulator.device;
+import emulator.device.device;
 
 class Keyboard : Device
 {

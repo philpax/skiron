@@ -1,4 +1,4 @@
-module emulator.controlflow;
+module emulator.instruction.controlflow;
 
 import emulator.core;
 
