@@ -62,7 +62,7 @@ struct Assembler
 	Relocation[] relocations;
 	uint[string] labels;
 
-	size_t repCount = 1;
+	uint repCount = 1;
 
 	OpcodeDescriptor[][string] descriptors;
 
@@ -165,7 +165,7 @@ struct Assembler
 
 		foreach (index, section; this.sections.enumerate)
 		{
-			auto offset = programSectionPoint + (index * ProgramSection.sizeof);
+			auto offset = cast(uint)(programSectionPoint + (index * ProgramSection.sizeof));
 			this.writeOutput(section, offset);
 		}
 	}

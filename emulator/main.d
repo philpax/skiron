@@ -17,6 +17,8 @@ import emulator.device;
 
 import arsd.simpledisplay;
 
+alias ScreenDevice = emulator.device.screen.Screen;
+
 string assembleIfNecessary(string filePath)
 {
 	import std.process : execute;
@@ -41,7 +43,7 @@ string assembleIfNecessary(string filePath)
 	return filePath.setExtension(".bin");
 }
 
-void handleWindow(ref State state, Screen screen, Keyboard keyboard, Thread processThread)
+void handleWindow(ref State state, ScreenDevice screen, Keyboard keyboard, Thread processThread)
 {	
 	auto window = new SimpleWindow(screen.width, screen.height, "Skiron Emulator");
 	auto displayImage = new Image(window.width, window.height);
@@ -114,7 +116,7 @@ void main(string[] args)
 		return writeln("Failed to parse Skiron program");
 
 	// Create IO devices
-	auto screen = new Screen(0x1_000_000, config.width, config.height);
+	auto screen = new ScreenDevice(0x1_000_000, config.width, config.height);
 	auto keyboard = new Keyboard(0x512_000);
 	Device[] devices = [screen, keyboard];
 

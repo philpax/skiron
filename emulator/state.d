@@ -95,7 +95,7 @@ nothrow:
 		auto opcodes = cast(ubyte[])program.opcodes;
 		
 		this.textBegin = 0;
-		this.textEnd = opcodes.length;
+		this.textEnd = cast(uint)opcodes.length;
 		this.memory[textBegin .. textEnd] = opcodes;
 		
 		auto dataSection = program.getSection(".data");
@@ -114,8 +114,8 @@ nothrow:
 				printf("Debugger: Connected (socket id: %d)\n", this.client.handle);
 
 				Initialize initialize;
-				initialize.coreCount = this.cores.length;
-				initialize.memorySize = this.memory.length;
+				initialize.coreCount = cast(uint)this.cores.length;
+				initialize.memorySize = cast(uint)this.memory.length;
 				initialize.textBegin = this.textBegin;
 				initialize.textEnd = this.textEnd;
 				this.sendMessage(initialize);

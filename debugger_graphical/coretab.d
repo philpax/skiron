@@ -156,9 +156,9 @@ struct CoreTab
 		foreach (index, value; this.core.registers)
 		{
 			if (index < GeneralMax)
-				this.generalStore.setValue(this.generalIter, index, value);
+				this.generalStore.setValue(this.generalIter, cast(uint)index, value);
 			else
-				this.standardStore.setValue(this.standardIter, index - StandardMin, value);
+				this.standardStore.setValue(this.standardIter, cast(uint)(index - StandardMin), value);
 		}
 
 		this.runningLabel.setText(this.core.running ? "Running" : "Paused");

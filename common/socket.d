@@ -42,9 +42,9 @@ else version(Posix)
 
 	import core.sys.posix.netdb;
 	import core.sys.posix.sys.un : sockaddr_un;
+	public import core.sys.posix.arpa.inet;
 	private import core.sys.posix.fcntl;
 	private import core.sys.posix.unistd;
-	private import core.sys.posix.arpa.inet;
 	private import core.sys.posix.netinet.tcp;
 	private import core.sys.posix.netinet.in_;
 	private import core.sys.posix.sys.time;

@@ -66,8 +66,8 @@ bool parseProgram(const(ubyte)[] file, out Program program) @nogc nothrow
 	if (header.magicCode != ProgramHeader.init.magicCode)
 		return false;
 
-	auto textBegin = header.sizeof + ProgramSection.sizeof * header.sectionCount;
-	auto textEnd = file.length;
+	auto textBegin = cast(uint)(header.sizeof + ProgramSection.sizeof * header.sectionCount);
+	auto textEnd = cast(uint)file.length;
 
 	auto sections = cast(ProgramSection[])file[header.sizeof .. textBegin];
 	foreach (section; sections)

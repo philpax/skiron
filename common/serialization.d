@@ -67,7 +67,7 @@ T deserialize(T)(ref ubyte* ptr)
 void serialize(T)(ref ubyte* ptr, T value)
 	if (isDynamicArray!T)
 {
-	ptr.serialize!uint(value.length);
+	ptr.serialize!uint(cast(uint)value.length);
 
 	foreach (ref v; value)
 		ptr.serialize(v);
@@ -92,9 +92,9 @@ T deserialize(T)(ref ubyte* ptr)
 uint serializationLength(T)(T value)
 {
 	static if (is(T U : U[]))
-		return uint.sizeof + U.sizeof * value.length;
+		return cast(uint)(uint.sizeof + U.sizeof * value.length);
 	else
-		return T.sizeof;
+		return cast(uint)T.sizeof;
 }
 
 mixin template Serializable(MessageId)

@@ -61,6 +61,11 @@ solution "skiron"
 			includedirs { "common/", "vendor/" }
 			files { "emulator/**.d" }
 
+			configuration "linux"
+				links { "X11", "Xext", "GL" }
+
+			configuration {}
+
 			filter "configurations:unittest"
 				flags { "UnitTest" }
 
