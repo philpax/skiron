@@ -131,65 +131,50 @@ unittest
 	assert(buf.data.ptr == buf.bufferPtr);
 }
 
-private template Select2From3(uint Index1, uint Index2, Args...)
-{	
+private template Select(alias IndicesTuple, uint ChunkCount, Args...)
+{
 	import std.typecons : tuple;
-	import std.meta : AliasSeq;
+	import std.meta : AliasSeq, aliasSeqOf, staticMap;
 
-	static if (Args.length == 3)
+	static if (Args.length == ChunkCount)
 	{
-		enum Select2From3 = tuple(Args[Index1], Args[Index2]);
+		enum SelectTuple(alias index) = Args[index];
+		enum Select = tuple(staticMap!(SelectTuple, aliasSeqOf!([IndicesTuple.expand])));
 	}
 	else
 	{
-		enum Select2From3 = AliasSeq!(
-			Select2From3!(Index1, Index2, Args[0..3]), 
-			Select2From3!(Index1, Index2, Args[3..$]));
-	}
-}
-
-private template Select2From2(Args...)
-{	
-	import std.typecons : tuple;
-	import std.meta : AliasSeq;
-
-	static if (Args.length == 2)
-	{
-		enum Select2From2 = tuple(Args[0], Args[1]);
-	}
-	else
-	{
-		enum Select2From2 = AliasSeq!(
-			Select2From2!(Args[0..2]), 
-			Select2From2!(Args[2..$]));
+		enum Select = AliasSeq!(
+			Select!(IndicesTuple, ChunkCount, Args[0..ChunkCount]), 
+			Select!(IndicesTuple, ChunkCount, Args[ChunkCount..$]));
 	}
 }
 
 string enumDocumentedImpl(string Name, Args...)()
 {
 	import std.string : format;
+	import std.typecons : tuple;
 
 	string ret = "enum " ~ Name ~ " { ";
 
 	static if (Args.length % 3 == 0)
 	{
-		foreach (value; Select2From3!(0, 1, Args))
+		foreach (value; Select!(tuple(0, 1), 3, Args))
 			ret ~= `%s = %s, `.format(value.expand);
 		ret ~= "}\n";
 
 		ret ~= "enum " ~ Name ~ "Docs = [";
-		foreach (value; Select2From3!(0, 2, Args))
+		foreach (value; Select!(tuple(0, 2), 3, Args))
 			ret ~= `tuple(%s.%s, "%s"), `.format(Name, value.expand);
 		ret ~= "];\n";
 	}
 	else static if (Args.length % 2 == 0)
 	{
-		foreach (value; Select2From2!Args)
+		foreach (value; Select!(tuple(0), 2, Args))
 			ret ~= `%s, `.format(value[0]);
 		ret ~= "}\n";
 
 		ret ~= "enum " ~ Name ~ "Docs = [";
-		foreach (value; Select2From2!(Args))
+		foreach (value; Select!(tuple(0, 1), 2, Args))
 			ret ~= `tuple(%s.%s, "%s"), `.format(Name, value.expand);
 		ret ~= "];\n";
 	}
@@ -199,6 +184,5 @@ string enumDocumentedImpl(string Name, Args...)()
 
 mixin template EnumDocumented(string Name, Args...)
 {
-	import std.typecons : tuple;
 	mixin(enumDocumentedImpl!(Name, Args));
 }
