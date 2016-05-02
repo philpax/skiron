@@ -261,32 +261,15 @@ unittest
 	assert(opcode.register3 == cast(Register)2);
 }
 
-string generateOpcodeToDescriptor()
-{
-	import std.traits, std.string, std.conv;
-
-	string ret =
-`final switch (opcode)
-{
-`;
-
-	foreach (member; EnumMembers!Opcodes)
-	{
-		if (member.operandFormat == OperandFormat.Pseudo)
-			continue;
-
-		ret ~= "case Opcodes.%s.opcode: return Opcodes.%s;\n".format(
-			member.to!string(), member.to!string());
-	}
-
-	ret ~= `}`;
-
-	return ret;
-}
-
 OpcodeDescriptor opcodeToDescriptor(ubyte opcode) @nogc nothrow
 {
-	mixin(generateOpcodeToDescriptor());
+	import std.traits : EnumMembers;
+
+	foreach (member; EnumMembers!Opcodes)
+		if (opcode == member.opcode)
+			return member;
+
+	assert(0);
 }
 
 char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
