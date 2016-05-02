@@ -9,12 +9,12 @@ import std.traits : EnumMembers;
 enum OpcodeBitCount = 6;
 enum OpcodeCount = (1 << OpcodeBitCount);
 
-mixin EnumDocumented!("Variant",
-	"Identity", 0,
+mixin EnumDocumentedDefault!("Variant",
+	"Identity",
 		"Pass the operand through unchanged.",
-	"ShiftLeft1", 1,
+	"ShiftLeft1",
 		"Shift the operand 1 bit to the left.",
-	"ShiftLeft2", 2,
+	"ShiftLeft2",
 		"Shift the operand 2 bits to the left.",
 );
 
@@ -118,7 +118,7 @@ enum OperandSize
 }
 
 // Not the same as encoding; dictates how many operands there are
-mixin EnumDocumented!("OperandFormat",
+mixin EnumDocumentedDefault!("OperandFormat",
 	"DstSrc",
 		"Destination, source.",
 	"DstSrcSrc",
