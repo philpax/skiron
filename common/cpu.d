@@ -47,7 +47,6 @@ char[] registerName(Register index, char[] buffer) @nogc nothrow
 	import std.traits : EnumMembers;
 	import std.conv : to;
 	import std.uni : toLower;
-	import std.string : format;
 
 	foreach (member; EnumMembers!Register)
 	{
