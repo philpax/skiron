@@ -1,9 +1,22 @@
 module common.util.sformat;
 
+private size_t autoFormat(FmtArgs...)(char[] buffer, size_t index, const(char)* fmt, FmtArgs fmtArgs)
+{
+	import core.stdc.stdio : snprintf;
+	import core.stdc.string : memcpy;
+	import std.algorithm : min;
+	import common.util.stackbuffer : StackBuffer;
+
+	StackBuffer!1024 argBuffer;
+	argBuffer.allocate(snprintf(null, 0, fmt, fmtArgs));
+
+	auto size = snprintf(cast(char*)argBuffer.ptr, argBuffer.length, fmt, fmtArgs);
+	memcpy(buffer.ptr + index, argBuffer.ptr, min(argBuffer.length, buffer.length - index));
+	return size;
+}
+
 char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 {
-	import core.stdc.stdio;
-
 	size_t index = 0;
 	size_t argumentIndex = 0;
 	bool parsingFormatString;
@@ -15,30 +28,16 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 			{
 				size_t currentIndex = 0;
 
-				void autoFormat(FmtArgs...)(const(char)* fmt, FmtArgs fmtArgs)
-				{
-					import core.stdc.string : memcpy;
-					import std.algorithm : min;
-					import common.util.stackbuffer;
-
-					StackBuffer!1024 argBuffer;
-					argBuffer.allocate(snprintf(null, 0, fmt, fmtArgs));
-
-					auto size = snprintf(cast(char*)argBuffer.ptr, argBuffer.length, fmt, fmtArgs);
-					memcpy(buffer.ptr + index, argBuffer.ptr, min(argBuffer.length, buffer.length - index));
-					index += size;
-				}
-
 				foreach (arg; args)
 				{
 					if (argumentIndex == currentIndex)
 					{
 						static if (is(typeof(arg) : int))
-							autoFormat("%i", arg);
+							index += buffer.autoFormat(index, "%i", arg);
 						else static if (is(typeof(arg) == string))
-							autoFormat("%.*s", arg.length, arg.ptr);
+							index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
 						else static if (is(typeof(arg) : const(char[])))
-							autoFormat("%.*s", arg.length, arg.ptr);
+							index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
 					}
 
 					++currentIndex;
