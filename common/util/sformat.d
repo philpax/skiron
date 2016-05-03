@@ -30,18 +30,19 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 
 				foreach (arg; args)
 				{
-					if (argumentIndex == currentIndex)
-					{
-						static if (is(typeof(arg) : int))
-							index += buffer.autoFormat(index, "%i", arg);
-						else static if (is(typeof(arg) == string))
-							index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
-						else static if (is(typeof(arg) : const(char[])))
-							index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
-					}
+					if (argumentIndex != currentIndex)
+						continue;
+
+					static if (is(typeof(arg) : int))
+						index += buffer.autoFormat(index, "%i", arg);
+					else static if (is(typeof(arg) == string))
+						index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
+					else static if (is(typeof(arg) : const(char[])))
+						index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
 
 					++currentIndex;
 				}
+
 				++argumentIndex;
 			}
 			else if (c == '%')
@@ -49,9 +50,6 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 				buffer[index] = '%';
 				++index;
 			}
-
-			if (index >= buffer.length)
-				return buffer;
 
 			parsingFormatString = false;
 		}
@@ -65,10 +63,10 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 
 			buffer[index] = c;
 			++index;
-
-			if (index >= buffer.length)
-				return buffer;
 		}
+
+		if (index >= buffer.length)
+			return buffer;
 	}
 
 	return buffer[0..index];
