@@ -2,11 +2,13 @@ module common.util.stackbuffer;
 
 struct StackBuffer(uint Size)
 {
+@nogc:
+nothrow:
 	private union {
 		ubyte[Size] buffer;
 		ubyte* bufferPtr;
 	}
-	private uint length;
+	private size_t length_;
 
 	this(uint size)
 	{
@@ -25,7 +27,7 @@ struct StackBuffer(uint Size)
 	{
 		import core.stdc.stdlib : malloc;
 
-		this.length = size;
+		this.length_ = size;
 		if (size > Size)
 			this.bufferPtr = cast(ubyte*)malloc(size);
 	}
@@ -33,6 +35,11 @@ struct StackBuffer(uint Size)
 	ubyte[] data() @property
 	{
 		return this.length > Size ? this.bufferPtr[0..this.length] : this.buffer;
+	}
+
+	size_t length() @property const
+	{
+		return this.length_;
 	}
 
 	alias data this;
