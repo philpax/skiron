@@ -19,10 +19,12 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 				{
 					import core.stdc.string : memcpy;
 					import std.algorithm : min;
+					import common.util.stackbuffer;
 
-					char[1024] argBuffer;
+					StackBuffer!1024 argBuffer;
+					argBuffer.allocate(snprintf(null, 0, fmt, fmtArgs));
 
-					auto size = snprintf(argBuffer.ptr, argBuffer.length, fmt, fmtArgs);
+					auto size = snprintf(cast(char*)argBuffer.ptr, argBuffer.length, fmt, fmtArgs);
 					memcpy(buffer.ptr + index, argBuffer.ptr, min(argBuffer.length, buffer.length - index));
 					index += size;
 				}
