@@ -76,21 +76,21 @@ string writeOpcodes()
 			descriptor.operandFormat != OperandFormat.Pseudo)
 		{
 			file.write("* *Operand Format*: ");
-			switch (descriptor.operandFormat)
+			switch (descriptor.operandFormat.name)
 			{
-			case OperandFormat.DstSrc:
+			case OperandFormat.DstSrc.name:
 				file.writeln("`dst, src`");
 				break;
-			case OperandFormat.DstSrcSrc:
+			case OperandFormat.DstSrcSrc.name:
 				file.writeln("`dst, src, src`");
 				break;
-			case OperandFormat.DstUImm:
+			case OperandFormat.DstUImm.name:
 				file.writeln("`dst, imm`");
 				break;
-			case OperandFormat.DstSrcImm:
+			case OperandFormat.DstSrcImm.name:
 				file.writeln("`dst, src, imm`");
 				break;
-			case OperandFormat.Label:
+			case OperandFormat.Label.name:
 				file.writeln("`label`");
 				break;
 			default:

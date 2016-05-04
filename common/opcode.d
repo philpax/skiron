@@ -117,47 +117,31 @@ enum OperandSize
 	Word = Byte4
 }
 
-// Not the same as encoding; dictates how many operands there are
-mixin EnumDocumentedDefault!("OperandFormat",
-	"DstSrc",
-		"Destination, source.",
-	"DstSrcSrc",
-		"Destination, source1, source2.",
-	"DstUImm",
-		"Destination, unsigned immediate.",
-	"DstSrcImm",
-		"Destination, source, immediate.",
-	"Label",
-		"Label.",
-	"None",
-		"No operands.",
-	"Pseudo",
-		"Pseudo-instruction."
-);
+struct OperandFormatDescriptor
+{
+	string name;
+	Encoding encoding;
+	bool supportsOperandSize;
+	string description;
+}
 
-immutable OperandFormatToEncoding = [
-	Encoding.A,
-	Encoding.A,
-	Encoding.B,
-	Encoding.D,
-	Encoding.C,
-	Encoding.A,
-	Encoding.A
-];
-
-static assert(EnumMembers!OperandFormat.length == OperandFormatToEncoding.length);
-
-immutable OperandFormatToOperandSizeSupport = [
-	true,
-	true,
-	false,
-	true,
-	false,
-	false,
-	true
-];
-
-static assert(EnumMembers!OperandFormat.length == OperandFormatToOperandSizeSupport.length);
+enum OperandFormat
+{
+	DstSrc		= OperandFormatDescriptor("DstSrc", Encoding.A, true,
+		"Destination (register), source (register)"),
+	DstSrcSrc	= OperandFormatDescriptor("DstSrcSrc", Encoding.A, true,
+		"Destination (register), source (register), source (register)"),
+	DstUImm		= OperandFormatDescriptor("DstUImm", Encoding.B, false,
+		"Destination (register), source (unsigned immediate)"),
+	DstSrcImm	= OperandFormatDescriptor("DstSrcImm", Encoding.D, true,
+		"Destination (register), source (unsigned immediate)"),
+	Label		= OperandFormatDescriptor("Label", Encoding.C, false,
+		"Destination (register), source (unsigned immediate)"),
+	None		= OperandFormatDescriptor("None", Encoding.A, false,
+		"Destination (register), source (unsigned immediate)"),
+	Pseudo		= OperandFormatDescriptor("Pseudo", Encoding.A, true,
+		"Destination (register), source (unsigned immediate)"),
+}
 
 struct OpcodeDescriptor
 {
@@ -168,7 +152,7 @@ struct OpcodeDescriptor
 
 	@property Encoding encoding() const
 	{
-		return OperandFormatToEncoding[this.operandFormat];
+		return this.operandFormat.encoding;
 	}
 }
 
@@ -281,7 +265,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	auto descriptor = opcode.opcode.opcodeToDescriptor();
 
 	string sizePrefix = "";
-	if (OperandFormatToOperandSizeSupport[descriptor.operandFormat])
+	if (descriptor.operandFormat.supportsOperandSize)
 	{
 		import core.stdc.stdio;
 		final switch (opcode.operandSize)
@@ -312,33 +296,33 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		break;
 	}
 
-	final switch (descriptor.operandFormat)
+	final switch (descriptor.operandFormat.name)
 	{
-	case OperandFormat.DstSrc:
+	case OperandFormat.DstSrc.name:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
 		return "%s %s%s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, variant);
-	case OperandFormat.DstSrcSrc:
+	case OperandFormat.DstSrcSrc.name:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 		auto reg3 = opcode.register3.registerName(buffers[2]);
 
 		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
-	case OperandFormat.DstUImm:
+	case OperandFormat.DstUImm.name:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 
 		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
-	case OperandFormat.DstSrcImm:
+	case OperandFormat.DstSrcImm.name:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
 		auto reg2 = opcode.register2.registerName(buffers[1]);
 
 		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, opcode.immediateD, variant);
-	case OperandFormat.Label:
+	case OperandFormat.Label.name:
 		return "%s %s".sformat(output, descriptor.name, opcode.immediateC);
-	case OperandFormat.None:
+	case OperandFormat.None.name:
 		return "%s".sformat(output, descriptor.name);
-	case OperandFormat.Pseudo:
+	case OperandFormat.Pseudo.name:
 		return output;
 	}
 

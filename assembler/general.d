@@ -188,7 +188,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 	string generateSwitchStatement()
 	{
 		string s =
-`final switch (descriptor.operandFormat)
+`final switch (descriptor.operandFormat.name)
 {
 `;
 		foreach (member; EnumMembers!OperandFormat)
@@ -197,7 +197,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 				continue;
 
 			s ~= format(
-`case OperandFormat.%1$s:
+`case OperandFormat.%1$s.name:
 	foundMatching |= assembler.assemble%1$s(&descriptor);
 	break;
 `,
@@ -205,7 +205,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 		}
 
 		s ~=
-`case OperandFormat.Pseudo:
+`case OperandFormat.Pseudo.name:
 	foundMatching |= assembler.pseudoAssemble[token.text](assembler, &descriptor);
 	break;
 }

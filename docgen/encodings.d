@@ -65,16 +65,19 @@ void writeVariants(ref File file)
 
 void writeOperandFormats(ref File file)
 {
+	import std.traits : EnumMembers;
+
 	file.writeln("## Operand Formats");
 	file.writeln(
 		"An opcode has an operand format, which specifies which arguments it takes.");
 	file.writeln();
 
-	foreach (pair; OperandFormatDocs)
+	foreach (operandFormat; EnumMembers!OperandFormat)
 	{
-		file.writefln("* **%s**", pair[0].to!string());
-		file.writefln("    * *Index*: %s", cast(uint)pair[0]);
-		file.writefln("    * *Description*: %s", pair[1]);
+		file.writefln("* **%s**", operandFormat.name);
+		file.writefln("    * *Description*: %s", operandFormat.description);
+		file.writefln("    * *Encoding*: %s", operandFormat.encoding);
+		file.writefln("    * *Operand size support*: %s", operandFormat.supportsOperandSize);
 	}
 }
 
