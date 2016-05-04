@@ -6,46 +6,21 @@ import common.opcode;
 import common.encoding;
 import common.cpu;
 
-OpcodeDescriptor[] getDescriptors()
-{
-	import std.traits : EnumMembers;
-	import std.algorithm : sort;
-	OpcodeDescriptor[] descriptors;
-
-	foreach (member; EnumMembers!Opcodes)
-		descriptors ~= member;
-
-	descriptors.sort!((a,b) 
-	{ 
-		if (a.operandFormat != OperandFormat.Pseudo && 
-			b.operandFormat != OperandFormat.Pseudo)
-		{
-			if (a.opcode < b.opcode) return true;
-			if (b.opcode < a.opcode) return false;
-		}
-
-		if (a.operandFormat == OperandFormat.Pseudo && 
-			b.operandFormat != OperandFormat.Pseudo)
-			return false;
-
-		if (b.operandFormat == OperandFormat.Pseudo && 
-			a.operandFormat != OperandFormat.Pseudo)
-			return true;
-
-		return a.name < b.name;
-	});
-
-	return descriptors;
-}
-
 string writeOpcodes()
 {
 	import std.range : enumerate;
+	import std.traits : EnumMembers;
+	import std.algorithm : multiSort;
 
 	const filename = "Instruction-Listing.md";
 	auto file = File(filename, "w");
 
-	auto descriptors = getDescriptors();
+	auto descriptors = [EnumMembers!Opcodes];
+	descriptors.multiSort!(
+		(a, b) => a.operandFormat != OperandFormat.Pseudo && b.operandFormat == OperandFormat.Pseudo,
+		(a, b) => a.opcode < b.opcode,
+		(a, b) => a.name < b.name);
+
 	foreach (index, descriptor; descriptors.enumerate)
 	{
 		if (index > 0)
