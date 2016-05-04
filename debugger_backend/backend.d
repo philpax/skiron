@@ -70,7 +70,7 @@ class Debugger
 		auto redirect = redirectStdout ? Redirect.stdout : cast(Redirect)0;
 		auto portStr = port.to!string();
 		args ~= ["--port", portStr];
-		this.spawnedProcess = pipeProcess(["emulator", filePath] ~ args, redirect);
+		this.spawnedProcess = pipeProcess(["emulator".getSkironExecutablePath(), filePath] ~ args, redirect);
 		task({
 			Thread.getThis.sleep(50.msecs);
 

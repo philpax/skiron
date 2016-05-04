@@ -222,5 +222,5 @@ void main(string[] args)
 	std.file.write(outputPath, assembler.output);
 
 	if (disassemble)
-		["disassembler", outputPath].execute.output.writeln();
+		["disassembler".getSkironExecutablePath(), outputPath].execute.output.writeln();
 }

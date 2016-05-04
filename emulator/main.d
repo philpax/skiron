@@ -27,7 +27,7 @@ string assembleIfNecessary(string filePath)
 		return filePath;
 
 	writefln("Assembling '%s'", filePath);
-	auto assembler = ["assembler", filePath].execute();
+	auto assembler = ["assembler".getSkironExecutablePath(), filePath].execute();
 
 	if (assembler.status != 0)
 	{

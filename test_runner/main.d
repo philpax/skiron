@@ -70,7 +70,7 @@ void main()
 {
 	Test[] tests;
 
-	foreach (filePath; "../tests".dirEntries("*.skasm", SpanMode.depth))
+	foreach (filePath; "../tests".getSkironExecutablePath.dirEntries("*.skasm", SpanMode.depth))
 	{
 		auto fileText = filePath.readText();
 

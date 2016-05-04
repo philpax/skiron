@@ -296,7 +296,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		break;
 	}
 
-	final switch (descriptor.operandFormat.name)
+	switch (descriptor.operandFormat.name)
 	{
 	case OperandFormat.DstSrc.name:
 		auto reg1 = opcode.register1.registerName(buffers[0]);
@@ -324,6 +324,8 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo.name:
 		return output;
+	default:
+		assert(0);
 	}
 
 	return output;
