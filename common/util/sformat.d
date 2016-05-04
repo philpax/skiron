@@ -30,6 +30,8 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 
 				foreach (arg; args)
 				{
+					scope (exit) ++currentIndex;
+
 					if (argumentIndex != currentIndex)
 						continue;
 
@@ -39,8 +41,6 @@ char[] sformat(Args...)(string format, char[] buffer, Args args) @nogc nothrow
 						index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
 					else static if (is(typeof(arg) : const(char[])))
 						index += buffer.autoFormat(index, "%.*s", arg.length, arg.ptr);
-
-					++currentIndex;
 				}
 
 				++argumentIndex;
