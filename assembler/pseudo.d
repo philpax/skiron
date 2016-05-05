@@ -172,9 +172,9 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	auto absValue = abs(value);
 
 	// Remove 1 from BitCount to account for the sign mask
-	enum BitCount = Opcode.EncodingSeqD.fields
-									   .filter!(a => a.name == "immediateD")
-									   .front.size - 1;
+	enum BitCount = Opcode.EncodingDocsD.fields
+										.filter!(a => a.name == "immediate")
+										.front.size - 1;
 
 	// Add 2 to account for the shifting possible
 	enum MaskAll = ~(~0 << (BitCount + 2));
@@ -295,8 +295,6 @@ bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 
 	// Synthesize add
 	Opcode add;
-	add.opcode = Opcodes.AddA.opcode;
-	add.encoding = Opcodes.AddA.encoding;
 	add.operandSize = operandSize;
 	add.register1 = dst;
 	add.register2 = src;

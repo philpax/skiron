@@ -59,7 +59,7 @@ string encodingDocs(string Name, string Description, Args...)()
 {
 	import std.string : format;
 
-	auto ret = `enum EncodingSeq` ~ Name ~ ` = EncodingDescriptor(`;
+	auto ret = `enum EncodingDocs` ~ Name ~ ` = EncodingDescriptor(`;
 	ret ~= `"%s", "%s", [`.format(Name, Description);
 	ret ~= encodingDocsMake!(Args);
 	ret ~= "]);\n";
@@ -88,7 +88,7 @@ EncodingDescriptor[] getEncodings(Opcode)()
 
 		enum members = [__traits(allMembers, Opcode)]; 
 		return "[%s]".format(
-			members.filter!(a => a.startsWith("EncodingSeq"))
+			members.filter!(a => a.startsWith("EncodingDocs"))
 				   .map!(a => Opcode.stringof ~ "." ~ a)
 				   .join(", ")
 				   .array());
