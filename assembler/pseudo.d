@@ -12,17 +12,13 @@ import assembler.parse;
 void assemblePushManual(ref Assembler assembler, Register register, OperandSize operandSize = OperandSize.Byte4)
 {
 	// Synthesize add, store
-	Opcode add;
-	add.opcode = Opcodes.AddD.opcode;
-	add.encoding = Opcodes.AddD.encoding;
+	auto add = makeOpcode!(Opcodes.AddD);
 	add.operandSize = OperandSize.Byte4;
 	add.register1 = Register.SP;
 	add.register2 = Register.SP;
-	add.immediateD = -4;
+	add.immediate = -4;
 
-	Opcode store;
-	store.opcode = Opcodes.Store.opcode;
-	store.encoding = Opcodes.Store.encoding;
+	auto store = makeOpcode!(Opcodes.Store);
 	store.operandSize = operandSize;
 	store.register1 = Register.SP;
 	store.register2 = register;
@@ -53,20 +49,16 @@ bool assemblePush(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 void assemblePopManual(ref Assembler assembler, Register register, OperandSize operandSize = OperandSize.Byte4)
 {
 	// Synthesize load, add
-	Opcode load;
-	load.opcode = Opcodes.Load.opcode;
-	load.encoding = Opcodes.Load.encoding;
+	auto load = makeOpcode!(Opcodes.Load);
 	load.operandSize = operandSize;
 	load.register1 = register;
 	load.register2 = Register.SP;
 
-	Opcode add;
-	add.opcode = Opcodes.AddD.opcode;
-	add.encoding = Opcodes.AddD.encoding;
+	auto add = makeOpcode!(Opcodes.AddD);
 	add.operandSize = OperandSize.Byte4;
 	add.register1 = Register.SP;
 	add.register2 = Register.SP;
-	add.immediateD = 4;
+	add.immediate = 4;
 
 	assembler.writeOutput(load);
 	assembler.writeOutput(add);
@@ -95,9 +87,7 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 {
 	auto newTokens = assembler.tokens;
 
-	Opcode call;
-	call.opcode = Opcodes.Call.opcode;
-	call.encoding = Opcodes.Call.encoding;
+	auto call = makeOpcode!(Opcodes.Call);
 
 	string label;
 	if (!assembler.parseLabel(newTokens, label)) return false;
@@ -142,17 +132,13 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		ushort low =  (value >>  0) & 0xFFFF;
 
 		// Synthesize loadui, loadli
-		Opcode loadui;
-		loadui.opcode = Opcodes.LoadUi.opcode;
-		loadui.encoding = Opcodes.LoadUi.encoding;
+		auto loadui = makeOpcode!(Opcodes.LoadUi);
 		loadui.register1 = register;
-		loadui.immediateB = high;
+		loadui.immediate = high;
 
-		Opcode loadli;
-		loadli.opcode = Opcodes.LoadLi.opcode;
-		loadli.encoding = Opcodes.LoadLi.encoding;
+		auto loadli = makeOpcode!(Opcodes.LoadLi);
 		loadli.register1 = register;
-		loadli.immediateB = low;
+		loadli.immediate = low;
 
 		foreach (_; 0..assembler.repCount)
 		{
@@ -180,9 +166,7 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	enum MaskAll = ~(~0 << (BitCount + 2));
 	if (label.empty && (absValue & MaskAll) == absValue)
 	{
-		Opcode add;
-		add.opcode = Opcodes.AddD.opcode;
-		add.encoding = Opcodes.AddD.encoding;
+		auto add = makeOpcode!(Opcodes.AddD);
 		add.operandSize = OperandSize.Byte4;
 		add.register1 = register;
 		add.register2 = Register.Z;
@@ -195,7 +179,7 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		// If the value can be packed into n bits, multiplied by 1
 		if ((absValue & Mask0) == absValue)
 		{
-			add.immediateD = ((absValue & Mask0) >> 0) * sign;
+			add.immediate = ((absValue & Mask0) >> 0) * sign;
 			add.variant = Variant.Identity;
 
 			foreach (_; 0..assembler.repCount)
@@ -204,7 +188,7 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		// If the value can be packed into n bits, multiplied by 2
 		else if ((absValue & Mask1) == absValue)
 		{
-			add.immediateD = ((absValue & Mask1) >> 1) * sign;
+			add.immediate = ((absValue & Mask1) >> 1) * sign;
 			add.variant = Variant.ShiftLeft1;
 
 			foreach (_; 0..assembler.repCount)
@@ -213,7 +197,7 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		// If the value can be packed into n bits, multiplied by 4
 		else if ((absValue & Mask2) == absValue)
 		{
-			add.immediateD = ((absValue & Mask2) >> 2) * sign;
+			add.immediate = ((absValue & Mask2) >> 2) * sign;
 			add.variant = Variant.ShiftLeft2;
 
 			foreach (_; 0..assembler.repCount)
@@ -265,9 +249,7 @@ bool assembleJr(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	if (!assembler.parseRegister(newTokens, register)) return false;
 
 	// Synthesize add
-	Opcode add;
-	add.opcode = Opcodes.AddA.opcode;
-	add.encoding = Opcodes.AddA.encoding;
+	auto add = makeOpcode!(Opcodes.AddA);
 	add.operandSize = OperandSize.Byte4;
 	add.register1 = Register.IP;
 	add.register2 = register;
@@ -294,7 +276,7 @@ bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	if (!assembler.parseRegister(newTokens, src)) return false;
 
 	// Synthesize add
-	Opcode add;
+	auto add = makeOpcode!(Opcodes.AddA);
 	add.operandSize = operandSize;
 	add.register1 = dst;
 	add.register2 = src;

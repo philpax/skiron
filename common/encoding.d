@@ -69,7 +69,10 @@ string encodingDocs(string Name, string Description, Args...)()
 public:
 string defineEncoding(string Name, string Description, Args...)()
 {
-	auto ret = bitfields!(encodingFilter!Args);
+	import std.string : format;
+	import std.uni : toLower;
+
+	auto ret = "struct %s { %s Opcode get() { return cast(Opcode)this; } alias get this; } %s %s;".format(Name, bitfields!(encodingFilter!Args), Name, Name.toLower());
 	ret ~= encodingDocs!(Name, Description, Args);
 	return ret;
 }

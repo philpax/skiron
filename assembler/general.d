@@ -14,6 +14,13 @@ import assembler.lexer;
 import assembler.parse;
 import assembler.main;
 
+auto getOpcodeStructureFromFunction(string functionName = __FUNCTION__)()
+{
+	enum operandFormatStr = functionName.split('.')[$-1]["assemble".length .. $];
+	enum operandFormat = __traits(getMember, OperandFormat, operandFormatStr);
+	return getOpcodeStructure!(operandFormat);
+}
+
 bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
 	auto newTokens = assembler.tokens;
@@ -27,7 +34,7 @@ bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	if (!assembler.parseRegister(newTokens, register2)) return false;
 	if (!assembler.parseVariant(newTokens, variant)) return false;
 
-	Opcode opcode;
+	auto opcode = getOpcodeStructureFromFunction();
 	opcode.opcode = descriptor.opcode;
 	opcode.encoding = descriptor.encoding;
 	opcode.operandSize = operandSize;
@@ -59,7 +66,7 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	if (!assembler.parseRegister(newTokens, register3)) return false;
 	if (!assembler.parseVariant(newTokens, variant)) return false;
 
-	Opcode opcode;
+	auto opcode = getOpcodeStructureFromFunction();
 	opcode.opcode = descriptor.opcode;
 	opcode.encoding = descriptor.encoding;
 	opcode.operandSize = operandSize;
@@ -91,11 +98,11 @@ bool assembleDstUImm(ref Assembler assembler, const(OpcodeDescriptor)* descripto
 	if (!assembler.parseNumber(newTokens, immediate)) return false;
 	if (!assembler.parseVariant(newTokens, variant)) return false;
 
-	Opcode opcode;
+	auto opcode = getOpcodeStructureFromFunction();
 	opcode.opcode = descriptor.opcode;
 	opcode.encoding = descriptor.encoding;
 	opcode.register1 = register1;
-	opcode.immediateB = cast(ushort)immediate;
+	opcode.immediate = cast(ushort)immediate;
 	opcode.variant = variant;
 
 	scope (exit)
@@ -122,13 +129,13 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	if (!assembler.parseNumber(newTokens, immediate)) return false;
 	if (!assembler.parseVariant(newTokens, variant)) return false;
 
-	Opcode opcode;
+	auto opcode = getOpcodeStructureFromFunction();
 	opcode.operandSize = operandSize;
 	opcode.opcode = descriptor.opcode;
 	opcode.encoding = descriptor.encoding;
 	opcode.register1 = register1;
 	opcode.register2 = register2;
-	opcode.immediateD = immediate;
+	opcode.immediate = immediate;
 	opcode.variant = variant;
 
 	scope (exit)
@@ -142,7 +149,7 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 
 bool assembleNone(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
-	Opcode opcode;
+	auto opcode = getOpcodeStructureFromFunction();
 	opcode.opcode = descriptor.opcode;
 	opcode.encoding = descriptor.encoding;
 
@@ -156,7 +163,7 @@ bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
 	auto newTokens = assembler.tokens;
 
-	Opcode opcode;
+	auto opcode = getOpcodeStructureFromFunction();
 	opcode.opcode = descriptor.opcode;
 	opcode.encoding = descriptor.encoding;
 

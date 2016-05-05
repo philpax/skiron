@@ -16,7 +16,7 @@ import std.string : format, join;
 string generateOpcodeSwitch()
 {
 	string s = 
-`final switch (opcode.opcode)
+`final switch (opcode.a.opcode)
 {
 `;
 	foreach (member; EnumMembers!Opcodes)
@@ -28,7 +28,7 @@ string generateOpcodeSwitch()
 		{
 			s ~= format(
 `case Opcodes.%1$s.opcode:
-	final switch (opcode.operandSize)
+	final switch (opcode.a.operandSize)
 	{
 		case OperandSize.Byte:
 			this.run%1$s!ubyte(opcode);
@@ -108,7 +108,7 @@ nothrow:
 		if (this.paused && !this.doStep)
 			return;
 
-		auto opcode = Opcode(*cast(uint*)&this.memory[this.ip]);
+		auto opcode = *cast(Opcode*)&this.memory[this.ip];
 		this.ip += uint.sizeof;
 
 		mixin(generateOpcodeSwitch());
@@ -128,20 +128,20 @@ nothrow:
 
 Type getDst(Type = uint)(ref Core core, Opcode opcode)
 {
-	return cast(Type)core.registers[opcode.register1];
+	return cast(Type)core.registers[opcode.a.register1];
 }
 
 void setDst(Type = uint, IncomingType)(ref Core core, Opcode opcode, IncomingType value)
 {
-	if (opcode.register1 == Register.Z)
+	if (opcode.a.register1 == Register.Z)
 		return;
 	else
-		*cast(Type*)&core.registers[opcode.register1] = cast(Type)value;
+		*cast(Type*)&core.registers[opcode.a.register1] = cast(Type)value;
 }
 
 Type doVariant(Type = uint)(Opcode opcode, Type value)
 {
-	final switch (opcode.variant)
+	final switch (opcode.a.variant)
 	{
 		case Variant.Identity:
 			return value;
@@ -154,30 +154,30 @@ Type doVariant(Type = uint)(Opcode opcode, Type value)
 
 int getImmediate(ref Core core, Opcode opcode)
 {
-	final switch (opcode.encoding)
+	final switch (opcode.a.encoding)
 	{
 		case Encoding.A:
 			assert(0);
 		case Encoding.B:
-			return opcode.doVariant(opcode.immediateB);
+			return opcode.doVariant(opcode.b.immediate);
 		case Encoding.C:
-			return opcode.doVariant(opcode.immediateC);
+			return opcode.doVariant(opcode.c.immediate);
 		case Encoding.D:
-			return opcode.doVariant(opcode.immediateD);
+			return opcode.doVariant(opcode.d.immediate);
 	}
 }
 
 Type getSrc(Type = uint)(ref Core core, Opcode opcode)
 {
-	return opcode.doVariant(cast(Type)core.registers[opcode.register2]);
+	return opcode.doVariant(cast(Type)core.registers[opcode.a.register2]);
 }
 
 Type getSrc1(Type = uint)(ref Core core, Opcode opcode)
 {
-	return cast(Type)core.registers[opcode.register2];
+	return cast(Type)core.registers[opcode.a.register2];
 }
 
 Type getSrc2(Type = uint)(ref Core core, Opcode opcode)
 {
-	return opcode.doVariant(cast(Type)core.registers[opcode.register3]);
+	return opcode.doVariant(cast(Type)core.registers[opcode.a.register3]);
 }

@@ -56,47 +56,47 @@ struct Opcode
 
 		mixin DefineEncoding!(Encoding.B,
 			"Used for one-register, one-immediate instructions.",
-			ubyte,			"_opcode",		OpcodeBitCount,
+			ubyte,			"opcode",		OpcodeBitCount,
 			"",
-			Encoding,		"_encoding",	EncodingBitCount,
+			Encoding,		"encoding",		EncodingBitCount,
 			"",
-			Variant,		"_variant",		VariantBitCount,
-			"The variant/modifier to apply to immediateB.",
-			Register,		"_register1",	RegisterBitCount,
+			Variant,		"variant",		VariantBitCount,
+			"The variant/modifier to apply to the immediate.",
+			Register,		"register1",	RegisterBitCount,
 			"The destination/source register.",
-			ushort,			"immediateB",	16,
+			ushort,			"immediate",	16,
 			"The encoded unsigned immediate value.",
 		);
 
 		mixin DefineEncoding!(Encoding.C,
 			"Used for one-immediate instructions.",
-			ubyte,			"_opcode",		OpcodeBitCount,
+			ubyte,			"opcode",		OpcodeBitCount,
 			"",
-			Encoding,		"_encoding",	EncodingBitCount,
+			Encoding,		"encoding",		EncodingBitCount,
 			"",
-			Variant,		"_variant",		VariantBitCount,
-			"The variant/modifier to apply to immediateC.",
-			int,			"immediateC",	20,
+			Variant,		"variant",		VariantBitCount,
+			"The variant/modifier to apply to the immediate.",
+			int,			"immediate",	20,
 			"The encoded signed immediate value.",
-			OperandSize,	"_operandSize",	OperandSizeBitCount,
+			OperandSize,	"operandSize",	OperandSizeBitCount,
 			"",
 		);
 
 		mixin DefineEncoding!(Encoding.D,
 			"Used for two-register, one-immediate instructions.",
-			ubyte,			"_opcode",		OpcodeBitCount,
+			ubyte,			"opcode",		OpcodeBitCount,
 			"",
-			Encoding,		"_encoding",	EncodingBitCount,
+			Encoding,		"encoding",		EncodingBitCount,
 			"",
-			Variant,		"_variant",		VariantBitCount,
-			"",
-			Register,		"_register1",	RegisterBitCount,
+			Variant,		"variant",		VariantBitCount,
+			"The variant/modifier to apply to the immediate.",
+			Register,		"register1",	RegisterBitCount,
 			"The destination register.",
-			Register,		"_register2",	RegisterBitCount,
+			Register,		"register2",	RegisterBitCount,
 			"The source register.",
-			int,			"immediateD",	8,
+			int,			"immediate",	8,
 			"The encoded signed immediate value.",
-			OperandSize,	"_operandSize",	OperandSizeBitCount,
+			OperandSize,	"operandSize",	OperandSizeBitCount,
 			"",
 		);
 
@@ -231,10 +231,25 @@ enum Opcodes
 		"Copy the value in `src` to `dst`."),
 }
 
+auto getOpcodeStructure(OperandFormatDescriptor operandFormat)()
+{
+	import std.conv : to;
+	enum encoding = operandFormat.encoding.to!string();
+	return __traits(getMember, Opcode, encoding)();
+}
+
+auto makeOpcode(OpcodeDescriptor opcode)()
+{
+	enum operandFormat = opcode.operandFormat;
+	auto ret = getOpcodeStructure!(operandFormat);
+	ret.opcode = opcode.opcode;
+	ret.encoding = opcode.encoding;
+	return ret;
+}
+
 unittest
 {
-	Opcode opcode;
-	opcode.opcode = Opcodes.Load.opcode;
+	auto opcode = makeOpcode!(Opcodes.Load);
 	opcode.register1 = cast(Register)0;
 	opcode.register2 = cast(Register)1;
 	opcode.register3 = cast(Register)2;
@@ -262,13 +277,13 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 
 	char[16][3] buffers;
 
-	auto descriptor = opcode.opcode.opcodeToDescriptor();
+	auto descriptor = opcode.a.opcode.opcodeToDescriptor();
 
 	string sizePrefix = "";
 	if (descriptor.operandFormat.supportsOperandSize)
 	{
 		import core.stdc.stdio;
-		final switch (opcode.operandSize)
+		final switch (opcode.a.operandSize)
 		{
 		case OperandSize.Byte:
 			sizePrefix = "byte ";
@@ -283,7 +298,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	}
 
 	string variant;
-	final switch (opcode.variant)
+	final switch (opcode.a.variant)
 	{
 	case Variant.Identity:
 		variant = "";
@@ -296,30 +311,31 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		break;
 	}
 
+	// TODO: Apply metaprogramming to fix this up
 	switch (descriptor.operandFormat.name)
 	{
 	case OperandFormat.DstSrc.name:
-		auto reg1 = opcode.register1.registerName(buffers[0]);
-		auto reg2 = opcode.register2.registerName(buffers[1]);
+		auto reg1 = opcode.a.register1.registerName(buffers[0]);
+		auto reg2 = opcode.a.register2.registerName(buffers[1]);
 
 		return "%s %s%s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, variant);
 	case OperandFormat.DstSrcSrc.name:
-		auto reg1 = opcode.register1.registerName(buffers[0]);
-		auto reg2 = opcode.register2.registerName(buffers[1]);
-		auto reg3 = opcode.register3.registerName(buffers[2]);
+		auto reg1 = opcode.a.register1.registerName(buffers[0]);
+		auto reg2 = opcode.a.register2.registerName(buffers[1]);
+		auto reg3 = opcode.a.register3.registerName(buffers[2]);
 
 		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
 	case OperandFormat.DstUImm.name:
-		auto reg1 = opcode.register1.registerName(buffers[0]);
+		auto reg1 = opcode.b.register1.registerName(buffers[0]);
 
-		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.immediateB, variant);
+		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.b.immediate, variant);
 	case OperandFormat.DstSrcImm.name:
-		auto reg1 = opcode.register1.registerName(buffers[0]);
-		auto reg2 = opcode.register2.registerName(buffers[1]);
+		auto reg1 = opcode.d.register1.registerName(buffers[0]);
+		auto reg2 = opcode.d.register2.registerName(buffers[1]);
 
-		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, opcode.immediateD, variant);
+		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, opcode.d.immediate, variant);
 	case OperandFormat.Label.name:
-		return "%s %s".sformat(output, descriptor.name, opcode.immediateC);
+		return "%s %s".sformat(output, descriptor.name, opcode.c.immediate);
 	case OperandFormat.None.name:
 		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo.name:
@@ -339,8 +355,7 @@ string disassemble(Opcode opcode)
 
 unittest
 {
-	Opcode opcode;
-	opcode.opcode = Opcodes.Load.opcode;
+	auto opcode = makeOpcode!(Opcodes.Load);
 	opcode.register1 = cast(Register)0;
 	opcode.register2 = cast(Register)1;
 	opcode.variant = Variant.ShiftLeft2;

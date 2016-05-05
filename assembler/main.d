@@ -181,15 +181,15 @@ struct Assembler
 				auto location = relocation.location;
 				auto currentPosition = location * uint.sizeof;
 
-				opcodes[location].immediateC =
+				opcodes[location].c.immediate =
 					cast(int)(this.labels[relocation.label] - currentPosition - 4);
 				break;
 			case Relocation.Type.SplitAbsolute:
 				auto location = relocation.location;
 				auto label = this.labels[relocation.label];
 
-				opcodes[location].immediateB = (label >> 16) & 0xFFFF;
-				opcodes[location+1].immediateB = label & 0xFFFF;
+				opcodes[location].b.immediate = (label >> 16) & 0xFFFF;
+				opcodes[location+1].b.immediate = label & 0xFFFF;
 				break;
 			}
 		}
