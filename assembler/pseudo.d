@@ -220,6 +220,17 @@ bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
+void assembleMoveManual(ref Assembler assembler, Register dst, Register src, OperandSize operandSize = OperandSize.Byte4)
+{
+	auto add = makeOpcode!(Opcodes.AddA);
+	add.operandSize = operandSize;
+	add.register1 = dst;
+	add.register2 = src;
+	add.register3 = Register.Z;
+
+	assembler.writeOutput(add);
+}
+
 bool assembleDw(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
 	auto newTokens = assembler.tokens;
@@ -248,18 +259,11 @@ bool assembleJr(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	Register register;
 	if (!assembler.parseRegister(newTokens, register)) return false;
 
-	// Synthesize add
-	auto add = makeOpcode!(Opcodes.AddA);
-	add.operandSize = OperandSize.Byte4;
-	add.register1 = Register.IP;
-	add.register2 = register;
-	add.register3 = Register.Z;
-
 	scope (exit)
 		assembler.finishAssemble(newTokens);
 
 	foreach (_; 0..assembler.repCount)
-		assembler.writeOutput(add);
+		assembler.assembleMoveManual(Register.IP, register);
 
 	return true;
 }
@@ -275,18 +279,11 @@ bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	if (!assembler.parseRegister(newTokens, dst)) return false;
 	if (!assembler.parseRegister(newTokens, src)) return false;
 
-	// Synthesize add
-	auto add = makeOpcode!(Opcodes.AddA);
-	add.operandSize = operandSize;
-	add.register1 = dst;
-	add.register2 = src;
-	add.register3 = Register.Z;
-
 	scope (exit)
 		assembler.finishAssemble(newTokens);
 
 	foreach (_; 0..assembler.repCount)
-		assembler.writeOutput(add);
+		assembler.assembleMoveManual(dst, src, operandSize);
 
 	return true;
 }
