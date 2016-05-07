@@ -26,7 +26,7 @@ bool parseNumber(Int)(ref Assembler assembler, ref const(Token)[] tokens, ref In
 	return true;
 }
 
-bool parseSizePrefix(ref Assembler assembler, ref const(Token)[] tokens, ref OperandSize output)
+bool parseOperandSize(ref Assembler assembler, ref const(Token)[] tokens, ref OperandSize output)
 {
 	auto token = tokens.front;
 

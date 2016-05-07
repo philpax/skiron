@@ -34,7 +34,7 @@ bool assemblePush(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	OperandSize operandSize;
 	Register register;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register)) return false;
 
 	scope (exit)
@@ -71,7 +71,7 @@ bool assemblePop(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	OperandSize operandSize;
 	Register register;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register)) return false;
 
 	scope (exit)
@@ -275,7 +275,7 @@ bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	OperandSize operandSize;
 	Register dst, src;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, dst)) return false;
 	if (!assembler.parseRegister(newTokens, src)) return false;
 

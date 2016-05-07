@@ -29,7 +29,7 @@ bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	Register register1, register2;
 	Variant variant;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseRegister(newTokens, register2)) return false;
 	if (!assembler.parseVariant(newTokens, variant)) return false;
@@ -60,7 +60,7 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	Register register1, register2, register3;
 	Variant variant;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseRegister(newTokens, register2)) return false;
 	if (!assembler.parseRegister(newTokens, register3)) return false;
@@ -93,7 +93,7 @@ bool assembleDstUimm(ref Assembler assembler, const(OpcodeDescriptor)* descripto
 	int immediate;
 	Variant variant;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseNumber(newTokens, immediate)) return false;
 	if (!assembler.parseVariant(newTokens, variant)) return false;
@@ -123,7 +123,7 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	int immediate;
 	Variant variant;
 
-	if (!assembler.parseSizePrefix(newTokens, operandSize)) return false;
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
 	if (!assembler.parseRegister(newTokens, register1)) return false;
 	if (!assembler.parseRegister(newTokens, register2)) return false;
 	if (!assembler.parseNumber(newTokens, immediate)) return false;
