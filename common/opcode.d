@@ -238,6 +238,13 @@ auto getOpcodeStructure(OperandFormatDescriptor operandFormat)()
 	return __traits(getMember, Opcode, encoding)();
 }
 
+auto asEncodingFromOperandFormat(OperandFormatDescriptor operandFormat)(Opcode opcode)
+{
+	import std.conv : to;
+	enum encoding = operandFormat.encoding.to!string();
+	return __traits(getMember, opcode, encoding)();
+}
+
 auto makeOpcode(OpcodeDescriptor opcode)()
 {
 	enum operandFormat = opcode.operandFormat;
@@ -315,27 +322,32 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	switch (descriptor.operandFormat.name)
 	{
 	case OperandFormat.DstSrc.name:
-		auto reg1 = opcode.a.register1.registerName(buffers[0]);
-		auto reg2 = opcode.a.register2.registerName(buffers[1]);
+		auto encoding = opcode.asEncodingFromOperandFormat!(OperandFormat.DstSrc);
+		auto reg1 = encoding.register1.registerName(buffers[0]);
+		auto reg2 = encoding.register2.registerName(buffers[1]);
 
 		return "%s %s%s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, variant);
 	case OperandFormat.DstSrcSrc.name:
-		auto reg1 = opcode.a.register1.registerName(buffers[0]);
-		auto reg2 = opcode.a.register2.registerName(buffers[1]);
-		auto reg3 = opcode.a.register3.registerName(buffers[2]);
+		auto encoding = opcode.asEncodingFromOperandFormat!(OperandFormat.DstSrcSrc);
+		auto reg1 = encoding.register1.registerName(buffers[0]);
+		auto reg2 = encoding.register2.registerName(buffers[1]);
+		auto reg3 = encoding.register3.registerName(buffers[2]);
 
 		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
 	case OperandFormat.DstUimm.name:
-		auto reg1 = opcode.b.register1.registerName(buffers[0]);
+		auto encoding = opcode.asEncodingFromOperandFormat!(OperandFormat.DstUimm);
+		auto reg1 = encoding.register1.registerName(buffers[0]);
 
-		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.b.immediate, variant);
+		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, encoding.immediate, variant);
 	case OperandFormat.DstSrcImm.name:
-		auto reg1 = opcode.d.register1.registerName(buffers[0]);
-		auto reg2 = opcode.d.register2.registerName(buffers[1]);
+		auto encoding = opcode.asEncodingFromOperandFormat!(OperandFormat.DstSrcImm);
+		auto reg1 = encoding.register1.registerName(buffers[0]);
+		auto reg2 = encoding.register2.registerName(buffers[1]);
 
-		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, opcode.d.immediate, variant);
+		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, encoding.immediate, variant);
 	case OperandFormat.Label.name:
-		return "%s %s".sformat(output, descriptor.name, opcode.c.immediate);
+		auto encoding = opcode.asEncodingFromOperandFormat!(OperandFormat.Label);
+		return "%s %s".sformat(output, descriptor.name, encoding.immediate);
 	case OperandFormat.None.name:
 		return "%s".sformat(output, descriptor.name);
 	case OperandFormat.Pseudo.name:
