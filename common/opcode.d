@@ -134,13 +134,13 @@ enum OperandFormat
 	DstUimm		= OperandFormatDescriptor("DstUimm", Encoding.B, false,
 		"Destination (register), source (unsigned immediate)"),
 	DstSrcImm	= OperandFormatDescriptor("DstSrcImm", Encoding.D, true,
-		"Destination (register), source (unsigned immediate)"),
+		"Destination (register), source1 (register), source2 (immediate)"),
 	Label		= OperandFormatDescriptor("Label", Encoding.C, false,
-		"Destination (register), source (unsigned immediate)"),
+		"Label (immediate)"),
 	None		= OperandFormatDescriptor("None", Encoding.A, false,
-		"Destination (register), source (unsigned immediate)"),
+		"No operands"),
 	Pseudo		= OperandFormatDescriptor("Pseudo", Encoding.A, true,
-		"Destination (register), source (unsigned immediate)"),
+		"Instruction-defined"),
 }
 
 struct OpcodeDescriptor
