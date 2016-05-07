@@ -1,6 +1,10 @@
 module docgen.opcodes;
 
 import std.stdio;
+import std.algorithm;
+import std.array;
+import std.string;
+import std.uni;
 
 import common.opcode;
 import common.encoding;
@@ -47,31 +51,53 @@ string writeOpcodes()
 		else
 			file.writefln("Pseudo");
 
-		if (descriptor.operandFormat != OperandFormat.None && 
-			descriptor.operandFormat != OperandFormat.Pseudo)
+		file.write("* *Operand Format*: ");
+		string[] components;
+		foreach (c; descriptor.operandFormat.name)
 		{
-			file.write("* *Operand Format*: ");
-			switch (descriptor.operandFormat.name)
-			{
-			case OperandFormat.DstSrc.name:
-				file.writeln("`dst, src`");
-				break;
-			case OperandFormat.DstSrcSrc.name:
-				file.writeln("`dst, src, src`");
-				break;
-			case OperandFormat.DstUimm.name:
-				file.writeln("`dst, imm`");
-				break;
-			case OperandFormat.DstSrcImm.name:
-				file.writeln("`dst, src, imm`");
-				break;
-			case OperandFormat.Label.name:
-				file.writeln("`label`");
-				break;
-			default:
-				assert(0);
-			}
+			if (c.isUpper)
+				components ~= [c];
+			else
+				components[$-1] ~= c;
 		}
+		auto operandFormat = components.map!((a)
+		{
+			switch (a)
+			{
+			case "Dst":
+				return "destination";
+			case "Src":
+				return "source";
+			case "Uimm":
+				return "unsigned immediate";
+			case "Imm":
+				return "immediate";
+			default:
+				return a.toLower();
+			}
+		}).join(", ").capitalize();
+		file.writefln("%s (`%s`)", operandFormat, descriptor.operandFormat.name);
+/*
+		switch (descriptor.operandFormat.name)
+		{
+		case OperandFormat.DstSrc.name:
+			file.writeln("`dst, src`");
+			break;
+		case OperandFormat.DstSrcSrc.name:
+			file.writeln("`dst, src, src`");
+			break;
+		case OperandFormat.DstUimm.name:
+			file.writeln("`dst, imm`");
+			break;
+		case OperandFormat.DstSrcImm.name:
+			file.writeln("`dst, src, imm`");
+			break;
+		case OperandFormat.Label.name:
+			file.writeln("`label`");
+			break;
+		default:
+			assert(0);
+		}*/
 		
 		file.writeln();
 	}
