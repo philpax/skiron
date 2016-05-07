@@ -149,6 +149,7 @@ struct OpcodeDescriptor
 	ubyte opcode;
 	OperandFormat operandFormat;
 	string description;
+	string operation;
 
 	@property Encoding encoding() const
 	{
@@ -174,7 +175,8 @@ enum Opcodes
 		"Load the immediate into the upper half of `src`."),
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		4,  OperandFormat.DstSrcSrc,
-		"Add `src1` and `src2` together, and store the result in `dst`."),
+		"Add `src1` and `src2` together, and store the result in `dst`.",
+		q{dst = src1 + src2}),
 	AddD	= OpcodeDescriptor("add",		6, OperandFormat.DstSrcImm,
 		"Add the immediate to `src`, and store the result in `dst`."),
 	Sub		= OpcodeDescriptor("sub",		7,  OperandFormat.DstSrcSrc,

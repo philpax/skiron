@@ -13,6 +13,37 @@ import std.algorithm : map;
 import std.conv : to;
 import std.string : format, join;
 
+string generateOpcodeRunners()
+{
+	import std.array : empty;
+	import std.string : replace;
+
+	string sizedTemplate = q{
+	void run%s(Type = uint)(ref Core core, Opcode opcode)
+	{
+		%s;
+	}
+};
+
+	string ret;
+
+	foreach (member; EnumMembers!Opcodes)
+	{
+		if (member.operation.empty)
+			continue;
+
+		auto operation = member.operation.replace("dst =", "core.setDst!Type(opcode, ")
+										 .replace("src1", "core.getSrc1!Type(opcode)")
+										 .replace("src2", "core.getSrc2!Type(opcode)");
+
+		operation ~= ")";
+
+		ret ~= sizedTemplate.format(member.to!string(), operation);
+	}
+
+	return ret;
+}
+
 string generateOpcodeSwitch()
 {
 	string s = 
@@ -74,6 +105,9 @@ string generateRegisterProperties()
 
 @nogc:
 nothrow:
+
+pragma(msg, generateOpcodeRunners());
+mixin(generateOpcodeRunners());
 
 struct Core
 {

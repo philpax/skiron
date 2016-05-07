@@ -5,11 +5,6 @@ import emulator.core;
 @nogc:
 nothrow:
 
-void runAddA(Type = uint)(ref Core core, Opcode opcode)
-{
-	core.setDst!Type(opcode, core.getSrc1!Type(opcode) + core.getSrc2!Type(opcode));
-}
-
 void runAddB(Type = uint)(ref Core core, Opcode opcode)
 {
 	core.setDst!Type(opcode, core.getDst!Type(opcode) + core.getImmediate(opcode));
