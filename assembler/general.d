@@ -84,7 +84,7 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	return true;
 }
 
-bool assembleDstUImm(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleDstUimm(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
 	auto newTokens = assembler.tokens;
 

@@ -131,7 +131,7 @@ enum OperandFormat
 		"Destination (register), source (register)"),
 	DstSrcSrc	= OperandFormatDescriptor("DstSrcSrc", Encoding.A, true,
 		"Destination (register), source (register), source (register)"),
-	DstUImm		= OperandFormatDescriptor("DstUImm", Encoding.B, false,
+	DstUimm		= OperandFormatDescriptor("DstUimm", Encoding.B, false,
 		"Destination (register), source (unsigned immediate)"),
 	DstSrcImm	= OperandFormatDescriptor("DstSrcImm", Encoding.D, true,
 		"Destination (register), source (unsigned immediate)"),
@@ -168,9 +168,9 @@ enum Opcodes
 		"Loads the value located in `[src]` into `dst`."),
 	Store 	= OpcodeDescriptor("store",		1,  OperandFormat.DstSrc,
 		"Stores the value located in `src` into `[dst]`."),
-	LoadLi	= OpcodeDescriptor("loadli",	2,  OperandFormat.DstUImm,
+	LoadLi	= OpcodeDescriptor("loadli",	2,  OperandFormat.DstUimm,
 		"Load the immediate into the lower half of `src`."),
-	LoadUi	= OpcodeDescriptor("loadui",	3,  OperandFormat.DstUImm,
+	LoadUi	= OpcodeDescriptor("loadui",	3,  OperandFormat.DstUimm,
 		"Load the immediate into the upper half of `src`."),
 	// Arithmetic
 	AddA	= OpcodeDescriptor("add",		4,  OperandFormat.DstSrcSrc,
@@ -325,7 +325,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		auto reg3 = opcode.a.register3.registerName(buffers[2]);
 
 		return "%s %s%s, %s, %s%s".sformat(output, descriptor.name, sizePrefix, reg1, reg2, reg3, variant);
-	case OperandFormat.DstUImm.name:
+	case OperandFormat.DstUimm.name:
 		auto reg1 = opcode.b.register1.registerName(buffers[0]);
 
 		return "%s %s, %s%s".sformat(output, descriptor.name, reg1, opcode.b.immediate, variant);
