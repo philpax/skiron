@@ -18,7 +18,7 @@ string generateOpcodeRunners()
 	import std.array : empty;
 	import std.string : replace;
 
-	string sizedTemplate = q{
+	enum sizedTemplate = q{
 	void run%s(Type = uint)(ref Core core, Opcode opcode)
 	{
 		%s;
@@ -32,7 +32,7 @@ string generateOpcodeRunners()
 		if (member.operation.empty)
 			continue;
 
-		auto operation = member.operation.replace("dst =", "core.setDst!Type(opcode, ")
+		auto operation = member.operation.replace("dst =", "core.setDst!Type(opcode,")
 										 .replace("src1", "core.getSrc1!Type(opcode)")
 										 .replace("src2", "core.getSrc2!Type(opcode)");
 
@@ -106,7 +106,6 @@ string generateRegisterProperties()
 @nogc:
 nothrow:
 
-pragma(msg, generateOpcodeRunners());
 mixin(generateOpcodeRunners());
 
 struct Core
