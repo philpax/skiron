@@ -20,7 +20,7 @@ void runLoad(Type = uint)(ref Core core, Opcode opcode)
 		}
 	}
 
-	core.setDst!Type(opcode, *cast(Type*)dataPtr);
+	core.dst!Type(opcode) = *cast(Type*)dataPtr;
 }
 
 void runStore(Type = uint)(ref Core core, Opcode opcode)
@@ -44,16 +44,16 @@ void runStore(Type = uint)(ref Core core, Opcode opcode)
 void runLoadLi(ref Core core, Opcode opcode)
 {
 	ushort immediate = core.getImmediate(opcode) & 0xFFFF;
-	core.setDst(opcode, (core.getDst(opcode) & 0xFFFF0000) | immediate);
+	core.dst(opcode) = (core.getDst(opcode) & 0xFFFF0000) | immediate;
 }
 
 void runLoadUi(ref Core core, Opcode opcode)
 {
 	ushort immediate = core.getImmediate(opcode) & 0xFFFF;
-	core.setDst(opcode, (core.getDst(opcode) & 0x0000FFFF) | (immediate << 16));
+	core.dst(opcode) = (core.getDst(opcode) & 0x0000FFFF) | (immediate << 16);
 }
 
 void runMove(Type = uint)(ref Core core, Opcode opcode)
 {
-	core.setDst!Type(opcode, core.getSrc!Type(opcode));
+	core.dst!Type(opcode) = core.getSrc!Type(opcode);
 }

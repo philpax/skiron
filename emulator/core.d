@@ -32,12 +32,11 @@ string generateOpcodeRunners()
 		if (member.operation.empty)
 			continue;
 
-		auto operation = member.operation.replace("dst =", "core.setDst!Type(opcode,")
+		auto operation = member.operation.replace("dst =", "core.dst!Type(opcode) = cast(Type)(")
 										 .replace("src1", "core.getSrc1!Type(opcode)")
 										 .replace("src2", "core.getSrc2!Type(opcode)");
 
 		operation ~= ")";
-
 		ret ~= sizedTemplate.format(member.to!string(), operation);
 	}
 
@@ -161,15 +160,15 @@ nothrow:
 
 Type getDst(Type = uint)(ref Core core, Opcode opcode)
 {
-	return cast(Type)core.registers[opcode.a.register1];
+	if (opcode.a.register1 == Register.Z)
+		return cast(Type)0;
+
+	return core.dst!Type(opcode);
 }
 
-void setDst(Type = uint, IncomingType)(ref Core core, Opcode opcode, IncomingType value)
+ref Type dst(Type = uint)(ref Core core, Opcode opcode)
 {
-	if (opcode.a.register1 == Register.Z)
-		return;
-	else
-		*cast(Type*)&core.registers[opcode.a.register1] = cast(Type)value;
+	return *cast(Type*)&core.registers[opcode.a.register1];
 }
 
 Type doVariant(Type = uint)(Opcode opcode, Type value)
