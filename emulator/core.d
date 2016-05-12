@@ -143,6 +143,8 @@ nothrow:
 		auto opcode = *cast(Opcode*)&this.memory[this.ip];
 		this.ip += uint.sizeof;
 
+		this.z = 0;
+
 		mixin(generateOpcodeSwitch());
 
 		if (this.doStep)
@@ -156,14 +158,6 @@ nothrow:
 	{
 		this.state.sendMessage!CoreState(this.id, !this.paused && this.running, this.registers);
 	}
-}
-
-Type getDst(Type = uint)(ref Core core, Opcode opcode)
-{
-	if (opcode.a.register1 == Register.Z)
-		return cast(Type)0;
-
-	return core.dst!Type(opcode);
 }
 
 ref Type dst(Type = uint)(ref Core core, Opcode opcode)

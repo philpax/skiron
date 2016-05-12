@@ -25,7 +25,7 @@ void runLoad(Type = uint)(ref Core core, Opcode opcode)
 
 void runStore(Type = uint)(ref Core core, Opcode opcode)
 {
-	auto address = core.getDst!uint(opcode);
+	auto address = core.dst!uint(opcode);
 	auto value = core.getSrc!Type(opcode);
 	void* dataPtr = &core.memory.ptr[address];
 
@@ -44,13 +44,13 @@ void runStore(Type = uint)(ref Core core, Opcode opcode)
 void runLoadLi(ref Core core, Opcode opcode)
 {
 	ushort immediate = core.getImmediate(opcode) & 0xFFFF;
-	core.dst(opcode) = (core.getDst(opcode) & 0xFFFF0000) | immediate;
+	core.dst(opcode) = (core.dst(opcode) & 0xFFFF0000) | immediate;
 }
 
 void runLoadUi(ref Core core, Opcode opcode)
 {
 	ushort immediate = core.getImmediate(opcode) & 0xFFFF;
-	core.dst(opcode) = (core.getDst(opcode) & 0x0000FFFF) | (immediate << 16);
+	core.dst(opcode) = (core.dst(opcode) & 0x0000FFFF) | (immediate << 16);
 }
 
 void runMove(Type = uint)(ref Core core, Opcode opcode)
