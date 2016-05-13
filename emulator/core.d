@@ -33,8 +33,8 @@ string generateOpcodeRunners()
 			continue;
 
 		auto operation = member.operation.replace("dst =", "core.dst!Type(opcode) = cast(Type)(")
-										 .replace("src1", "core.getSrc1!Type(opcode)")
-										 .replace("src2", "core.getSrc2!Type(opcode)");
+										 .replace("src1", "core.src1!Type(opcode)")
+										 .replace("src2", "core.src2!Type(opcode)");
 
 		operation ~= ")";
 		ret ~= sizedTemplate.format(member.to!string(), operation);
@@ -193,17 +193,17 @@ int getImmediate(ref Core core, Opcode opcode)
 	}
 }
 
-Type getSrc(Type = uint)(ref Core core, Opcode opcode)
+Type src(Type = uint)(ref Core core, Opcode opcode)
 {
 	return opcode.doVariant(cast(Type)core.registers[opcode.a.register2]);
 }
 
-Type getSrc1(Type = uint)(ref Core core, Opcode opcode)
+ref Type src1(Type = uint)(ref Core core, Opcode opcode)
 {
-	return cast(Type)core.registers[opcode.a.register2];
+	return *cast(Type*)&core.registers[opcode.a.register2];
 }
 
-Type getSrc2(Type = uint)(ref Core core, Opcode opcode)
+Type src2(Type = uint)(ref Core core, Opcode opcode)
 {
 	return opcode.doVariant(cast(Type)core.registers[opcode.a.register3]);
 }

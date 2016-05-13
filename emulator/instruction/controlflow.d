@@ -15,7 +15,7 @@ void runCmp(Type = uint)(ref Core core, Opcode opcode)
 	import std.traits;
 
 	auto src1 = core.dst!(Signed!Type)(opcode);
-	auto src2 = core.getSrc!(Signed!Type)(opcode);
+	auto src2 = core.src!(Signed!Type)(opcode);
 	auto value = src1 - src2;
 
 	if (value == 0)
