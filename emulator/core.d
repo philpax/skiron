@@ -178,7 +178,7 @@ Type doVariant(Type = uint)(Opcode opcode, Type value)
 	}
 }
 
-int getImmediate(ref Core core, Opcode opcode)
+int immediate(ref Core core, Opcode opcode)
 {
 	final switch (opcode.a.encoding)
 	{

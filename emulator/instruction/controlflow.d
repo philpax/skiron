@@ -36,35 +36,35 @@ void runCmp(Type = uint)(ref Core core, Opcode opcode)
 
 void runJ(ref Core core, Opcode opcode)
 {
-	core.ip += core.getImmediate(opcode);
+	core.ip += core.immediate(opcode);
 }
 
 void runJe(ref Core core, Opcode opcode)
 {
 	if (core.flags & Flags.Zero)
-		core.ip += core.getImmediate(opcode);
+		core.ip += core.immediate(opcode);
 }
 
 void runJne(ref Core core, Opcode opcode)
 {
 	if (!(core.flags & Flags.Zero))
-		core.ip += core.getImmediate(opcode);
+		core.ip += core.immediate(opcode);
 }
 
 void runJgt(ref Core core, Opcode opcode)
 {
 	if (core.flags & Flags.Greater)
-		core.ip += core.getImmediate(opcode);
+		core.ip += core.immediate(opcode);
 }
 
 void runJlt(ref Core core, Opcode opcode)
 {
 	if (core.flags & Flags.Less)
-		core.ip += core.getImmediate(opcode);
+		core.ip += core.immediate(opcode);
 }
 
 void runCall(ref Core core, Opcode opcode)
 {
 	core.ra = core.ip;
-	core.ip += core.getImmediate(opcode);
+	core.ip += core.immediate(opcode);
 }
