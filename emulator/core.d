@@ -51,8 +51,16 @@ string generateOpcodeSwitch()
 `;
 	foreach (member; EnumMembers!Opcodes)
 	{
-		if (member.operandFormat == OperandFormat.Pseudo)
+		enum memberName = member.to!string();
+
+		static if (member.operandFormat == OperandFormat.Pseudo)
+		{
+			static assert(!__traits(compiles, mixin("&run" ~ memberName)),
+				memberName ~ " must not have an opcode runner; it is a pseudoinstruction");
+			static assert(!__traits(compiles, mixin("&run" ~ memberName ~ "!uint")),
+				memberName ~ " must not have an opcode runner; it is a pseudoinstruction");
 			continue;
+		}
 
 		if (member.operandFormat.supportsOperandSize)
 		{
@@ -72,7 +80,7 @@ string generateOpcodeSwitch()
 	}
 	break;
 `, 
-			member.to!string());
+			memberName);
 		}
 		else
 		{
@@ -81,7 +89,7 @@ string generateOpcodeSwitch()
 	this.run%1$s(opcode);
 	break;
 `, 
-			member.to!string());
+			memberName);
 		}
 	}
 	s ~= "}\n";
