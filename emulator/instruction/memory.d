@@ -52,8 +52,3 @@ void runLoadUi(ref Core core, Opcode opcode)
 	ushort immediate = core.immediate(opcode) & 0xFFFF;
 	core.dst(opcode) = (core.dst(opcode) & 0x0000FFFF) | (immediate << 16);
 }
-
-void runMove(Type = uint)(ref Core core, Opcode opcode)
-{
-	core.dst!Type(opcode) = core.src!Type(opcode);
-}
