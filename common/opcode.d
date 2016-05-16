@@ -4,7 +4,7 @@ import common.cpu;
 import common.util;
 import common.encoding;
 
-import std.traits : EnumMembers;
+import std.traits : EnumMembers, Identity;
 
 enum OpcodeBitCount = 6;
 enum OpcodeCount = (1 << OpcodeBitCount);
@@ -251,8 +251,8 @@ auto getOpcodeStructure(OperandFormatDescriptor operandFormat)()
 auto asEncodingFromOperandFormat(OperandFormatDescriptor operandFormat)(Opcode opcode)
 {
 	import std.conv : to;
-	enum encoding = operandFormat.encoding.to!string();
-	return __traits(getMember, opcode, encoding)();
+	alias EncodingType = Identity!(__traits(getMember, opcode, operandFormat.encoding.to!string()));
+	return cast(EncodingType)opcode;
 }
 
 auto makeOpcode(OpcodeDescriptor opcode)()
