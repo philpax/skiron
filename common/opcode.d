@@ -218,8 +218,6 @@ enum Opcodes
 		"If the greater flag is set, jump to the given label."),
 	Jlt		= OpcodeDescriptor("jlt",		21,  OperandFormat.Label,
 		"If the less flag is set, jump to the given label."),
-	Call	= OpcodeDescriptor("call",		22,  OperandFormat.Label,
-		"Store the current instruction pointer in `ra`, and then jump to the given label."),
 	Halt	= OpcodeDescriptor("halt",		OpcodeCount-1,  OperandFormat.None,
 		"Halt operation."),
 	// Pseudoinstructions
@@ -227,6 +225,8 @@ enum Opcodes
 		"Push the given register onto the stack (i.e. `add sp, -4; store sp, register`)."),
 	Pop		= PseudoOpcode("pop",
 		"Pop the given register from the stack (i.e. `load register, sp; add sp, 4`)."),
+	Call	= PseudoOpcode("call",
+		"Store the current instruction pointer in `ra`, and then jump to the given label."),
 	CallSv	= PseudoOpcode("callsv",
 		"Push the current return address, call the given label, and pop the return address."),
 	LoadI	= PseudoOpcode("loadi",

@@ -62,9 +62,3 @@ void runJlt(ref Core core, Opcode opcode)
 	if (core.flags & Flags.Less)
 		core.ip += core.immediate(opcode);
 }
-
-void runCall(ref Core core, Opcode opcode)
-{
-	core.ra = core.ip;
-	core.ip += core.immediate(opcode);
-}

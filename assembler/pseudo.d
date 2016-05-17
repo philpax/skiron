@@ -83,11 +83,43 @@ bool assemblePop(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
-bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+void assembleCallManual(ref Assembler assembler, string label)
+{
+	auto add = makeOpcode!(Opcodes.AddD);
+	add.operandSize = OperandSize.Word;
+	add.register1 = Register.RA;
+	add.register2 = Register.IP;
+	add.immediate = 4;
+
+	auto j = makeOpcode!(Opcodes.J);
+
+	assembler.writeOutput(add);
+	assembler.writeOutput(j);
+
+	assembler.relocations ~= Assembler.Relocation(
+		label, assembler.output.length-1, 
+		Assembler.Relocation.Type.Offset);
+}
+
+bool assembleCall(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 {
 	auto newTokens = assembler.tokens;
 
-	auto call = makeOpcode!(Opcodes.Call);
+	string label;
+	if (!assembler.parseLabel(newTokens, label)) return false;
+
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
+	foreach (_; 0..assembler.repCount)
+		assembler.assembleCallManual(label);			
+
+	return true;
+}
+
+bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+{
+	auto newTokens = assembler.tokens;
 
 	string label;
 	if (!assembler.parseLabel(newTokens, label)) return false;
@@ -98,12 +130,7 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	foreach (_; 0..assembler.repCount)
 	{
 		assembler.assemblePushManual(Register.RA);
-			
-		assembler.writeOutput(call);
-		assembler.relocations ~= Assembler.Relocation(
-			label, assembler.output.length-1, 
-			Assembler.Relocation.Type.Offset);
-			
+		assembler.assembleCallManual(label);			
 		assembler.assemblePopManual(Register.RA);
 	}
 
