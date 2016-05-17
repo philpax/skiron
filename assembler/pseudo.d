@@ -112,7 +112,7 @@ bool assembleCall(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 		assembler.finishAssemble(newTokens);
 
 	foreach (_; 0..assembler.repCount)
-		assembler.assembleCallManual(label);			
+		assembler.assembleCallManual(label);
 
 	return true;
 }
@@ -130,7 +130,7 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	foreach (_; 0..assembler.repCount)
 	{
 		assembler.assemblePushManual(Register.RA);
-		assembler.assembleCallManual(label);			
+		assembler.assembleCallManual(label);
 		assembler.assemblePopManual(Register.RA);
 	}
 
