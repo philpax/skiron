@@ -11,7 +11,7 @@ import stringcache;
 private:
 enum TokOperators =
 [
-	"<<", ","
+	"<<", ",", ";"
 ];
 
 enum TokDynamic =
@@ -319,6 +319,7 @@ public const(Token)[] tokenise(ubyte[] sourceCode)
 		case tok!"whitespace":
 		case tok!"comment":
 		case tok!",":
+		case tok!";":
 			lexer.popFront();
 			break;
 		default:
