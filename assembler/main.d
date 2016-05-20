@@ -139,23 +139,20 @@ struct Assembler
 		return programSectionPoint;
 	}
 
-	void dispatchTokens()
+	bool parseToken(ref const(Token) token)
 	{
-		while (!this.tokens.empty)
-		{
-			auto token = this.tokens.front;
+		if (token.type == tok!"identifier")
+			this.assembleIdentifierToken(token);
+		else if (token.type == tok!"label")
+			this.assembleLabelToken(token);
+		else if (token.type == tok!"section")
+			this.assembleSectionToken(token);
+		else if (token.type == tok!"")
+			return false;
+		else
+			token.error("Unhandled token: %s.", token.to!string());
 
-			if (token.type == tok!"identifier")
-				this.assembleIdentifierToken(token);
-			else if (token.type == tok!"label")
-				this.assembleLabelToken(token);
-			else if (token.type == tok!"section")
-				this.assembleSectionToken(token);
-			else if (token.type == tok!"")
-				break;
-			else
-				token.error("Unhandled token: %s.", token.to!string());
-		}
+		return true;
 	}
 
 	void rewriteSections(uint programSectionPoint)
@@ -198,7 +195,12 @@ struct Assembler
 	void assemble()
 	{
 		auto programSectionPoint = this.writeHeader();
-		this.dispatchTokens();
+		
+		// Parse tokens until either we run out or we hit an EOF
+		while (!this.tokens.empty)
+			if (!this.parseToken(this.tokens.front))
+				break;
+
 		this.rewriteSections(programSectionPoint);
 		this.completeRelocations();
 	}
