@@ -184,54 +184,41 @@ bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
+bool assemblePseudo(ref Assembler assembler, const(OpcodeDescriptor)* descriptor, string name)
+{
+	return assembler.pseudoAssemble[name](assembler, descriptor);
+}
+
 void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 {
 	auto matchingDescriptors = token.text in assembler.descriptors;
 	if (!matchingDescriptors)
 		token.error("No matching opcode found for `%s`.", token.text);
 
-	bool foundMatching = false;
-
-	string generateSwitchStatement()
-	{
-		string s =
-`final switch (descriptor.operandFormat.name)
-{
-`;
-		foreach (member; EnumMembers!OperandFormat)
-		{
-			if (member == OperandFormat.Pseudo)
-				continue;
-
-			s ~= format(
-`case OperandFormat.%1$s.name:
-	foundMatching |= assembler.assemble%1$s(&descriptor);
-	break;
-`,
-			member.to!string());
-		}
-
-		s ~=
-`case OperandFormat.Pseudo.name:
-	foundMatching |= assembler.pseudoAssemble[token.text](assembler, &descriptor);
-	break;
-}
-`;
-		return s;
-	}
-
 	assembler.tokens.popFront();
 
 	foreach (descriptor; *matchingDescriptors)
 	{
-		mixin (generateSwitchStatement());
+		foreach (member; EnumMembers!OperandFormat)
+		{
+			static if (member.name != OperandFormat.Pseudo.name)
+			{
+				if (descriptor.operandFormat.name == member.name)
+				{
+					if (mixin("assemble" ~ member.to!string())(assembler, &descriptor))
+						return;
+				}
+			}
+		}
 
-		if (foundMatching)
-			break;
+		if (descriptor.operandFormat.name == OperandFormat.Pseudo.name)
+		{
+			if (assemblePseudo(assembler, &descriptor, token.text))
+				return;
+		}
 	}
 
-	if (!foundMatching)
-		token.error("No valid overloads for `%s` found.", token.text);
+	token.error("No valid overloads for `%s` found.", token.text);
 }
 
 void assembleLabelToken(ref Assembler assembler, ref const(Token) token)
