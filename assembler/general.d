@@ -21,7 +21,7 @@ auto getOpcodeStructureFromFunction(string functionName = __FUNCTION__)()
 	return getOpcodeStructure!(operandFormat);
 }
 
-bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleDstSrc(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -52,7 +52,7 @@ bool assembleDstSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	return true;
 }
 
-bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleDstSrcSrc(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -84,7 +84,7 @@ bool assembleDstSrcSrc(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	return true;
 }
 
-bool assembleDstUimm(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleDstUimm(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -114,7 +114,7 @@ bool assembleDstUimm(ref Assembler assembler, const(OpcodeDescriptor)* descripto
 	return true;
 }
 
-bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleDstSrcImm(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -147,7 +147,7 @@ bool assembleDstSrcImm(ref Assembler assembler, const(OpcodeDescriptor)* descrip
 	return true;
 }
 
-bool assembleNone(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleNone(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto opcode = getOpcodeStructureFromFunction();
 	opcode.opcode = descriptor.opcode;
@@ -159,7 +159,7 @@ bool assembleNone(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
-bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleLabel(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -184,7 +184,7 @@ bool assembleLabel(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
-bool assemblePseudo(ref Assembler assembler, const(OpcodeDescriptor)* descriptor, string name)
+bool assemblePseudo(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor, string name)
 {
 	return assembler.pseudoAssemble[name](assembler, descriptor);
 }
@@ -205,7 +205,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 			{
 				if (descriptor.operandFormat.name == member.name)
 				{
-					if (mixin("assemble" ~ member.to!string())(assembler, &descriptor))
+					if (mixin("assemble" ~ member.to!string())(assembler, descriptor))
 						return;
 				}
 			}
@@ -213,7 +213,7 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 
 		if (descriptor.operandFormat.name == OperandFormat.Pseudo.name)
 		{
-			if (assemblePseudo(assembler, &descriptor, token.text))
+			if (assemblePseudo(assembler, descriptor, token.text))
 				return;
 		}
 	}

@@ -66,7 +66,7 @@ struct Assembler
 
 	OpcodeDescriptor[][string] descriptors;
 
-	alias AssembleFunction = bool function(ref Assembler, const(OpcodeDescriptor)*);
+	alias AssembleFunction = bool function(ref Assembler, ref const(OpcodeDescriptor));
 	immutable AssembleFunction[string] pseudoAssemble;
 
 	this(const(Token)[] tokens)

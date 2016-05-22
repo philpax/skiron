@@ -27,7 +27,7 @@ void assemblePushManual(ref Assembler assembler, Register register, OperandSize 
 	assembler.writeOutput(store);
 }
 
-bool assemblePush(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assemblePush(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -64,7 +64,7 @@ void assemblePopManual(ref Assembler assembler, Register register, OperandSize o
 	assembler.writeOutput(add);
 }
 
-bool assemblePop(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assemblePop(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -101,7 +101,7 @@ void assembleCallManual(ref Assembler assembler, string label)
 		Assembler.Relocation.Type.Offset);
 }
 
-bool assembleCall(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleCall(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -117,7 +117,7 @@ bool assembleCall(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
-bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleCallSv(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -137,7 +137,7 @@ bool assembleCallSv(ref Assembler assembler, const(OpcodeDescriptor)* descriptor
 	return true;
 }
 
-bool assembleLoadI(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleLoadI(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	import std.algorithm : filter;
 
@@ -258,7 +258,7 @@ void assembleMoveManual(ref Assembler assembler, Register dst, Register src, Ope
 	assembler.writeOutput(add);
 }
 
-bool assembleDw(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleDw(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -274,12 +274,12 @@ bool assembleDw(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
-bool assembleRep(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleRep(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	return assembler.parseNumber(assembler.tokens, assembler.repCount);
 }
 
-bool assembleJr(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleJr(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
@@ -295,7 +295,7 @@ bool assembleJr(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
 	return true;
 }
 
-bool assembleMove(ref Assembler assembler, const(OpcodeDescriptor)* descriptor)
+bool assembleMove(ref Assembler assembler, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
 
