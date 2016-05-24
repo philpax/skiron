@@ -21,7 +21,7 @@ string writeOpcodes()
 
 	auto descriptors = [EnumMembers!Opcodes];
 	descriptors.multiSort!(
-		(a, b) => a.operandFormat != OperandFormat.Pseudo && b.operandFormat == OperandFormat.Pseudo,
+		(a, b) => !a.pseudoOpcode && b.pseudoOpcode,
 		(a, b) => a.opcode < b.opcode,
 		(a, b) => a.name < b.name);
 
@@ -46,7 +46,7 @@ string writeOpcodes()
 		file.writeln();
 		file.write("* *Opcode*: ");
 
-		if (descriptor.operandFormat != OperandFormat.Pseudo)
+		if (!descriptor.pseudoOpcode)
 			file.writefln("`0x%02X`", descriptor.opcode);
 		else
 			file.writefln("Pseudo");

@@ -53,7 +53,7 @@ string generateOpcodeSwitch()
 	{
 		enum memberName = member.to!string();
 
-		static if (member.operandFormat == OperandFormat.Pseudo)
+		static if (member.pseudoOpcode)
 		{
 			static assert(!__traits(compiles, mixin("&run" ~ memberName)),
 				memberName ~ " must not have an opcode runner; it is a pseudoinstruction");

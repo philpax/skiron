@@ -127,6 +127,10 @@ struct OperandFormatDescriptor
 
 enum OperandFormat
 {
+	Dst			= OperandFormatDescriptor("Dst", Encoding.A, true,
+		"Destination (register)"),
+	Uimm		= OperandFormatDescriptor("Uimm", Encoding.B, false,
+		"Source (unsigned immediate)"),
 	DstSrc		= OperandFormatDescriptor("DstSrc", Encoding.A, true,
 		"Destination (register), source (register)"),
 	DstSrcSrc	= OperandFormatDescriptor("DstSrcSrc", Encoding.A, true,
@@ -138,9 +142,7 @@ enum OperandFormat
 	Label		= OperandFormatDescriptor("Label", Encoding.C, false,
 		"Label (immediate)"),
 	None		= OperandFormatDescriptor("None", Encoding.A, false,
-		"No operands"),
-	Pseudo		= OperandFormatDescriptor("Pseudo", Encoding.A, true,
-		"Instruction-defined"),
+		"No operands")
 }
 
 struct OpcodeDescriptor
@@ -150,6 +152,7 @@ struct OpcodeDescriptor
 	OperandFormat operandFormat;
 	string description;
 	string operation;
+	bool pseudoOpcode;
 
 	@property Encoding encoding() const
 	{
@@ -157,9 +160,9 @@ struct OpcodeDescriptor
 	}
 }
 
-auto PseudoOpcode(string name, string description)
+auto PseudoOpcode(string name, OperandFormat operandFormat, string description, string operation = "")
 {
-	return OpcodeDescriptor(name, 0, OperandFormat.Pseudo, description);
+	return OpcodeDescriptor(name, 0, operandFormat, description, operation, true);
 }
 
 enum Opcodes
@@ -221,23 +224,23 @@ enum Opcodes
 	Halt	= OpcodeDescriptor("halt",		OpcodeCount-1,  OperandFormat.None,
 		"Halt operation."),
 	// Pseudoinstructions
-	Push	= PseudoOpcode("push",
+	Push	= PseudoOpcode("push", OperandFormat.Dst,
 		"Push the given register onto the stack (i.e. `add sp, -4; store sp, register`)."),
-	Pop		= PseudoOpcode("pop",
+	Pop		= PseudoOpcode("pop", OperandFormat.Dst,
 		"Pop the given register from the stack (i.e. `load register, sp; add sp, 4`)."),
-	Call	= PseudoOpcode("call",
+	Call	= PseudoOpcode("call", OperandFormat.Label,
 		"Store the current instruction pointer in `ra`, and then jump to the given label."),
-	CallSv	= PseudoOpcode("callsv",
+	CallSv	= PseudoOpcode("callsv", OperandFormat.Label,
 		"Push the current return address, call the given label, and pop the return address."),
-	LoadI	= PseudoOpcode("loadi",
+	LoadI	= PseudoOpcode("loadi", OperandFormat.Uimm,
 		"Load the given 32-bit immediate, or label, into a register."),
-	Dw		= PseudoOpcode("dw",
+	Dw		= PseudoOpcode("dw", OperandFormat.None,
 		"Create a word containing `arg2`."),
-	Rep		= PseudoOpcode("rep",
+	Rep		= PseudoOpcode("rep", OperandFormat.Uimm,
 		"Repeat the following instruction `arg1` times."),
-	Jr		= PseudoOpcode("jr",
+	Jr		= PseudoOpcode("jr", OperandFormat.Label,
 		"Jump to the given register."),
-	Move	= PseudoOpcode("move",
+	Move	= PseudoOpcode("move", OperandFormat.DstSrc,
 		"Copy the value in `src` to `dst`."),
 }
 
@@ -360,8 +363,6 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 		return "%s %s".sformat(output, descriptor.name, encoding.immediate);
 	case OperandFormat.None.name:
 		return "%s".sformat(output, descriptor.name);
-	case OperandFormat.Pseudo.name:
-		return output;
 	default:
 		assert(0);
 	}

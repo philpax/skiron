@@ -21,6 +21,63 @@ auto getOpcodeStructureFromFunction(string functionName = __FUNCTION__)()
 	return getOpcodeStructure!(operandFormat);
 }
 
+bool assembleDst(ref Assembler assembler, ref const(Token) token, ref const(OpcodeDescriptor) descriptor)
+{
+	auto newTokens = assembler.tokens;
+
+	OperandSize operandSize;
+	Register register1;
+	Variant variant;
+
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
+	if (!assembler.parseRegister(newTokens, register1)) return false;
+	if (!assembler.parseVariant(newTokens, variant)) return false;
+
+	auto opcode = getOpcodeStructureFromFunction();
+	opcode.opcode = descriptor.opcode;
+	opcode.encoding = descriptor.encoding;
+	opcode.operandSize = operandSize;
+	opcode.register1 = register1;
+	opcode.register2 = cast(Register)0;
+	opcode.register3 = cast(Register)0;
+	opcode.variant = variant;
+
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
+	foreach (_; 0..assembler.repCount)
+		assembler.writeOutput(opcode);
+
+	return true;
+}
+
+bool assembleUimm(ref Assembler assembler, ref const(Token) token, ref const(OpcodeDescriptor) descriptor)
+{
+	auto newTokens = assembler.tokens;
+
+	OperandSize operandSize;
+	int immediate;
+	Variant variant;
+
+	if (!assembler.parseOperandSize(newTokens, operandSize)) return false;
+	if (!assembler.parseNumber(newTokens, immediate)) return false;
+	if (!assembler.parseVariant(newTokens, variant)) return false;
+
+	auto opcode = getOpcodeStructureFromFunction();
+	opcode.opcode = descriptor.opcode;
+	opcode.encoding = descriptor.encoding;
+	opcode.immediate = cast(ushort)immediate;
+	opcode.variant = variant;
+
+	scope (exit)
+		assembler.finishAssemble(newTokens);
+
+	foreach (_; 0..assembler.repCount)
+		assembler.writeOutput(opcode);
+
+	return true;
+}
+
 bool assembleDstSrc(ref Assembler assembler, ref const(Token) token, ref const(OpcodeDescriptor) descriptor)
 {
 	auto newTokens = assembler.tokens;
@@ -199,6 +256,12 @@ void assembleIdentifierToken(ref Assembler assembler, ref const(Token) token)
 
 	foreach (descriptor; *matchingDescriptors)
 	{
+		if (descriptor.pseudoOpcode)
+		{
+			assembler.assemblePseudo(token, descriptor);
+			return;
+		}
+
 		foreach (member; EnumMembers!OperandFormat)
 		{
 			if (descriptor.operandFormat.name == member.name)

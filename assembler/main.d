@@ -82,7 +82,7 @@ struct Assembler
 			enum opcodes = [EnumMembers!Opcodes];
 
 			return "[%s]".format(
-						opcodes.filter!(a => a.operandFormat == OperandFormat.Pseudo)
+						opcodes.filter!(a => a.pseudoOpcode)
 							   .map!(a => `"%s": &assemble%s`.format(a.name, a.to!string()))
 							   .join(", "));
 		}
