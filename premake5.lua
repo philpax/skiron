@@ -1,6 +1,10 @@
 solution "skiron"
 	configurations { "release", "debug", "unittest" }
 
+	if _OPTIONS.dc == "ldc" then
+		buildoptions { "-oq" }
+	end
+
 	group "vendor"
 		project "gtkd"
 			kind "StaticLib"
