@@ -366,8 +366,6 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 	default:
 		assert(0);
 	}
-
-	return output;
 }
 
 string disassemble(Opcode opcode)

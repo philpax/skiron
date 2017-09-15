@@ -45,7 +45,7 @@ string generateOpcodeRunners()
 
 string generateOpcodeSwitch()
 {
-	string s = 
+	string s =
 `final switch (opcode.a.opcode)
 {
 `;
@@ -61,10 +61,11 @@ string generateOpcodeSwitch()
 				memberName ~ " must not have an opcode runner; it is a pseudoinstruction");
 			continue;
 		}
-
-		if (member.operandFormat.supportsOperandSize)
+		else
 		{
-			s ~= format(
+			if (member.operandFormat.supportsOperandSize)
+			{
+				s ~= format(
 `case Opcodes.%1$s.opcode:
 	final switch (opcode.a.operandSize)
 	{
@@ -79,17 +80,18 @@ string generateOpcodeSwitch()
 			break;
 	}
 	break;
-`, 
-			memberName);
-		}
-		else
-		{
-			s ~= format(
+`,
+				memberName);
+			}
+			else
+			{
+				s ~= format(
 `case Opcodes.%1$s.opcode:
 	this.run%1$s(opcode);
 	break;
-`, 
-			memberName);
+`,
+				memberName);
+			}
 		}
 	}
 	s ~= "}\n";
@@ -123,7 +125,7 @@ nothrow:
 	ubyte[] memory;
 	RegisterType[RegisterExtendedCount] registers;
 	bool running = true;
-	
+
 	// Changed by debugger
 	bool paused = false;
 	bool doStep = false;

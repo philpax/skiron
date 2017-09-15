@@ -12,14 +12,11 @@ string generateIdEnum(alias Module)(string name)
 	string s = "enum " ~ name ~ " : ubyte {";
 	foreach (member; __traits(allMembers, Module))
 	{
-		// WORKAROUND: Issue 15907
-		static if (member != "object" && member != "common")
-		{
-			alias memberField = Identity!(__traits(getMember, Module, member));
-		
-			static if (is(memberField == struct))
-				s ~= member ~ ",\n";
-		}
+		import std.traits : Identity;
+		alias memberField = Identity!(__traits(getMember, Module, member));
+
+		static if (is(memberField == struct))
+			s ~= member ~ ",\n";
 	}
 	s ~= "}";
 	return s;
