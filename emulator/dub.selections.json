@@ -1,0 +1,7 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"arsd-official": "1.2.2",
+		"common": {"path":"../common"}
+	}
+}

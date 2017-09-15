@@ -1,0 +1,18 @@
+{
+	"name": "debugger_backend",
+	"authors": [
+		"Mithun Hunsur"
+	],
+	"description": "Debugger backend for Skiron.",
+	"copyright": "Copyright © 2017, Mithun Hunsur",
+	"license": "MIT",
+	"dependencies": {
+		"common": {
+			"version": "~master",
+			"path": "../common"
+		}
+	},
+	"sourcePaths": ["."],
+	"importPaths": ["../"],
+	"targetPath": "../bin"
+}

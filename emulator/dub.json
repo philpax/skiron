@@ -1,0 +1,22 @@
+{
+	"name": "emulator",
+	"authors": [
+		"Mithun Hunsur"
+	],
+	"description": "Emulator for Skiron.",
+	"copyright": "Copyright © 2017, Mithun Hunsur",
+	"license": "MIT",
+	"dependencies": {
+		"common": {
+			"version": "~master",
+			"path": "../common"
+		},
+		"arsd-official:simpledisplay": "~>1.2.2"
+	},
+	"sourcePaths": ["."],
+	"importPaths": ["../"],
+	"targetPath": "../bin",
+	"buildRequirements": [
+		"allowWarnings"
+	]
+}

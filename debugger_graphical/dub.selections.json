@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"common": {"path":"../common"},
+		"debugger_backend": {"path":"../debugger_backend"},
+		"gtk-d": "3.6.6"
+	}
+}

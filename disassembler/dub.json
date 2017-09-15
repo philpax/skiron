@@ -1,0 +1,18 @@
+{
+	"name": "disassembler",
+	"authors": [
+		"Mithun Hunsur"
+	],
+	"description": "Disassembler for Skiron.",
+	"copyright": "Copyright © 2017, Mithun Hunsur",
+	"license": "MIT",
+	"dependencies": {
+		"common": {
+			"version": "~master",
+			"path": "../common"
+		}
+	},
+	"sourcePaths": ["."],
+	"importPaths": ["../"],
+	"targetPath": "../bin"
+}

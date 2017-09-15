@@ -1,0 +1,12 @@
+{
+	"name": "common",
+	"authors": [
+		"Mithun Hunsur"
+	],
+	"description": "Common library for Skiron.",
+	"copyright": "Copyright © 2017, Mithun Hunsur",
+	"license": "MIT",
+	"targetType": "library",
+	"sourcePaths": ["."],
+	"targetPath": "../bin"
+}

@@ -1,0 +1,22 @@
+{
+	"name": "test_runner",
+	"authors": [
+		"Mithun Hunsur"
+	],
+	"description": "Test runner for Skiron.",
+	"copyright": "Copyright © 2017, Mithun Hunsur",
+	"license": "MIT",
+	"dependencies": {
+		"common": {
+			"version": "~master",
+			"path": "../common"
+		},
+		"debugger_backend": {
+			"version": "~master",
+			"path": "../debugger_backend"
+		}
+	},
+	"sourcePaths": ["."],
+	"importPaths": ["../"],
+	"targetPath": "../bin"
+}
