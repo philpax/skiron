@@ -1,0 +1,90 @@
+alias width_address   = r0
+alias height_address  = r1
+alias width           = r2
+alias height          = r3
+alias three           = r4
+alias temp1           = r5
+alias pixels_address  = r6
+
+# Load width with the width address, and height with the height address
+loadi width_address, 0x1000000
+add height_address, width_address, 4
+
+# Load width and height
+load width, width_address
+load height, height_address
+
+# Set the starting address for pixels
+add pixels_address, height_address, 4
+
+alias loop_y_counter  = r7
+alias loop_x_counter  = r8
+alias pixel_address   = r9
+alias line_width      = r10
+
+alias pixel           = r11
+
+alias centre_x        = r12
+alias centre_y        = r13
+
+alias distance_x      = r14
+alias distance_y      = r15
+
+alias distance_max    = r16
+
+loadi temp1, 2
+div centre_x, width, temp1
+div centre_y, height, temp1
+
+loadi three, 3
+mul line_width, width, three
+
+loadi distance_max, 4096
+
+loadi loop_y_counter, 0
+loop_y:
+  loadi loop_x_counter, 0
+
+  loop_x:
+    mul temp1, loop_y_counter, line_width
+    add pixel_address, pixels_address, temp1
+
+    mul temp1, loop_x_counter, three
+    add pixel_address, pixel_address, temp1
+
+    sub distance_x, loop_x_counter, centre_x
+    mul distance_x, distance_x, distance_x
+
+    sub distance_y, loop_y_counter, centre_y
+    mul distance_y, distance_y, distance_y
+
+    add temp1, distance_x, distance_y
+    cmp temp1, distance_max
+    jlt show
+    loadi pixel, 0
+    j draw
+
+    show:
+      move byte, pixel, temp1
+
+    draw:
+    store byte pixel_address, pixel
+    add pixel_address, pixel_address, 1
+    store byte pixel_address, pixel
+    add pixel_address, pixel_address, 1
+    store byte pixel_address, pixel
+    add pixel_address, pixel_address, 1
+
+    add loop_x_counter, loop_x_counter, 1
+    cmp loop_x_counter, width
+    jne loop_x
+
+  add loop_y_counter, loop_y_counter, 1
+  cmp loop_y_counter, height
+  jne loop_y
+
+halt_loop:
+  j halt_loop
+
+# Finish
+halt
