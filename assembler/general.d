@@ -234,7 +234,7 @@ bool assembleLabel(ref Assembler assembler, ref const(Token) token, ref const(Op
 	{
 		assembler.writeOutput(opcode);
 		assembler.relocations ~= Assembler.Relocation(
-			label, assembler.output.length-1, 
+			label, assembler.output.length-1,
 			Assembler.Relocation.Type.Offset);
 	}
 
@@ -295,4 +295,26 @@ void assembleSectionToken(ref Assembler assembler, ref const(Token) token)
 	assembler.sections ~= section;
 
 	assembler.tokens.popFront();
+}
+
+void assembleAliasToken(ref Assembler assembler, ref const(Token) token)
+{
+	auto tokens = assembler.tokens;
+	tokens.popFront();
+
+	auto identifier = tokens.front;
+	if (identifier.type != tok!"identifier")
+		identifier.error("Expected identifier for alias.");
+	tokens.popFront();
+
+	if (tokens.front.type != tok!"=")
+		tokens.front.error("Expected assignment for alias.");
+	tokens.popFront();
+
+	Register register;
+	if (!assembler.parseRegister(tokens, register))
+		tokens.front.error("Expected register on right-hand side of alias.");
+
+	assembler.aliases[identifier.text] = register;
+	assembler.finishAssemble(tokens);
 }

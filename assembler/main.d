@@ -62,6 +62,10 @@ struct Assembler
 	Relocation[] relocations;
 	uint[string] labels;
 
+	// aliases is a map from identifier aliases to registers, so that users can designate particular
+	// registers for particular use. May be extended later.
+	Register[string] aliases;
+
 	uint repCount = 1;
 
 	OpcodeDescriptor[][string] descriptors;
@@ -109,7 +113,7 @@ struct Assembler
 	uint writeHeader()
 	{
 		ProgramHeader header;
-	
+
 		// Prefill the labels AA, and build up the sections
 		foreach (token; this.tokens)
 		{
@@ -147,6 +151,8 @@ struct Assembler
 			this.assembleLabelToken(token);
 		else if (token.type == tok!"section")
 			this.assembleSectionToken(token);
+		else if (token.type == tok!"alias")
+			this.assembleAliasToken(token);
 		else if (token.type == tok!"")
 			return false;
 		else
@@ -195,7 +201,7 @@ struct Assembler
 	void assemble()
 	{
 		auto programSectionPoint = this.writeHeader();
-		
+
 		// Parse tokens until either we run out or we hit an EOF
 		while (!this.tokens.empty)
 			if (!this.parseToken(this.tokens.front))

@@ -61,7 +61,10 @@ bool parseRegister(ref Assembler assembler, ref const(Token)[] tokens, ref Regis
 
 	try
 	{
-		output = token.text.registerFromName();
+		if (token.text in assembler.aliases)
+			output = assembler.aliases[token.text];
+		else
+			output = token.text.registerFromName();
 	}
 	catch (Exception)
 	{

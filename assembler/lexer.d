@@ -11,7 +11,7 @@ import stringcache;
 private:
 enum TokOperators =
 [
-	"<<", ",", ";"
+	"<<", ",", ";", "="
 ];
 
 enum TokDynamic =
@@ -21,7 +21,7 @@ enum TokDynamic =
 
 enum TokKeywords =
 [
-	"byte", "byte1", "byte2", "byte4", "word"
+	"byte", "byte1", "byte2", "byte4", "word", "alias"
 ];
 
 alias AssemblerTokens = TypeTuple!(TokOperators, TokDynamic, TokKeywords);
@@ -312,7 +312,7 @@ public const(Token)[] tokenise(ubyte[] sourceCode)
 	auto output = appender!(typeof(return))();
 	auto lexer = AssemblerLexer(sourceCode, cache);
 	size_t tokenCount;
-	while (!lexer.empty) 
+	while (!lexer.empty)
 	{
 		switch (lexer.front.type)
 		{
