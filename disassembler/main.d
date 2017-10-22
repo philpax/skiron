@@ -14,7 +14,7 @@ import common.program;
 void main(string[] args)
 {
 	enforce(args.length >= 2, "Expected at least one argument");
-	
+
 	Program program;
 	auto file = cast(ubyte[])args[1].read();
 
@@ -28,6 +28,8 @@ void main(string[] args)
 		foreach (section; program.sections)
 			writefln("  %s: 0x%X -> 0x%X", section.name, section.begin, section.end);
 	}
+
+	writefln("Text: 0x%X -> 0x%X", program.textBegin, program.textEnd);
 
 	OpcodeDescriptor[ubyte] descriptors;
 
