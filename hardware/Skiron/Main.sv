@@ -6,18 +6,18 @@ module Main
 );
     parameter TestOpcode = 32'b11000110_00000000_00111011_10001000;
 
-    wire [5:0]  opcode;
-    wire [1:0]  encoding;
-    wire [1:0]  variant;
+    reg [5:0]  opcode;
+    reg [1:0]  encoding;
+    reg [1:0]  variant;
 
-    wire [5:0]  register1;
-    wire [5:0]  register2;
-    wire [5:0]  register3;
-    wire [15:0] immediateU16;
-    wire [19:0] immediateS20;
-    wire [7:0]  immediateS8;
+    reg [5:0]  register1;
+    reg [5:0]  register2;
+    reg [5:0]  register3;
+    reg [15:0] immediateU16;
+    reg [19:0] immediateS20;
+    reg [7:0]  immediateS8;
 
-    wire [1:0]  operandSize;
+    reg [1:0]  operandSize;
 
     OpcodeDecoder opcodeDecoder
     (
