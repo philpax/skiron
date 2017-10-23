@@ -3,18 +3,18 @@ module OpcodeDecoder
     input   [31:0]      Opcode,
     input               Clock,
 
-    output wire [5:0]    opcode,
-    output wire [1:0]    encoding,
-    output wire [1:0]    variant,
+    output wire [5:0]   opcode,
+    output wire [1:0]   encoding,
+    output wire [1:0]   variant,
 
-    output wire [5:0]    register1,
-    output wire [5:0]    register2,
-    output wire [5:0]    register3,
-    output wire [15:0]   immediateU16,
-    output wire [19:0]   immediateS20,
-    output wire [7:0]    immediateS8,
+    output wire [5:0]   register1,
+    output wire [5:0]   register2,
+    output wire [5:0]   register3,
+    output wire [15:0]  immediateU16,
+    output wire [19:0]  immediateS20,
+    output wire [7:0]   immediateS8,
 
-    output wire [1:0]    operandSize
+    output wire [1:0]   operandSize
 );
     wire    [7:0] byte1 = Opcode[31:24];
     wire    [7:0] byte2 = Opcode[23:16];
