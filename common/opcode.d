@@ -4,10 +4,11 @@ import common.cpu;
 import common.util;
 import common.encoding;
 
-import std.traits : EnumMembers, Identity;
+import std.traits : EnumMembers;
 
 enum OpcodeBitCount = 6;
 enum OpcodeCount = (1 << OpcodeBitCount);
+alias Identity(alias A) = A;
 
 mixin EnumDocumentedDefault!("Variant",
 	"Identity",
