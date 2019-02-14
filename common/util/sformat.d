@@ -1,6 +1,6 @@
 module common.util.sformat;
 
-private size_t autoFormat(FmtArgs...)(char[] buffer, size_t index, const(char)* fmt, FmtArgs fmtArgs)
+private size_t autoFormat(FmtArgs...)(char[] buffer, size_t index, const(char)* fmt, FmtArgs fmtArgs) @nogc nothrow
 {
 	import core.stdc.stdio : snprintf;
 	import core.stdc.string : memcpy;
@@ -8,7 +8,7 @@ private size_t autoFormat(FmtArgs...)(char[] buffer, size_t index, const(char)* 
 	import common.util.stackbuffer : StackBuffer;
 
 	StackBuffer!1024 argBuffer;
-	argBuffer.allocate(snprintf(null, 0, fmt, fmtArgs));
+	argBuffer.allocate(snprintf(null, 0, fmt, fmtArgs) + 1);
 
 	auto size = snprintf(cast(char*)argBuffer.ptr, argBuffer.length, fmt, fmtArgs);
 	memcpy(buffer.ptr + index, argBuffer.ptr, min(argBuffer.length, buffer.length - index));
