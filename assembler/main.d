@@ -57,6 +57,7 @@ struct Assembler
 
 	ProgramSection[] sections;
 	const(Token)[] tokens;
+	bool flat;
 	uint[] output;
 
 	Relocation[] relocations;
@@ -73,9 +74,10 @@ struct Assembler
 	alias AssembleFunction = bool function(ref Assembler, ref const(OpcodeDescriptor));
 	immutable AssembleFunction[string] pseudoAssemble;
 
-	this(const(Token)[] tokens)
+	this(const(Token)[] tokens, bool flat)
 	{
 		this.tokens = tokens;
+		this.flat = flat;
 
 		foreach (member; EnumMembers!Opcodes)
 			this.descriptors[member.name] ~= member;
@@ -200,14 +202,19 @@ struct Assembler
 
 	void assemble()
 	{
-		auto programSectionPoint = this.writeHeader();
+		uint programSectionPoint = 0;
+		if (!flat) {
+			programSectionPoint = this.writeHeader();
+		}
 
 		// Parse tokens until either we run out or we hit an EOF
 		while (!this.tokens.empty)
 			if (!this.parseToken(this.tokens.front))
 				break;
 
-		this.rewriteSections(programSectionPoint);
+		if (!flat) {
+			this.rewriteSections(programSectionPoint);
+		}
 		this.completeRelocations();
 	}
 }
@@ -216,7 +223,8 @@ void main(string[] args)
 {
 	import std.getopt, std.process;
 	bool disassemble = false;
-	args.getopt("disassemble|d", &disassemble);
+	bool flat = false;
+	args.getopt("disassemble|d", &disassemble, "flat", &flat);
 
 	errorIf(args.length < 2, "expected at least one argument");
 	string inputPath = args[1];
@@ -224,11 +232,11 @@ void main(string[] args)
 	string outputPath = args.length >= 3 ? args[2] : inputPath.setExtension("bin");
 
 	auto tokens = (cast(ubyte[])inputPath.read()).tokenise();
-	auto assembler = Assembler(tokens);
+	auto assembler = Assembler(tokens, flat);
 	assembler.assemble();
 
 	std.file.write(outputPath, assembler.output);
 
 	if (disassemble)
-		["disassembler".getSkironExecutablePath(), outputPath].execute.output.writeln();
+		["disassembler".getSkironExecutablePath(), outputPath, flat ? "--flat" : ""].execute.output.writeln();
 }
