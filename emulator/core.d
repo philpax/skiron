@@ -45,10 +45,9 @@ string generateOpcodeRunners()
 
 string generateOpcodeSwitch()
 {
-	string s =
-`final switch (opcode.a.opcode)
-{
-`;
+	string s = "";
+	bool first = true;
+
 	foreach (member; EnumMembers!Opcodes)
 	{
 		enum memberName = member.to!string();
@@ -63,10 +62,15 @@ string generateOpcodeSwitch()
 		}
 		else
 		{
+			if (!first) {
+				s ~= "else ";
+			}
+			first = false;
+
 			if (member.operandFormat.supportsOperandSize)
 			{
 				s ~= format(
-`case Opcodes.%1$s.opcode:
+`if (opcode.a.opcode == Opcodes.%1$s.opcode && opcode.a.encoding == Encoding.%2$s) {
 	final switch (opcode.a.operandSize)
 	{
 		case OperandSize.Byte:
@@ -79,22 +83,19 @@ string generateOpcodeSwitch()
 			this.run%1$s!uint(opcode);
 			break;
 	}
-	break;
-`,
-				memberName);
+}`,
+				memberName, member.encoding);
 			}
 			else
 			{
 				s ~= format(
-`case Opcodes.%1$s.opcode:
+`if (opcode.a.opcode == Opcodes.%1$s.opcode && opcode.a.encoding == Encoding.%2$s) {
 	this.run%1$s(opcode);
-	break;
-`,
-				memberName);
+}`,
+				memberName, member.encoding);
 			}
 		}
 	}
-	s ~= "}\n";
 	return s;
 }
 

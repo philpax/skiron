@@ -155,7 +155,7 @@ struct OpcodeDescriptor
 	string operation;
 	bool pseudoOpcode;
 
-	@property Encoding encoding() const
+	@property Encoding encoding() const @nogc nothrow
 	{
 		return this.operandFormat.encoding;
 	}
@@ -181,7 +181,7 @@ enum Opcodes
 	AddA	= OpcodeDescriptor("add",		4,  OperandFormat.DstSrcSrc,
 		"Add `src1` and `src2` together, and store the result in `dst`.",
 		q{dst = src1 + src2}),
-	AddD	= OpcodeDescriptor("add",		6, OperandFormat.DstSrcImm,
+	AddD	= OpcodeDescriptor("add",		4, OperandFormat.DstSrcImm,
 		"Add the immediate to `src`, and store the result in `dst`."),
 	Sub		= OpcodeDescriptor("sub",		7,  OperandFormat.DstSrcSrc,
 		"Subtract `src2` from `src1`, and store the result in `dst`.",
@@ -281,15 +281,33 @@ unittest
 	assert(opcode.register3 == cast(Register)2);
 }
 
-OpcodeDescriptor opcodeToDescriptor(ubyte opcode) @nogc nothrow
+import std.traits: EnumMembers;
+alias OpcodeDescriptorBuffer = OpcodeDescriptor[EnumMembers!(OperandFormat).length];
+OpcodeDescriptor[] opcodeToDescriptor(ubyte opcode, OpcodeDescriptorBuffer buffer) @nogc nothrow
 {
 	import std.traits : EnumMembers;
 
-	foreach (member; EnumMembers!Opcodes)
-		if (opcode == member.opcode)
-			return member;
+	size_t index = 0;
+	foreach (member; EnumMembers!Opcodes) {
+		if (opcode == member.opcode && !member.pseudoOpcode) {
+			buffer[index++] = member;
+		}
+	}
 
-	assert(0);
+	auto descriptors = buffer[0..index];
+	assert(descriptors.length);
+	return descriptors;
+}
+
+OpcodeDescriptor getDescriptor(Opcode opcode) @nogc nothrow
+{
+	import std.algorithm : find;
+	import std.range : zip, repeat, front;
+
+	OpcodeDescriptorBuffer buffer;
+	auto descriptors = opcodeToDescriptor(opcode.a.opcode, buffer);
+
+	return descriptors.find!("a.encoding == b")(opcode.a.encoding).front;
 }
 
 char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
@@ -298,7 +316,7 @@ char[] disassemble(Opcode opcode, char[] output) @nogc nothrow
 
 	char[16][3] buffers;
 
-	auto descriptor = opcode.a.opcode.opcodeToDescriptor();
+	auto descriptor = opcode.getDescriptor();
 
 	string sizePrefix = "";
 	if (descriptor.operandFormat.supportsOperandSize)
