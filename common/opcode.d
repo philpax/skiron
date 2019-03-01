@@ -126,24 +126,45 @@ struct OperandFormatDescriptor
 	string description;
 }
 
+// Ordering of this enum is important.
+// It controls the order in which metaprogramming code, including the
+// assembler, will choose to handle operand formats.
+// More complex formats should come first to ensure that more complex
+// parses are attempted before simpler parsers.
 enum OperandFormat
 {
+	DstSrcImm	= OperandFormatDescriptor("DstSrcImm", Encoding.D, true,
+		"Destination (register), source1 (register), source2 (immediate)"),
+	DstSrcSrc	= OperandFormatDescriptor("DstSrcSrc", Encoding.A, true,
+		"Destination (register), source (register), source (register)"),
+	DstSrc		= OperandFormatDescriptor("DstSrc", Encoding.A, true,
+		"Destination (register), source (register)"),
+	DstUimm		= OperandFormatDescriptor("DstUimm", Encoding.B, false,
+		"Destination (register), source (unsigned immediate)"),
+	Label		= OperandFormatDescriptor("Label", Encoding.C, false,
+		"Label (immediate)"),
 	Dst			= OperandFormatDescriptor("Dst", Encoding.A, true,
 		"Destination (register)"),
 	Uimm		= OperandFormatDescriptor("Uimm", Encoding.B, false,
 		"Source (unsigned immediate)"),
-	DstSrc		= OperandFormatDescriptor("DstSrc", Encoding.A, true,
-		"Destination (register), source (register)"),
-	DstSrcSrc	= OperandFormatDescriptor("DstSrcSrc", Encoding.A, true,
-		"Destination (register), source (register), source (register)"),
-	DstUimm		= OperandFormatDescriptor("DstUimm", Encoding.B, false,
-		"Destination (register), source (unsigned immediate)"),
-	DstSrcImm	= OperandFormatDescriptor("DstSrcImm", Encoding.D, true,
-		"Destination (register), source1 (register), source2 (immediate)"),
-	Label		= OperandFormatDescriptor("Label", Encoding.C, false,
-		"Label (immediate)"),
 	None		= OperandFormatDescriptor("None", Encoding.A, false,
 		"No operands")
+}
+
+auto sortIndex(OperandFormatDescriptor ofd)
+{
+	size_t index = 0;
+	foreach (operandFormat; EnumMembers!OperandFormat)
+	{
+		if (operandFormat.name == ofd.name)
+		{
+			return index;
+		}
+
+		index++;
+	}
+
+	assert(false);
 }
 
 struct OpcodeDescriptor

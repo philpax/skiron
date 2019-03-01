@@ -80,7 +80,14 @@ struct Assembler
 		this.flat = flat;
 
 		foreach (member; EnumMembers!Opcodes)
+		{
 			this.descriptors[member.name] ~= member;
+		}
+
+		foreach (instruction, descriptor; this.descriptors)
+		{
+			descriptor.sort!((a, b) => a.operandFormat.sortIndex < b.operandFormat.sortIndex);
+		}
 
 		// Construct the AA of pseudoinstructions => assemble functions
 		auto generatePseudoAssemble()
