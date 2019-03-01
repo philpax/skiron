@@ -26,7 +26,7 @@ nothrow:
 
 	void name(string s) @property
 	{
-		this.nameRaw[] = s;
+		this.nameRaw[0..s.length] = s;
 		this.nameRaw[s.length] = '\0';
 	}
 
