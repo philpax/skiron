@@ -41,7 +41,35 @@ string writeOpcodes()
 				file.writeln();
 		}
 
-		file.writefln("## %s", descriptor.name);
+		file.writef("## %s ", descriptor.name);
+		final switch (descriptor.operandFormat.name)
+		{
+		case OperandFormat.DstSrc.name:
+			file.write("dst, src");
+			break;
+		case OperandFormat.DstSrcSrc.name:
+			file.write("dst, src, src");
+			break;
+		case OperandFormat.DstUimm.name:
+			file.write("dst, uimm");
+			break;
+		case OperandFormat.DstSrcImm.name:
+			file.write("dst, src, imm");
+			break;
+		case OperandFormat.Label.name:
+			file.write("label");
+			break;
+		case OperandFormat.None.name:
+			break;
+		case OperandFormat.Uimm.name:
+			file.write("uimm");
+			break;
+		case OperandFormat.Dst.name:
+			file.write("dst");
+			break;
+		}
+		file.writeln();
+
 		file.writeln(descriptor.description);
 		file.writeln();
 		file.write("* *Opcode*: ");
@@ -77,28 +105,6 @@ string writeOpcodes()
 			}
 		}).join(", ").capitalize();
 		file.writefln("%s (`%s`)", operandFormat, descriptor.operandFormat.name);
-/*
-		switch (descriptor.operandFormat.name)
-		{
-		case OperandFormat.DstSrc.name:
-			file.writeln("`dst, src`");
-			break;
-		case OperandFormat.DstSrcSrc.name:
-			file.writeln("`dst, src, src`");
-			break;
-		case OperandFormat.DstUimm.name:
-			file.writeln("`dst, imm`");
-			break;
-		case OperandFormat.DstSrcImm.name:
-			file.writeln("`dst, src, imm`");
-			break;
-		case OperandFormat.Label.name:
-			file.writeln("`label`");
-			break;
-		default:
-			assert(0);
-		}*/
-		
 		file.writeln();
 	}
 
