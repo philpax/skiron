@@ -32,9 +32,13 @@ string generateOpcodeRunners()
 		if (member.operation.empty)
 			continue;
 
-		auto operation = member.operation.replace("dst =", "core.dst!Type(opcode) = cast(Type)(")
-										 .replace("src1", "core.src1!Type(opcode)")
-										 .replace("src2", "core.src2!Type(opcode)");
+		auto operation = member.operation.replace("$dst = ", "core.dst!Type(opcode) = cast(Type)(")
+										 .replace("$imm", "core.immediate(opcode)")
+										 .replace("$src1", "core.src1!Type(opcode)")
+										 .replace("$src2", "core.src2!Type(opcode)")
+										 .replace("$dst", "core.dst!Type(opcode)")
+										 .replace("$src", "core.src!Type(opcode)")
+										 ;
 
 		operation ~= ")";
 		ret ~= sizedTemplate.format(member.to!string(), operation);
@@ -204,17 +208,14 @@ int immediate(ref Core core, Opcode opcode)
 	}
 }
 
-Type src(Type = uint)(ref Core core, Opcode opcode)
+Type src1(Type = uint)(ref Core core, Opcode opcode)
 {
 	return opcode.doVariant(cast(Type)core.registers[opcode.a.register2]);
-}
-
-ref Type src1(Type = uint)(ref Core core, Opcode opcode)
-{
-	return *cast(Type*)&core.registers[opcode.a.register2];
 }
 
 Type src2(Type = uint)(ref Core core, Opcode opcode)
 {
 	return opcode.doVariant(cast(Type)core.registers[opcode.a.register3]);
 }
+
+alias src = src1;
