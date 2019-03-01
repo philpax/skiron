@@ -240,7 +240,8 @@ enum Opcodes
 		q{$dst = $src / $imm}),
 
 	Not		= OpcodeDescriptor("not",		10,  OperandFormat.DstSrc,
-		"Bitwise-NOT `src`, and store the result in `dst`."),
+		"Bitwise-NOT `src`, and store the result in `dst`.",
+		q{$dst = ~$src}),
 	And		= OpcodeDescriptor("and",		11,  OperandFormat.DstSrcSrc,
 		"Bitwise-AND `src1` with `src2`, and store the result in `dst`.",
 		q{$dst = $src1 & $src2}),
